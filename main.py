@@ -5,6 +5,9 @@ from sqlalchemy.orm import Session
 from database import getdb
 from pydantic import ValidationError
 from fastapi.responses import JSONResponse
+import os
+import uuid
+from datetime import datetime
 
 
 
@@ -16,22 +19,30 @@ def root():
     return msg
 
 
-@app.post('/person/', response_model=PersonBase)
-def create_person(person: PersonBase,  db: Session = Depends(getdb)):
-    print(image)
+# @app.post('/person/', response_model=PersonBase)
+# def create_person(person: PersonBase,  db: Session = Depends(getdb)):
+   
   
-    try:
-        db_person = PersonModel(**person.model_dump())
-        db.add(db_person)
-        db.commit()
-        db.refresh(db_person)
-        return person
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(status_code=500,detail=str(e))
-# @app.post("/person/")
-# async def create_upload_file(file: UploadFile):
-#     return {"filename": file.filename}
+#     try:
+#         db_person = PersonModel(**person.model_dump())
+#         db.add(db_person)
+#         db.commit()
+#         db.refresh(db_person)
+#         return person
+#     except Exception as e:
+#         db.rollback()
+#         raise HTTPException(status_code=500,detail=str(e))
+@app.post("/person/")
+async def create_upload_files(files: list[UploadFile]):
+    for file in files:
+        upload_dir = "Upload"
+        os.makedirs(upload_dir, exist_ok=True)
+        unique_filename = f"{datetime.now().strftime('%Y%m%d%H%M%S')}_{str(uuid.uuid4())}_{file.filename}"
+        file_path = os.path.join(upload_dir,unique_filename)
+        with open(file_path,"wb") as f:
+            f.write(file.file.read())
+
+    return {"filenames": [file.filename for file in files]}
     
 #get all person data    
 @app.get('/person/',response_model=list[PersonBase])
