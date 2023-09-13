@@ -1,4 +1,4 @@
-from fastapi import FastAPI,Depends,HTTPException
+from fastapi import FastAPI,Depends,HTTPException,UploadFile,File,Form,Query
 from schemas import *
 from models import *
 from sqlalchemy.orm import Session
@@ -8,10 +8,25 @@ from fastapi.responses import JSONResponse
 import os
 import uuid
 from datetime import datetime
-
-
-
+import json
+from typing import Annotated
+from fastapi.middleware.cors import CORSMiddleware
+origins = ["*"]  # Replace with your allowed origins (e.g., ["http://localhost:3000"])
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],  # You can specify specific HTTP methods here (e.g., ["GET", "POST"])
+    allow_headers=["*"],  # You can specify specific HTTP headers here
+)
+
+
+
+
+
+
 
 @app.get('/')
 def root():
@@ -19,32 +34,58 @@ def root():
     return msg
 
 
-# @app.post('/person/', response_model=PersonBase)
-# def create_person(person: PersonBase,  db: Session = Depends(getdb)):
-   
-  
-#     try:
-#         db_person = PersonModel(**person.model_dump())
-#         db.add(db_person)
-#         db.commit()
-#         db.refresh(db_person)
-#         return person
-#     except Exception as e:
-#         db.rollback()
-#         raise HTTPException(status_code=500,detail=str(e))
-@app.post("/person/")
-async def create_upload_files(files: list[UploadFile]):
-    for file in files:
-        upload_dir = "Upload"
-        os.makedirs(upload_dir, exist_ok=True)
-        unique_filename = f"{datetime.now().strftime('%Y%m%d%H%M%S')}_{str(uuid.uuid4())}_{file.filename}"
-        file_path = os.path.join(upload_dir,unique_filename)
-        with open(file_path,"wb") as f:
-            f.write(file.file.read())
+@app.post('/person/',)
+async def create_person( Name: str = Form(...),
+                Mobile_Number: int = Form(...),
+                Email: EmailStr|None = Form(None),
+                Age: int = Form(...),
+                Gender: str = Form(...),
+                Address: str = Form(...),
+                Status: str = Form(...),
+                Images: list[UploadFile] = File(...),
+                db: Session = Depends(getdb),
+            ):
+            try:
+                    try:  
+                        person_data = PersonModel(
+                            Name=Name,
+                            Mobile_Number=Mobile_Number,
+                            Email=Email,
+                            Age=Age,
+                            Gender=Gender,
+                            Address=Address,
+                            Status=Status)
+                        db.add(person_data)
+                        db.commit()
+                        # return {"message": "Person created successfully"}
+                    except Exception as e:
+                         db.rollback()
+                         raise HTTPException(status_code=400,detail="An error occurred while processing your request.")
+                    try:
+                         StoreImage = "Static/Images/Person_Image"
+                         os.makedirs(StoreImage,exist_ok=True)
+                         for img in Images:
+                            unique_filename = f"{datetime.now().strftime('%Y%m%d%H%M%S')}_{img.filename}"
+                            file_path = os.path.join(StoreImage,unique_filename)
+                            with open(file_path,"wb") as f:
+                                 f.write(img.file.read())
+                            imageModel = PersonImgModel(file_path=unique_filename,Person_id=person_data.id)
+                            db.add(imageModel)
+                         db.commit()
+                         return{"msg":"Person has been save successfully"}   
+                    except Exception as e:
+                         raise HTTPException(status_code=400,detail="An error occurred while processing your request.")
+                     
+            except Exception as e:
+                 raise HTTPException(status_code=400,detail="An error occurred while processing your request.")        
+                              
+                         
+                    
 
-    return {"filenames": [file.filename for file in files]}
-    
-#get all person data    
+  
+   
+
+   
 @app.get('/person/',response_model=list[PersonBase])
 async def get_all_personData(db: Session = Depends(getdb)):
     """ get all person data"""

@@ -13,8 +13,8 @@ class PersonBase(BaseModel):
     Status:str
     # Imagess:UploadFile = File(...)
 
-class PersonImageBase(BaseModel):
-    id:int
-    person_id : int
-    image:UploadFile 
-    # face_encoder : bytes  
+# class PersonImageBase(BaseModel):
+#     id:int
+#     person_id : int
+#     image:UploadFile 
+#     # face_encoder : bytes  

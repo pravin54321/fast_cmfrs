@@ -18,7 +18,7 @@ class PersonModel(Base):
 class PersonImgModel(Base):
     __tablename__="personimg"
     id = Column(Integer,primary_key=True,index=True)
-    Image =Column(String(255))
+    file_path = Column(String(255))
     # face_encoding = Column(LargeBinary)
     Person_id = Column(Integer,ForeignKey('person.id'))
     Person = relationship('PersonModel',back_populates='Image')
