@@ -8,8 +8,8 @@ class PersonModel(Base):
     __tablename__="person"
     id = Column(Integer,primary_key=True,index=True)
     Name = Column(String(255))
-    Mobile_Number = Column(Integer)
-    Email = Column(String(255))
+    Mobile_Number = Column(String(12))
+    Email = Column(String(255),unique=True)
     Age = Column(Integer)
     Gender = Column(String(50))
     Address = Column(Text)

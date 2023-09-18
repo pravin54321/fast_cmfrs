@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from database import getdb
 from pydantic import ValidationError
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 import os
 import uuid
 from datetime import datetime
@@ -13,6 +14,7 @@ from typing import Annotated
 from fastapi.middleware.cors import CORSMiddleware
 origins = ["*"]  # Replace with your allowed origins (e.g., ["http://localhost:3000"])
 app = FastAPI()
+app.mount("/Static",StaticFiles(directory="Static") , name="images")
 
 app.add_middleware(
     CORSMiddleware,
@@ -33,7 +35,7 @@ def root():
     msg="Hellow"
     return msg
 
-
+#------------------------person_information------------------------------------
 @app.post('/person/',)
 async def create_person( Name: str = Form(...),
                 Mobile_Number: int = Form(...),
@@ -45,6 +47,7 @@ async def create_person( Name: str = Form(...),
                 Images: list[UploadFile] = File(...),
                 db: Session = Depends(getdb),
             ):
+         
             try:
                     try:  
                         person_data = PersonModel(
@@ -79,18 +82,14 @@ async def create_person( Name: str = Form(...),
             except Exception as e:
                  raise HTTPException(status_code=400,detail="An error occurred while processing your request.")        
                               
-                         
-                    
-
-  
-   
-
-   
-@app.get('/person/',response_model=list[PersonBase])
+@app.get('/person/',response_model=list[PersonImage])
 async def get_all_personData(db: Session = Depends(getdb)):
     """ get all person data"""
-    person = db.query(PersonModel).all()
-    return person
+    try:
+        person = db.query(PersonModel).all()
+        return person
+    except Exception as e:
+         raise HTTPException(status_code=400,detail=str(e))
 #get singale person
 @app.get('/person/{person_id}',response_model=PersonBase)
 async def get_person( person_id:int,db: Session = Depends(getdb)):

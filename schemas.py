@@ -1,20 +1,36 @@
 from pydantic import BaseModel,EmailStr
 from fastapi import UploadFile
 from datetime import date
+from typing import Union
+class ImageBase(BaseModel):
+  
+    Person_id : int
+    file_path:str
+  
+class image(ImageBase):
+    id:int
+    class Config:
+        orm_mode:True
+
+    
+
 #person_base
 class PersonBase(BaseModel):
-    id:int | None =None
+ 
     Name: str
     Mobile_Number: int
-    Email:EmailStr
+    Email:EmailStr|None =None
     Age:int
     Gender:str
     Address:str
     Status:str
-    # Imagess:UploadFile = File(...)
+  
+    # # Imagess:UploadFile = File(...)
+class PersonImage(PersonBase):
+    id:int
+    Image: list[image] = []
+    class Config:
+        orm_mode = True
 
-# class PersonImageBase(BaseModel):
-#     id:int
-#     person_id : int
-#     image:UploadFile 
-#     # face_encoder : bytes  
+
+
