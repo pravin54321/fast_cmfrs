@@ -153,6 +153,9 @@ class SearchImage:
         retrive_df = retrive_df.sort_values(by=['distance']).reset_index(drop=True)
         retrive_df = retrive_df[['Pson_Id', 'distance']]
         return retrive_df
+    async def FinalResult(self,result):
+         for index ,instance in result.iterrows():
+             print(instance.distance,"------->",instance.Pson_Id)
 
 
         #     instance =[]

@@ -52,16 +52,40 @@ async def create_person( Name: str = Form(...),
                  raise HTTPException(status_code=400,detail=str(e)) 
                 #  return {"error":str(e)}    
 #_______________testing_image_____________
-@router.post('/test')
-async def encoding(img:UploadFile, db: Session = Depends(getdb)):
-    person_id = 1  # Define the person ID as needed
-    a = imgprocess(img, person_id,db)
-    await a.store_img("face_image")
-    await a.facedetection()
-    await a.facelandmark()
-    await a.embedding()
-    return {"message": "Image stored successfully"}
-   
+@router.post('/test',response_model=list[PersonImageDistance])
+async def encoding( db: Session = Depends(getdb)):
+  data = []
+  l = (1,2,3)
+  for id in l:
+        person = db.query(PersonModel).filter(PersonModel.id == id).first()
+        
+        if person:
+            # Extract data from PersonModel and create a PersonImageDistance object
+            image_distances = []
+            for image in person.Image:
+                image_data = {
+                    "Person_id": image.Person_id,
+                    "file_path": image.file_path,
+                    "id": image.id
+                }
+                image_distances.append(image_data)
+
+            image_distance = PersonImageDistance(
+                id=person.id,
+                Name=person.Name,
+                Email=person.Email,
+                Age=person.Age,
+                Address=person.Address,
+                Gender=person.Gender,
+                Status=person.Status,
+                Mobile_Number=person.Mobile_Number,
+                distance=10,  # Adjust this based on your requirement
+                Image=image_distances  # List of image dictionaries
+            )
+            data.append(image_distance)
+    
+  return data
+    
 # serach  a singale person
 @router.post('/search',tags=['singale_image'])
 async def serachimg(img:UploadFile = File(..., media_type="image/jpeg, image/png"),db: Session = Depends(getdb)): 
@@ -73,14 +97,14 @@ async def serachimg(img:UploadFile = File(..., media_type="image/jpeg, image/png
         embedding=await obj.embedding(None,None)
         obj_01 = SearchImage(embedding,db)
         result = await obj_01.SingaleImageSearch_02()
-        json_result = result.to_json(orient='records')
-        return JSONResponse(content={'data':json_result})     
-        # id_return =await obj_01.SingaleImageSearch()
-        # person = db.query(PersonModel).filter(PersonModel.id==id_return).first()
-        # return person
-
-       
-       
+        await obj_01.FinalResult(result)
+        print(result)
+        # json_result = result.to_json(orient='records')
+        # return JSONResponse(content={'data':json_result})     
+        # # id_return =await obj_01.SingaleImageSearch()
+        # # person = db.query(PersonModel).filter(PersonModel.id==id_return).first()
+        # # return person
+        return result
     except Exception as e:
         raise MyCustomeException(detail=str(e))
         

@@ -32,5 +32,12 @@ class PersonImage(PersonBase):
     class Config:
         orm_mode = True
 
+class PersonImageDistance(PersonBase):
+    id:int 
+    Image:list[image] = []
+    distance:float | None=None
+    class config:
+        orm_mode =True       
+
 
 
