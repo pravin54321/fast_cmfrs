@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 
 
-SQLALCHEMY_DATABASE_URL = "mysql+mysqlconnector://root@localhost:3306/cmfrs_test"
+SQLALCHEMY_DATABASE_URL = "mysql+mysqlconnector://root@localhost:3306/cmfrs"
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 SessionLocal = sessionmaker(autoflush=False,autocommit=False,bind= engine)
 

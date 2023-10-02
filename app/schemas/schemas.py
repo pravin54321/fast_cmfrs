@@ -18,7 +18,7 @@ class image(ImageBase):
 class PersonBase(BaseModel):
  
     Name: str
-    Mobile_Number: int
+    Mobile_Number: str
     Email:EmailStr|None =None
     Age:int
     Gender:str

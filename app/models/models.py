@@ -1,7 +1,8 @@
 from sqlalchemy import Column,Integer,String,Text,ForeignKey,LargeBinary
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
-from database import Base,engine
+from ..database import Base,engine
+target_metadata = Base.metadata
 
 
 class PersonModel(Base):
@@ -19,7 +20,7 @@ class PersonImgModel(Base):
     __tablename__="personimg"
     id = Column(Integer,primary_key=True,index=True)
     file_path = Column(String(255))
-    # face_encoding = Column(LargeBinary)
+    face_encoding = Column(Text)
     Person_id = Column(Integer,ForeignKey('person.id'))
     Person = relationship('PersonModel',back_populates='Image')
 
