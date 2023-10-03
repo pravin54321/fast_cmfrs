@@ -63,13 +63,8 @@ async def encoding( db: Session = Depends(getdb)):
             # Extract data from PersonModel and create a PersonImageDistance object
             image_distances = []
             for image in person.Image:
-                image_data = {
-                    "Person_id": image.Person_id,
-                    "file_path": image.file_path,
-                    "id": image.id
-                }
-                image_distances.append(image_data)
-
+                image_data =[{'Person_id':image.Person_id,'file_path':image.file_path,'id':image.id} for image in person.Image] 
+                  
             image_distance = PersonImageDistance(
                 id=person.id,
                 Name=person.Name,
@@ -80,7 +75,7 @@ async def encoding( db: Session = Depends(getdb)):
                 Status=person.Status,
                 Mobile_Number=person.Mobile_Number,
                 distance=10,  # Adjust this based on your requirement
-                Image=image_distances  # List of image dictionaries
+                Image=[{'Person_id':image.Person_id,'file_path':image.file_path,'id':image.id} for image in person.Image]
             )
             data.append(image_distance)
     
@@ -97,14 +92,14 @@ async def serachimg(img:UploadFile = File(..., media_type="image/jpeg, image/png
         embedding=await obj.embedding(None,None)
         obj_01 = SearchImage(embedding,db)
         result = await obj_01.SingaleImageSearch_02()
-        await obj_01.FinalResult(result)
+        data = await obj_01.FinalResult(result)
         print(result)
         # json_result = result.to_json(orient='records')
         # return JSONResponse(content={'data':json_result})     
         # # id_return =await obj_01.SingaleImageSearch()
         # # person = db.query(PersonModel).filter(PersonModel.id==id_return).first()
         # # return person
-        return result
+        return data
     except Exception as e:
         raise MyCustomeException(detail=str(e))
         

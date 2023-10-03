@@ -154,8 +154,30 @@ class SearchImage:
         retrive_df = retrive_df[['Pson_Id', 'distance']]
         return retrive_df
     async def FinalResult(self,result):
-         for index ,instance in result.iterrows():
-             print(instance.distance,"------->",instance.Pson_Id)
+        data = []
+        for index ,instance in result.iterrows():
+          
+            person = self.db.query(PersonModel).filter(PersonModel.id ==int(instance.Pson_Id)).first()
+            if person:
+                image_distance = PersonImageDistance(
+                    id=person.id,
+                    Name=person.Name,
+                    Email=person.Email,
+                    Age=person.Age,
+                    Address=person.Address,
+                    Gender=person.Gender,
+                    Status=person.Status,
+                    Mobile_Number=person.Mobile_Number,
+                    distance=instance.distance,  # Adjust this based on your requirement
+                    Image=[{'Person_id':image.Person_id,'file_path':image.file_path,'id':image.id} for image in person.Image]
+                )
+                data.append(image_distance)
+        return data
+           
+                
+
+                     
+             
 
 
         #     instance =[]
