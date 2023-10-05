@@ -16,7 +16,6 @@ class image(ImageBase):
 
 #person_base
 class PersonBase(BaseModel):
- 
     Name: str
     Mobile_Number: str
     Email:EmailStr|None =None
@@ -32,12 +31,26 @@ class PersonImage(PersonBase):
     class Config:
         orm_mode = True
 
-class PersonImageDistance(PersonBase):
-    id:int 
-    Image:list[image] = []
-    distance:float | None=None
+#______person_result_with__distance_______________
+class PersonBase2(BaseModel):
+    id:int
+    Name: str
+    Mobile_Number: str
+    Email:EmailStr|None =None
+    Age:int
+    Gender:str
+    Address:str
+    Status:str
     class config:
-        orm_mode =True       
+        orm_mode = True
+             
+class imagedata(ImageBase):
+    id:int
+    distance :float | None = None
+    Person:PersonBase2
+    class config:
+        orm_mode =True
+
 
 
 

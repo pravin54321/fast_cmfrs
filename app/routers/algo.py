@@ -144,36 +144,41 @@ class SearchImage:
     async def SingaleImageSearch_02(self):
         jsonDec = json.decoder.JSONDecoder()
         target_representation = np.array(self.targetemb)  
-        instances = [(data.Person_id, jsonDec.decode(data.face_encoding)) for data in self.db.query(PersonImgModel).all()]
-        retrive_df = pd.DataFrame(instances,columns=['Pson_Id','embedding'])
+        instances = [(data.Person_id,data.id, jsonDec.decode(data.face_encoding)) for data in self.db.query(PersonImgModel).all()]
+        retrive_df = pd.DataFrame(instances,columns=['Pson_Id','img_id','embedding'])
         target_duplicate = np.array([target_representation]*retrive_df.shape[0])
         retrive_df['target'] = target_duplicate.tolist()
         retrive_df['distance'] = retrive_df.apply(self.findEuclideanDistance_01,axis=1)
         retrive_df = retrive_df[retrive_df["distance"]<30]
         retrive_df = retrive_df.sort_values(by=['distance']).reset_index(drop=True)
-        retrive_df = retrive_df[['Pson_Id', 'distance']]
+        retrive_df = retrive_df[['Pson_Id',"img_id",'distance']]
         return retrive_df
     async def FinalResult(self,result):
         data = []
         for index ,instance in result.iterrows():
           
-            person = self.db.query(PersonModel).filter(PersonModel.id ==int(instance.Pson_Id)).first()
+            person = self.db.query(PersonImgModel).filter(PersonImgModel.id==int(instance.img_id)).first()
             if person:
-                image_distance = PersonImageDistance(
-                    id=person.id,
-                    Name=person.Name,
-                    Email=person.Email,
-                    Age=person.Age,
-                    Address=person.Address,
-                    Gender=person.Gender,
-                    Status=person.Status,
-                    Mobile_Number=person.Mobile_Number,
-                    distance=instance.distance,  # Adjust this based on your requirement
-                    Image=[{'Person_id':image.Person_id,'file_path':image.file_path,'id':image.id} for image in person.Image]
-                )
+                
+                image_distance = imagedata(
+                Person_id = person.Person.id, 
+                id=person.id,
+                file_path=person.file_path,
+                distance=instance.distance,  # Adjust this based on your requirement
+                Person={
+                    "id":person.Person.id,
+                    "Name":person.Person.Name,
+                    "Age":person.Person.Age,
+                    "Address":person.Person.Address,
+                    "Gender":person.Person.Gender,
+                    "Mobile_Number":person.Person.Mobile_Number,
+                    "Status":person.Person.Status,
+                    "Email":person.Person.Email,
+                }
+            )
                 data.append(image_distance)
         return data
-           
+       
                 
 
                      
