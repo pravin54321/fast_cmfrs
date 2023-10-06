@@ -15,13 +15,13 @@ class PersonModel(Base):
     Gender = Column(String(50))
     Address = Column(Text)
     Status = Column(String(255))
-    Image = relationship('PersonImgModel',back_populates='Person')
+    Image = relationship('PersonImgModel',back_populates='Person',cascade="all, delete-orphan")
 class PersonImgModel(Base):
     __tablename__="personimg"
     id = Column(Integer,primary_key=True,index=True)
     file_path = Column(String(255))
     face_encoding = Column(Text)
-    Person_id = Column(Integer,ForeignKey('person.id'))
+    Person_id = Column(Integer,ForeignKey('person.id'),nullable=False)
     Person = relationship('PersonModel',back_populates='Image')
 
 Base.metadata.create_all(bind=engine)

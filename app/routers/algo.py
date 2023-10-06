@@ -159,7 +159,6 @@ class SearchImage:
           
             person = self.db.query(PersonImgModel).filter(PersonImgModel.id==int(instance.img_id)).first()
             if person:
-                
                 image_distance = imagedata(
                 Person_id = person.Person.id, 
                 id=person.id,
@@ -184,23 +183,6 @@ class SearchImage:
                      
              
 
-
-        #     instance =[]
-        #     instance.append(data.Person_id)
-        #     source_emb = jsonDec.decode(data.face_encoding)
-        #     instance.append(source_emb)
-        #     instances.append(instance)
-        # retrive_df = pd.DataFrame(instances,columns=['person_id','embedding']) 
-        # target_duplicate = np.array([self.targetemb]*retrive_df.shape[0])
-        # retrive_df['target'] = target_duplicate.tolist()
-        # df= retrive_df.head()
-        # def findEuclideanDistance(row):
-        #     source = np.array(row['embedding'])
-        #     target = np.array(row['target'])
-        #     distance = (source - target)
-        #     return np.sqrt(np.sum(np.multiply(distance, distance)))    
-        # retrive_df['distance'] = retrive_df.apply(findEuclideanDistance, axis = 1)
-       
 
         
                   
