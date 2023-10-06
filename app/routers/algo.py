@@ -136,11 +136,11 @@ class SearchImage:
                 source_representetion = np.array(source_representetion)
                 # print(data.face_encoding.dtype)
                 distance = self.findEuclideanDistance(source_representetion,target_representation)
-                instances.append((distance,data.Person_id))
-        result = min(instances, key=lambda x: x[0])
-            # result = np.argmin(instances) 
-      
-        return result[1] 
+                instances.append((distance,data.id))
+        result = [min(instances, key=lambda x: x[0])]
+        instance = pd.DataFrame(result,columns=['distance','img_id'])
+        return instance
+          
     async def SingaleImageSearch_02(self):
         jsonDec = json.decoder.JSONDecoder()
         target_representation = np.array(self.targetemb)  

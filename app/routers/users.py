@@ -81,7 +81,8 @@ async def encoding( db: Session = Depends(getdb)):
     
 # serach  a singale person
 @router.post('/search',tags=['singale_image'])
-async def serachimg(img:UploadFile = File(..., media_type="image/jpeg, image/png"),db: Session = Depends(getdb)): 
+async def serachimg(img:UploadFile = File(..., media_type="image/jpeg, image/png"),
+                    type:str=type, db: Session = Depends(getdb)): 
     try:
         obj = imgprocess()
         await obj.store_img(img,"search_img")
@@ -89,14 +90,12 @@ async def serachimg(img:UploadFile = File(..., media_type="image/jpeg, image/png
         await obj.facelandmark("search_landmark")
         embedding=await obj.embedding(None,None)
         obj_01 = SearchImage(embedding,db)
+        if type=='one':
+           result = await obj_01.SingaleImageSearch_01()
+           data = await obj_01.FinalResult(result)
+           return data
         result = await obj_01.SingaleImageSearch_02()
         data = await obj_01.FinalResult(result)
-        print(result)
-        # json_result = result.to_json(orient='records')
-        # return JSONResponse(content={'data':json_result})     
-        # # id_return =await obj_01.SingaleImageSearch()
-        # # person = db.query(PersonModel).filter(PersonModel.id==id_return).first()
-        # # return person
         return data
     except Exception as e:
         raise MyCustomeException(detail=str(e))
