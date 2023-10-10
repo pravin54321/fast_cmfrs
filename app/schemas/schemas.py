@@ -51,6 +51,13 @@ class imagedata(ImageBase):
     class config:
         orm_mode =True
 
+#--------------------user_schema--------------------------
+class UserBase(BaseModel):
+    UserName:str
+    UserEmail: EmailStr
+class hash_password(UserBase):    
+    UserPassword: str        
+
 
 
 

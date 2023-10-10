@@ -24,4 +24,12 @@ class PersonImgModel(Base):
     Person_id = Column(Integer,ForeignKey('person.id'),nullable=False)
     Person = relationship('PersonModel',back_populates='Image')
 
+class UserModel(Base):
+    __tablename__='user'
+    id = Column(Integer,primary_key=True,index=True)
+    UserName = Column(String(50),nullable=False)
+    UserEmail = Column(String(200),nullable=False, unique=True)
+    UserPassword = Column(String(200))
+
+
 Base.metadata.create_all(bind=engine)

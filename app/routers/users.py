@@ -4,6 +4,25 @@ from ..dependencies import *
 from ..models.models import *
 from  ..schemas.schemas import *
 from .algo import imgprocess,SearchImage
+from .authentication import *
+
+#-----------------tokens-------------------------------------
+@router.post('/toke')
+def logine_for_acess_token(
+    form_data : Annotated[OAuth2PasswordRequestForm, Depends()]
+):
+    user = authuntication(form_data.username,form_data.password)
+    if not user:
+        raise HTTPException(
+               status_code=status.HTTP_401_UNAUTHORIZED,
+               detail="Incorrct Username and Password",
+               headers={"WWW-Authenticate": "Bearer"},
+          )
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+    data={"sub": user.username}, expires_delta=access_token_expires
+    )
+    return {"access_token": access_token, "token_type": "bearer"}
 
 #------------------------person_information------------------------------------
 @router.post('/person/',tags=['Person'])
@@ -143,4 +162,14 @@ async def person_delete(person_id:int,db: Session = Depends(getdb)):
     db.delete(person)
     db.commit()
     return {"msg":"Person has been deleted"}
+
+#-----------------------------user_creation-----------------------------------------------------------------------
+@router.post("/user",response_model=hash_password)
+async def user_creation(user:hash_password,db:Session=Depends(getdb)):
+    password = get_password_hash(user.UserPassword) 
+    user=UserModel(UserName=user.UserName,UserEmail=user.UserEmail,UserPassword=password)
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return user
 
