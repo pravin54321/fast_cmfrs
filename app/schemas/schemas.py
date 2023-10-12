@@ -52,9 +52,13 @@ class imagedata(ImageBase):
         orm_mode =True
 
 #--------------------user_schema--------------------------
+class TokenData(BaseModel):
+    username : Union[str,None] = None
+
 class UserBase(BaseModel):
     UserName:str
     UserEmail: EmailStr
+    disabled: Union[bool, None] = None
 class hash_password(UserBase):    
     UserPassword: str        
 

@@ -7,7 +7,7 @@ from .algo import imgprocess,SearchImage
 from .authentication import *
 
 #-----------------tokens-------------------------------------
-@router.post('/toke')
+@router.post('/token')
 def logine_for_acess_token(
     form_data : Annotated[OAuth2PasswordRequestForm, Depends()]
 ):
@@ -20,7 +20,7 @@ def logine_for_acess_token(
           )
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
-    data={"sub": user.username}, expires_delta=access_token_expires
+    data={"sub": user.UserName}, expires_delta=access_token_expires
     )
     return {"access_token": access_token, "token_type": "bearer"}
 
@@ -126,7 +126,7 @@ async def serachimg(img:UploadFile = File(..., media_type="image/jpeg, image/png
  
                               
 @router.get('/person/',response_model=list[PersonImage],tags=['Person'])
-async def get_all_personData(db: Session = Depends(getdb)):
+async def get_all_personData(current_user: Annotated[UserBase, Depends(get_current_active_user)],db: Session = Depends(getdb)):
     """ get all person data"""
     try:
         person = db.query(PersonModel).all()

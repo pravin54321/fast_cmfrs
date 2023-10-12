@@ -1,4 +1,4 @@
-from sqlalchemy import Column,Integer,String,Text,ForeignKey,LargeBinary
+from sqlalchemy import Column,Integer,String,Text,ForeignKey,LargeBinary,Boolean
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 from ..database import Base,engine
@@ -30,6 +30,7 @@ class UserModel(Base):
     UserName = Column(String(50),nullable=False)
     UserEmail = Column(String(200),nullable=False, unique=True)
     UserPassword = Column(String(200))
+    disabled =  Column(Boolean,default=True)
 
 
 Base.metadata.create_all(bind=engine)
