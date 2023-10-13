@@ -6,8 +6,23 @@ from  ..schemas.schemas import *
 from .algo import imgprocess,SearchImage
 from .authentication import *
 
-#-----------------tokens-------------------------------------
-@router.post('/token')
+
+#--------------------------Authuntication---------------------------------
+#-----------------signup-----------------------------
+@router.post("/signup",response_model=hash_password,tags=['Authentication'])
+async def user_creation(user:hash_password,db:Session=Depends(getdb)):
+    email = await check_duplicate_email(user.UserEmail)
+    if email is None:
+        password = get_password_hash(user.UserPassword) 
+        user=UserModel(UserName=user.UserName,UserEmail=user.UserEmail,UserPassword=password)
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+        return user
+    else:
+         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail='User with this email already exists')
+#------------------logine--------------------------
+@router.post('/login',tags=['Authentication'])
 def logine_for_acess_token(
     form_data : Annotated[OAuth2PasswordRequestForm, Depends()]
 ):
@@ -22,11 +37,13 @@ def logine_for_acess_token(
     access_token = create_access_token(
     data={"sub": user.UserName}, expires_delta=access_token_expires
     )
-    return {"access_token": access_token, "token_type": "bearer"}
+    return {"user":user.UserName,"email":user.UserEmail,"access_token": access_token, "token_type": "bearer"}
 
-#------------------------person_information------------------------------------
+#------------------------person_information-----------------------------
 @router.post('/person/',tags=['Person'])
-async def create_person( Name: str = Form(...),
+async def create_person( 
+                current_user: Annotated[UserBase, Depends(get_current_active_user)],
+                Name: str = Form(...),
                 Mobile_Number: int = Form(...),
                 Email: EmailStr|None = Form(None),
                 Age: int = Form(...),
@@ -100,7 +117,8 @@ async def encoding( db: Session = Depends(getdb)):
     
 # serach  a singale person
 @router.post('/search',tags=['singale_image'])
-async def serachimg(img:UploadFile = File(..., media_type="image/jpeg, image/png"),
+async def serachimg(current_user: Annotated[UserBase, Depends(get_current_active_user)],
+                    img:UploadFile = File(..., media_type="image/jpeg, image/png"),
                     type:str=type, db: Session = Depends(getdb)): 
     try:
         obj = imgprocess()
@@ -119,12 +137,6 @@ async def serachimg(img:UploadFile = File(..., media_type="image/jpeg, image/png
     except Exception as e:
         raise MyCustomeException(detail=str(e))
         
-    
-
-               
-      
- 
-                              
 @router.get('/person/',response_model=list[PersonImage],tags=['Person'])
 async def get_all_personData(current_user: Annotated[UserBase, Depends(get_current_active_user)],db: Session = Depends(getdb)):
     """ get all person data"""
@@ -135,7 +147,8 @@ async def get_all_personData(current_user: Annotated[UserBase, Depends(get_curre
          raise HTTPException(status_code=400,detail=str(e))
 #get singale person
 @router.get('/person/{person_id}',response_model=PersonImage,tags=['Person'])
-async def get_person( person_id:int,db: Session = Depends(getdb)):
+async def get_person(current_user: Annotated[UserBase, Depends(get_current_active_user)],
+                     person_id:int,db: Session = Depends(getdb)):
     """get singale person"""
     person = db.query(PersonModel).filter(PersonModel.id == person_id).first()
     if person is None:
@@ -143,7 +156,8 @@ async def get_person( person_id:int,db: Session = Depends(getdb)):
     return person
 #update_person
 @router.put('/person/{person_id}',response_model=PersonBase,tags=['Person'])
-async def update_person(person_id:int,person_data:PersonBase,db: Session = Depends(getdb)):
+async def update_person(current_user: Annotated[UserBase, Depends(get_current_active_user)],
+                       person_id:int,person_data:PersonBase,db: Session = Depends(getdb)):
     """prson data update"""
     person = db.query(PersonModel).filter(PersonModel.id == person_id).first()
     if person is None:
@@ -154,7 +168,8 @@ async def update_person(person_id:int,person_data:PersonBase,db: Session = Depen
     db.refresh(person)
     return person
 @router.delete('/person/{person_id}' , response_model=dict,tags=['Person']) 
-async def person_delete(person_id:int,db: Session = Depends(getdb)):
+async def person_delete(current_user: Annotated[UserBase, Depends(get_current_active_user)],
+                        person_id:int,db: Session = Depends(getdb)):
     """delete person"""
     person = db.query(PersonModel).filter(PersonModel.id == person_id).first()  
     if person is None:
@@ -164,12 +179,3 @@ async def person_delete(person_id:int,db: Session = Depends(getdb)):
     return {"msg":"Person has been deleted"}
 
 #-----------------------------user_creation-----------------------------------------------------------------------
-@router.post("/user",response_model=hash_password)
-async def user_creation(user:hash_password,db:Session=Depends(getdb)):
-    password = get_password_hash(user.UserPassword) 
-    user=UserModel(UserName=user.UserName,UserEmail=user.UserEmail,UserPassword=password)
-    db.add(user)
-    db.commit()
-    db.refresh(user)
-    return user
-

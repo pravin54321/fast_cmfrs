@@ -60,3 +60,9 @@ async def get_current_active_user(current_user:Annotated[UserBase,Depends(get_cu
     return current_user
 
 
+async def check_duplicate_email(email:str):
+    user = db.query(UserModel).filter(UserModel.UserEmail == email).first()
+    if user is not None:
+       return False
+    else: 
+        return None
