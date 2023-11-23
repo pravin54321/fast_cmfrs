@@ -32,5 +32,10 @@ class UserModel(Base):
     UserPassword = Column(String(200))
     disabled =  Column(Boolean,default=True)
 
+class GroupImageModel(Base):
+    __tablename__='groupimg'
+    id = Column(Integer,primary_key=True,index=True)
+    ImgPath = Column(String(200),nullable=False)    
+
 
 Base.metadata.create_all(bind=engine)

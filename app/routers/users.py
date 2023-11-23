@@ -178,4 +178,11 @@ async def person_delete(current_user: Annotated[UserBase, Depends(get_current_ac
     db.commit()
     return {"msg":"Person has been deleted"}
 
-#-----------------------------user_creation-----------------------------------------------------------------------
+#-----------------------------group_photo-----------------------------------------------------------------------
+@router.post('/groupimg/')
+async def search_groupimg(img:UploadFile = File(..., media_type="image/jpeg, image/png"),db:Session=Depends(getdb)):
+    obj=imgprocess()
+    await obj.store_img(img,'group_image')
+    await obj.facedetection('group_face')
+    return{'msg':'image have been save successfully'}
+     

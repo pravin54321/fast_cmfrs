@@ -177,8 +177,14 @@ class SearchImage:
             )
                 data.append(image_distance)
         return data
+    #-----------------------------store_group_face_img--------------------------
        
-                
+async def store_groupimg(img_path):
+    group_img = db.GroupImageModel(ImgPath=img_path)
+    db.add(group_img)
+    db.commit()
+    db.refresh(group_img)
+
 
                      
              
