@@ -1,5 +1,7 @@
 from ..dependencies import *
+from ..models import *
 from fastapi import UploadFile, File
+from sqlalchemy.orm import Session
 
 
 StoreImage = "C:/Cluematrix/FaceRecogniationNewProject/Static/Images/"
@@ -24,7 +26,7 @@ class imgprocess:
                 except Exception as e:
                     print(f"Error while writing the file: {e}")
     @classmethod
-    async def facedetection(cls,subdir):
+    async def facedetection(cls,subdir,db):
         if cls.file_path is not None:
             time_stamp = datetime.now().strftime("%Y%m%d%H%M%S")
             face_image_directory = os.path.join(StoreImage,subdir)
@@ -33,6 +35,7 @@ class imgprocess:
                 for idx, face in enumerate(faces):
                     resize_face = cv2.resize(face, (300, 400))
                     unique_filename2 = f"{time_stamp}_{idx}.png"
+                    await store_groupimg(unique_filename2,db,cls.unique_filename)
                     cls.file_path = os.path.join(
                         face_image_directory, unique_filename2)
                     face = cv2.cvtColor(resize_face, cv2.COLOR_BGR2RGB)
@@ -179,8 +182,8 @@ class SearchImage:
         return data
     #-----------------------------store_group_face_img--------------------------
        
-async def store_groupimg(img_path):
-    group_img = db.GroupImageModel(ImgPath=img_path)
+async def store_groupimg(img_path,db,originalimg):
+    group_img = GroupImageModel(ImgPath=f'Static/Images/group_face/{img_path}',original_img = f'Static/Images/group_image/{originalimg}')
     db.add(group_img)
     db.commit()
     db.refresh(group_img)

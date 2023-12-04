@@ -51,6 +51,10 @@ tags_metadata = [
         "name": "singale_image",
         "description": "Operations with singale image only",
     },
+    {
+        "name": "group_image",
+        "description": "Operations with group image  only",
+    },
      {
         "name": "Person",
         "description": "CRUD Operation with Person data",

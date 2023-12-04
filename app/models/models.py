@@ -35,7 +35,8 @@ class UserModel(Base):
 class GroupImageModel(Base):
     __tablename__='groupimg'
     id = Column(Integer,primary_key=True,index=True)
-    ImgPath = Column(String(200),nullable=False)    
+    ImgPath = Column(String(200),nullable=False) 
+    original_img = Column(String(200),nullable=False)   
 
 
 Base.metadata.create_all(bind=engine)

@@ -60,7 +60,13 @@ class UserBase(BaseModel):
     UserEmail: EmailStr
     disabled: Union[bool, None] = None
 class hash_password(UserBase):    
-    UserPassword: str        
+    UserPassword: str    
+
+#-----------------group_img----------------------
+class GroupImg(BaseModel):
+    id:int
+    ImgPath:str
+    original_img:str        
 
 
 
