@@ -25,7 +25,8 @@ async def user_creation(user:hash_password,db:Session=Depends(getdb)):
 @router.post('/login',tags=['Authentication'])
 def logine_for_acess_token(
     form_data : Annotated[OAuth2PasswordRequestForm, Depends()]
-):
+):  
+    print(form_data.username) 
     user = authuntication(form_data.username,form_data.password)
     if not user:
         raise HTTPException(
@@ -117,8 +118,7 @@ async def encoding( db: Session = Depends(getdb)):
     
 # serach  a singale person
 @router.post('/search',tags=['singale_image'])
-async def serachimg(current_user: Annotated[UserBase, Depends(get_current_active_user)],
-                    img:UploadFile = File(..., media_type="image/jpeg, image/png"),
+async def serachimg(img:UploadFile = File(..., media_type="image/jpeg, image/png"),
                     type:str=type, db: Session = Depends(getdb)): 
     try:
         obj = imgprocess()
