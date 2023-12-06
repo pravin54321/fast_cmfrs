@@ -1,4 +1,4 @@
-from fastapi import FastAPI,Depends,HTTPException,UploadFile,File,Form,Query,status
+from fastapi import FastAPI,Depends,HTTPException,UploadFile,File,Form,Query,status,Response
 from .schemas.schemas import *
 from .models.models import *
 from sqlalchemy.orm import Session
@@ -61,7 +61,11 @@ tags_metadata = [
     },
     {
         "name":"Authentication",
-        "desription":"login/signup"
+        "description":"login/signup"
+    },
+     {
+        "name":"Master_state",
+        "description":"crude operation with master state"
     }
    
 ]        

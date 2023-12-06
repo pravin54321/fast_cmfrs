@@ -1,9 +1,10 @@
-from .routers import users
+from .routers import users,admin
 from .dependencies import *
 
 origins = ["*"]
 app = FastAPI(openapi_tags=tags_metadata)
 app.include_router(users.router)
+app.include_router(admin.router)
 app.mount("/Static",StaticFiles(directory="./Static") , name="images")
 app.add_middleware(
     CORSMiddleware,

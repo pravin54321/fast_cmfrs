@@ -1,6 +1,7 @@
-from sqlalchemy import Column,Integer,String,Text,ForeignKey,LargeBinary,Boolean
+from sqlalchemy import Column,Integer,String,Text,ForeignKey,LargeBinary,Boolean,DateTime
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
+from datetime import datetime
 from ..database import Base,engine
 target_metadata = Base.metadata
 
@@ -36,7 +37,13 @@ class GroupImageModel(Base):
     __tablename__='groupimg'
     id = Column(Integer,primary_key=True,index=True)
     ImgPath = Column(String(200),nullable=False) 
-    original_img = Column(String(200),nullable=False)   
+    original_img = Column(String(200),nullable=False)  
 
+class StateModel(Base):
+    __tablename__='state'
+    id = Column(Integer,primary_key=True,autoincrement=True,index=True)
+    State = Column(String(200),nullable=False,unique=True)
+    create_date = Column(DateTime,default=datetime.utcnow)
+    update_date = Column(DateTime,default=datetime.utcnow,onupdate=datetime.utcnow)
 
 Base.metadata.create_all(bind=engine)

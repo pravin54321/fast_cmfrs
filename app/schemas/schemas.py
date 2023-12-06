@@ -2,6 +2,7 @@ from pydantic import BaseModel,EmailStr
 from fastapi import UploadFile
 from datetime import date
 from typing import Union
+from datetime import datetime
 class ImageBase(BaseModel):
   
     Person_id : int
@@ -66,7 +67,22 @@ class hash_password(UserBase):
 class GroupImg(BaseModel):
     id:int
     ImgPath:str
-    original_img:str        
+    original_img:str
+#------------master_policestattion--------------
+class StateBase(BaseModel):
+    State: str
+    create_date: datetime = None
+    update_date: datetime = None 
+class StateGet(StateBase):
+    id:int    
+
+
+class PoliceStationBase(BaseModel):
+    PoliceStation_Name : str
+    PoliceStation_Subdivision:int
+    PoliceStation_Village : int
+    PoliceStation_Taluka: int
+    PoliceStation_Distric:int            
 
 
 
