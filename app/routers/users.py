@@ -79,7 +79,7 @@ async def create_person(
                     try:
                             a = imgprocess()
                             await a.store_img(Images,"Person_Image")
-                            await a.facedetection("face_image")
+                            await a.facedetection("face_image",db,save=False)
                             await a.facelandmark("face_landmark")
                             await a.embedding(person_data.id,db)
                             return{"msg":"Person has been save successfully"}  
@@ -123,7 +123,7 @@ async def serachimg(img:UploadFile = File(..., media_type="image/jpeg, image/png
     try:
         obj = imgprocess()
         await obj.store_img(img,"search_img")
-        await obj.facedetection("search_faceimage")
+        await obj.facedetection("search_faceimage",db,save=False)
         await obj.facelandmark("search_landmark")
         embedding=await obj.embedding(None,None)
         obj_01 = SearchImage(embedding,db)
@@ -185,9 +185,23 @@ async def search_groupimg(img:UploadFile = File(..., media_type="image/jpeg, ima
         db.query(GroupImageModel).delete()
         obj=imgprocess()
         await obj.store_img(img,'group_image')
-        await obj.facedetection('group_face',db)
+        await obj.facedetection('group_face',db,save=True)
         grp_img = db.query(GroupImageModel).all()
         return grp_img
     except Exception as e:
          raise MyCustomeException(detail=str(e))
-     
+#------------------------------search_group_image-------------------------------------------------------
+@router.post('/searchgroupimg',tags=['group_image'])
+async def gimg_search(img:UploadFile = File(..., midia_type='image/jpg,image/png'),db:Session=Depends(getdb)):
+     try:
+          obj = imgprocess()
+          await obj.store_img(img,"search_img")    
+          await obj.facedetection("search_faceimage",db,save=False)
+          await obj.facelandmark("search_faceimage")
+          embedding=await obj.embedding(None,None)
+          obj_01 = SearchImage(embedding,db)
+          result = await obj_01.SingaleImageSearch_02()
+          data = await obj_01.FinalResult(result)
+          return data
+     except Exception as e:
+          raise MyCustomeException(detail=str(e))

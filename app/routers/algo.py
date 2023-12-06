@@ -26,7 +26,7 @@ class imgprocess:
                 except Exception as e:
                     print(f"Error while writing the file: {e}")
     @classmethod
-    async def facedetection(cls,subdir,db):
+    async def facedetection(cls,subdir,db,save):
         if cls.file_path is not None:
             time_stamp = datetime.now().strftime("%Y%m%d%H%M%S")
             face_image_directory = os.path.join(StoreImage,subdir)
@@ -35,7 +35,8 @@ class imgprocess:
                 for idx, face in enumerate(faces):
                     resize_face = cv2.resize(face, (300, 400))
                     unique_filename2 = f"{time_stamp}_{idx}.png"
-                    await store_groupimg(unique_filename2,db,cls.unique_filename)
+                    if save is True:
+                       await store_groupimg(unique_filename2,db,cls.unique_filename)
                     cls.file_path = os.path.join(
                         face_image_directory, unique_filename2)
                     face = cv2.cvtColor(resize_face, cv2.COLOR_BGR2RGB)
