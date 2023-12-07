@@ -66,6 +66,14 @@ tags_metadata = [
      {
         "name":"Master_state",
         "description":"crude operation with master state"
+    },
+     {
+        "name":"Master_region",
+        "description":"crude operation with master region"
+    },
+     {
+        "name":"Master_Distric",
+        "description":"crude operation with master distric"
     }
    
 ]        

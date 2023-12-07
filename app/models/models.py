@@ -45,5 +45,33 @@ class StateModel(Base):
     State = Column(String(200),nullable=False,unique=True)
     create_date = Column(DateTime,default=datetime.utcnow)
     update_date = Column(DateTime,default=datetime.utcnow,onupdate=datetime.utcnow)
+    headoffices= relationship('HeadOffice',back_populates='state')
+
+class RegionModel(Base):
+    __tablename__='region' 
+    id = Column(Integer,primary_key=True,autoincrement=True)
+    Region = Column(String(200),unique=True,nullable= False)
+    create_date = Column(DateTime,default=datetime.utcnow)
+    update_date = Column(DateTime,default=datetime.utcnow,onupdate=datetime.utcnow)
+    headoffices= relationship('Headoffice',back_populates='region')   
+
+class DistricModel(Base):
+    __tablename__='distric'
+    id = Column(Integer,primary_key=True,autoincrement=True)
+    Distric = Column(String(200),unique=True,nullable=True)
+    create_date = Column(DateTime,default=datetime.utcnow)
+    update_date = Column(DateTime,default=datetime.utcnow,onupdate=datetime.utcnow)
+    headoffices = relationship('HeadOffice',back_populates='distric')   
+class HeadOfficeModel(Base):
+    __tablename__='headoffice'
+    id = Column(Integer,primary_key=True,autoincrement=True,index=True) 
+    HeadOffice=Column(String(200),unique=True,nullable=True)
+    State_id = Column(Integer,ForeignKey('state.id'))
+    Region_id = Column(Integer,ForeignKey('region.id'))
+    Distric_id = Column(Integer,ForeignKey('distric.id'))
+    state = relationship('State',back_populates='headoffices')
+    region = relationship('Region',back_populates='headoffices')
+    distric = relationship('Distric',back_populates='headoffices')
+
 
 Base.metadata.create_all(bind=engine)

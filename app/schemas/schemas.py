@@ -74,7 +74,31 @@ class StateBase(BaseModel):
     create_date: datetime = None
     update_date: datetime = None 
 class StateGet(StateBase):
-    id:int    
+    id:int  
+#-----------master_region--------------------
+class RegionBase(BaseModel):
+    Region: str
+    create_date: datetime = None
+    update_date: datetime = None
+class RegionGet(RegionBase):
+    id: int
+#------------master_distric-------------
+class DistricBase(BaseModel):
+    Distric: str
+    create_date: datetime = None
+    update_date: datetime = None
+class DistricGet(DistricBase):
+    id:int  
+#----------head_office----------
+class HeadOfficeBase(BaseModel):
+    HeadOffice: str
+    State_id:int
+    Region_id:int
+    Distric_id:int
+    create_date:datetime = None
+    update_date:datetime = None
+class HeadOfficeGet(HeadOfficeBase):
+    id: int                    
 
 
 class PoliceStationBase(BaseModel):
