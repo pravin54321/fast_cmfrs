@@ -4,7 +4,6 @@ from datetime import date
 from typing import Union
 from datetime import datetime
 class ImageBase(BaseModel):
-  
     Person_id : int
     file_path:str
   
@@ -97,8 +96,16 @@ class HeadOfficeBase(BaseModel):
     Distric_id:int
     create_date:datetime = None
     update_date:datetime = None
-class HeadOfficeGet(HeadOfficeBase):
-    id: int                    
+class HeadOfficeGet(BaseModel):
+    id: int
+    HeadOffice:str
+    create_date:datetime = None
+    update_date:datetime = None
+    state:StateGet
+    region:RegionGet
+    distric:DistricGet
+    class config:
+        orm_mode =True
 
 
 class PoliceStationBase(BaseModel):

@@ -8,7 +8,7 @@ router = APIRouter()
 #---------------master--------------------------
 @router.get('/get_state',response_model=list[StateGet],tags=['Master_state'])
 async def get_state(db:Session=Depends(getdb)):
-    all_state = db.query(StateModel).order_by(RegionModel.id.desc()).all()
+    all_state = db.query(StateModel).order_by(StateModel.id.desc()).all()
     return all_state
 @router.post('/state',tags=['Master_state'])
 async def state_create(state:StateBase,db:Session=Depends(getdb)):
@@ -112,6 +112,49 @@ async def del_distric(distric_id:int,db:Session=Depends(getdb)):
         db.commit()
         return Response(content="distric has been delete successfully",status_code=200)
     raise HTTPException(detail=f"distric id {distric_id} does not exists",status_code=400)
+#--------head_office---------
+@router.post('/headoffice_create',response_model=HeadOfficeBase,tags=['Master_HeadOffice'])
+async def headoffice_create(headoffice:HeadOfficeBase,db:Session=Depends(getdb)):
+    headoffice_exist = db.query(HeadOfficeModel).filter(HeadOfficeModel.HeadOffice==headoffice.HeadOffice).first()
+    if headoffice_exist:
+        raise HTTPException(detail=f'{headoffice.HeadOffice} already exist',status_code=400)
+    head_office = HeadOfficeModel(**headoffice.model_dump())
+    db.add(head_office)
+    db.commit()
+    db.refresh(head_office)
+    return head_office
+@router.get('/get_headoffice',response_model=list[HeadOfficeGet],tags=['Master_HeadOffice'])    
+async def get_headoffice(db:Session=Depends(getdb)):
+    all_headoffice=db.query(HeadOfficeModel).order_by(HeadOfficeModel.id.desc()).all()
+    return all_headoffice
+@router.put('/update_headoffice/{headoffice_id}',response_model=HeadOfficeBase,tags=['Master_HeadOffice'])
+async def  update_headoffice(headoffice_id:int,headoffice:HeadOfficeBase,db:Session=Depends(getdb)):
+    dupilicate_exist= db.query(HeadOfficeModel).filter(HeadOfficeModel.HeadOffice==headoffice.HeadOffice).first()
+    if dupilicate_exist:
+        raise HTTPException(detail=f' headoffice {headoffice.HeadOffice} already exist',status_code=400)
+    headoffice_exist= db.query(HeadOfficeModel).filter(HeadOfficeModel.id == headoffice_id).first()
+    if headoffice_exist:
+        headoffice_exist.HeadOffice=headoffice.HeadOffice
+        headoffice_exist.State_id=headoffice_exist.HeadOffice
+        headoffice_exist.Region_id=headoffice.Region_id
+        headoffice_exist.Distric_id=headoffice.Distric_id
+        headoffice_exist.update_date=datetime.utcnow()
+        db.commit()
+        db.refresh(headoffice_exist)
+        return headoffice_exist
+    raise HTTPException(detail=f'headoffice {headoffice_id} does not exist',status_code=400)
+@router.delete('/del_headoffice/{headoffice_id}',tags=['Master_HeadOffice'])
+async def del_headoffice(head_office_id:int,db:Session=Depends(getdb)):
+    headoffice_exist=db.query(HeadOfficeModel).filter(HeadOfficeModel.id==head_office_id).first()
+    if headoffice_exist:
+        db.delete(headoffice_exist)
+        db.commit()
+        return Response(content=f"headoffice has been deleted successfully",status_code=200)
+    raise HTTPException(detail=f"headoffice id {head_office_id} does not exist",status_code=400) 
+    
+
+
+
     
 
 
