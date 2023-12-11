@@ -46,6 +46,7 @@ class StateModel(Base):
     create_date = Column(DateTime,default=datetime.utcnow)
     update_date = Column(DateTime,default=datetime.utcnow,onupdate=datetime.utcnow)
     headoffices= relationship('HeadOfficeModel',back_populates='state')
+    subdivision=relationship('SubdivisionModel',back_populates='state')
 
 class RegionModel(Base):
     __tablename__='region' 
@@ -53,7 +54,8 @@ class RegionModel(Base):
     Region = Column(String(200),unique=True,nullable= False)
     create_date = Column(DateTime,default=datetime.utcnow)
     update_date = Column(DateTime,default=datetime.utcnow,onupdate=datetime.utcnow)
-    headoffices= relationship('HeadOfficeModel',back_populates='region')   
+    headoffices= relationship('HeadOfficeModel',back_populates='region') 
+    subdivision=relationship('SubdivisionModel',back_populates='region')  
 
 class DistricModel(Base):
     __tablename__='distric'
@@ -62,6 +64,7 @@ class DistricModel(Base):
     create_date = Column(DateTime,default=datetime.utcnow)
     update_date = Column(DateTime,default=datetime.utcnow,onupdate=datetime.utcnow)
     headoffices = relationship('HeadOfficeModel',back_populates='distric')   
+    subdivision=relationship('SubdivisionModel',back_populates='distric')
 class HeadOfficeModel(Base):
     __tablename__='headoffice'
     id = Column(Integer,primary_key=True,autoincrement=True,index=True) 
@@ -74,6 +77,20 @@ class HeadOfficeModel(Base):
     state = relationship('StateModel',back_populates='headoffices')
     region = relationship('RegionModel',back_populates='headoffices')
     distric = relationship('DistricModel',back_populates='headoffices')
-
+    subdivision=relationship('SubdivisionModel',back_populates='headoffice')
+class SubdivisionModel(Base):
+    __tablename__='subdivision'
+    id=Column(Integer,primary_key=True,autoincrement=True)
+    Subdivision=Column(String(200),unique=True)
+    State_id=Column(Integer,ForeignKey('state.id'))    
+    Region_id=Column(Integer,ForeignKey('region.id'))
+    Distric_id=Column(Integer,ForeignKey('distric.id'))
+    HeadOffice_id=Column(Integer,ForeignKey('headoffice.id'))
+    create_date=Column(DateTime,default=datetime.utcnow)
+    update_date=Column(DateTime,default=datetime.utcnow,onupdate=datetime.utcnow)
+    state=relationship('StateModel',back_populates='subdivision')
+    region=relationship('RegionModel',back_populates='subdivision')
+    distric=relationship('DistricModel',back_populates='subdivision')
+    headoffice=relationship('HeadOfficeModel',back_populates='subdivision')
 
 Base.metadata.create_all(bind=engine)

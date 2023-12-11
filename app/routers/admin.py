@@ -151,6 +151,47 @@ async def del_headoffice(head_office_id:int,db:Session=Depends(getdb)):
         db.commit()
         return Response(content=f"headoffice has been deleted successfully",status_code=200)
     raise HTTPException(detail=f"headoffice id {head_office_id} does not exist",status_code=400) 
+#------subdivision----------------#
+@router.post('/crete_subdivision',response_model=SubdivisionBase,tags=['Master_Subdivision'])
+async def create_subdivision(subdivision:SubdivisionBase,db:Session=Depends(getdb)):
+    subdivision_exist=db.query(SubdivisionModel).filter(SubdivisionModel.Subdivision==subdivision.Subdivision).first()
+    if subdivision_exist:
+        raise HTTPException(detail=f'{subdivision.Subdivision} subdivision already exist',status_code=400)
+    subdivision=SubdivisionModel(**subdivision.model_dump())
+    db.add(subdivision)
+    db.commit()
+    db.refresh(subdivision)
+    return subdivision
+@router.get('/get_subdivision',response_model=list[SubdivisionGet],tags=['Master_Subdivision'])
+async def get_subdivision(db:Session=Depends(getdb)):
+    all_subdiviion=db.query(SubdivisionModel).order_by(SubdivisionModel.id.desc()).all()
+    return all_subdiviion
+@router.put('/update_subdivision/{sudivision_id}',response_model=SubdivisionBase,tags=['Master_Subdivision'])
+async def update_subdivision(subdivision_id:int,subdivision:SubdivisionBase,db:Session=Depends(getdb)):
+    subdivision_duplicate=db.query(SubdivisionModel).filter(SubdivisionModel.Subdivision==subdivision.Subdivision).first()
+    if subdivision_duplicate:
+        raise HTTPException(detail=f'{subdivision.Subdivision} subdivision already exist',status_code=400)
+    subdivision_exist=db.query(SubdivisionModel).filter(SubdivisionModel.id==subdivision_id).first()
+    if subdivision_exist:
+       subdivision_exist.Subdivision=subdivision.Subdivision
+       subdivision_exist.State_id=subdivision.State_id
+       subdivision_exist.Region_id=subdivision.Region_id
+       subdivision_exist.Distric_id=subdivision.Distric_id
+       subdivision_exist.HeadOffice_id=subdivision.HeadOffice_id
+       subdivision_exist.update_date=datetime.utcnow()
+       db.commit()
+       db.refresh(subdivision_exist)
+       return subdivision_exist   
+    raise HTTPException(detail=f'subdivision id {subdivision_id} does not exist',status_code=400) 
+@router.delete('/del_subdivision/{subdivision_id}',tags=['Master_Subdivision'])
+async def del_subdivision(subdivision_id:int,db:Session=Depends(getdb)):
+    subdivision_exit=db.query(SubdivisionModel).filter(SubdivisionModel.id==subdivision_id).first()
+    if subdivision_exit:
+        db.delete(subdivision_exit)
+        db.commit()
+        return Response(content=f'subdivision id {subdivision_id} has deleted successfully',status_code=200)
+    raise HTTPException(detail=f'subdivision id {subdivision_id} does not exist',status_code=400)  
+
     
 
 

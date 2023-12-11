@@ -106,7 +106,26 @@ class HeadOfficeGet(BaseModel):
     distric:DistricGet
     class config:
         orm_mode =True
-
+class SubdivisionBase(BaseModel):
+    Subdivision:str
+    State_id:int
+    Region_id:int
+    Distric_id:int
+    HeadOffice_id:int
+    create_date:datetime=None
+    update_date:datetime=None
+class SubdivisionGet(BaseModel):
+    id:int
+    Subdivision:str
+    create_date:datetime=None
+    update_date:datetime=None
+    state:StateGet
+    region:RegionGet
+    distric:DistricGet
+    headoffice:HeadOfficeGet
+    class config:
+        orm_mode=True
+       
 
 class PoliceStationBase(BaseModel):
     PoliceStation_Name : str
