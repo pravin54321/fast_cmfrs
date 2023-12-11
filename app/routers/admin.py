@@ -190,7 +190,47 @@ async def del_subdivision(subdivision_id:int,db:Session=Depends(getdb)):
         db.delete(subdivision_exit)
         db.commit()
         return Response(content=f'subdivision id {subdivision_id} has deleted successfully',status_code=200)
-    raise HTTPException(detail=f'subdivision id {subdivision_id} does not exist',status_code=400)  
+    raise HTTPException(detail=f'subdivision id {subdivision_id} does not exist',status_code=400) 
+#-----taluka---------
+@router.post('/create_taluka',response_model=TalukaBase,tags=['Master_Taluka'])
+async def create_taluka(taluka:TalukaBase,db:Session=Depends(getdb)):
+    taluka_exit=db.query(TalukaModel).filter(TalukaModel.Taluka==taluka.Taluka).first()
+    if taluka_exit:
+        raise HTTPException(detail=f'{taluka.Taluka} taluka already exist',status_code=400)
+    taluka_item=TalukaModel(**taluka.model_dump())
+    db.add(taluka_item)
+    db.commit()
+    db.refresh(taluka_item) 
+    return taluka_item
+@router.get('/get_taluka',response_model=list[TalukaGet],tags=['Master_Taluka'])
+async def get_taluka(db:Session=Depends(getdb)):
+    all_taluka=db.query(TalukaModel).order_by(TalukaModel.id.desc()).all()
+    return all_taluka
+@router.put('update_taluka/{taluka_id}',response_model=TalukaBase,tags=['Master_Taluka'])
+async def update_taluka(taluka_id:int,taluka:TalukaBase,db:Session=Depends(getdb)):
+    duplicate_taluka=db.query(TalukaModel).filter(TalukaModel.Taluka==taluka.Taluka).first()
+    if duplicate_taluka:
+        raise HTTPException(detail=f'{taluka.Taluka} already exist',status_code=400)
+    taluka_exist=db.query(TalukaModel).filter(TalukaModel.id==taluka_id).first()
+    if taluka_exist:
+        taluka_exist.Taluka=taluka.Taluka
+        taluka_exist.State_id=taluka.State_id
+        taluka_exist.Region_id=taluka.Region_id
+        taluka_exist.Distric_id=taluka.Distric_id
+        taluka_exist.HeadOffice_id=taluka.HeadOffice_id
+        taluka_exist.Subdivision_id=taluka.Subdivision_id
+        taluka_exist.update_date=datetime.utcnow()
+        db.commit()
+        db.refresh(taluka_exist)
+        return taluka_exist
+@router.delete('del_taluka/{taluka_id}',tags=['Master_Taluka'])
+async def del_taluka(taluka_id:int,db:Session=Depends(getdb)):
+    taluka_exist=db.query(TalukaModel).filter(TalukaModel.id==taluka_id)
+    if taluka_exist:
+        db.delete(taluka_exist)
+        return Response(content=f'taluka id {taluka_id} has been deleted successfully',status_code=200)
+    raise HTTPException(detail=f'tauka id {taluka_id} does not exist')    
+
 
     
 

@@ -46,47 +46,52 @@ class MyCustomeException(HTTPException):
     def __init__(self, detail:str):
         super().__init__(status_code=400,detail=detail)
 
-tags_metadata = [
-    {
-        "name": "singale_image",
-        "description": "Operations with singale image only",
-    },
-    {
-        "name": "group_image",
-        "description": "Operations with group image  only",
-    },
-     {
-        "name": "Person",
-        "description": "CRUD Operation with Person data",
-    },
-    {
-        "name":"Authentication",
-        "description":"login/signup"
-    },
-     {
-        "name":"Master_state",
-        "description":"crude operation with master state"
-    },
-     {
-        "name":"Master_region",
-        "description":"crude operation with master region"
-    },
-     {
-        "name":"Master_Distric",
-        "description":"crude operation with master distric"
-    },
-    {
-        "name":"Master_HeadOffice",
-        "description":"crude operation with master head_office"
-    },
-    {
-        "name":"Master_Subdivision",
-        "description":"crude operation with master subdivision"
-    }
+# tags_metadata = [
+#     {
+#         "name": "singale_image",
+#         "description": "Operations with singale image only",
+#     },
+#     {
+#         "name": "group_image",
+#         "description": "Operations with group image  only",
+#     },
+#      {
+#         "name": "Person",
+#         "description": "CRUD Operation with Person data",
+#     },
+#     {
+#         "name":"Authentication",
+#         "description":"login/signup"
+#     },
+#      {
+#         "name":"Master_state",
+#         "description":"crude operation with master state"
+#     },
+#      {
+#         "name":"Master_region",
+#         "description":"crude operation with master region"
+#     },
+#      {
+#         "name":"Master_Distric",
+#         "description":"crude operation with master distric"
+#     },
+#     {
+#         "name":"Master_HeadOffice",
+#         "description":"crude operation with master head_office"
+#     },
+#     {
+#         "name":"Master_Subdivision",
+#         "description":"crude operation with master subdivision"
+#     },
+#     {
+#         "name":"Master_Taluka",
+#         "description":"crude operation with master taluka"
+#     }
    
    
    
-]        
+   
+# ]        
 
 
 

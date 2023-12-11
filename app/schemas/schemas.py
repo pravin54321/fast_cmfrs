@@ -125,14 +125,53 @@ class SubdivisionGet(BaseModel):
     headoffice:HeadOfficeGet
     class config:
         orm_mode=True
-       
+#-------taluka------------
+class TalukaBase(BaseModel):
+    Taluka:str
+    State_id:int
+    Region_id:int
+    Distric_id:int
+    HeadOffice_id:int
+    Subdivision_id:int 
+    create_date:datetime=None
+    update_date:datetime=None       
+class TalukaGet(BaseModel):
+    id:int
+    Taluka:str
+    create_date:datetime=None
+    update_date:datetime=None
+    state:StateGet
+    region:RegionGet
+    distric:DistricGet
+    headoffice:HeadOfficeGet
+    subdivision:SubdivisionGet
+    class config:
+        orm_mode=True       
 
-class PoliceStationBase(BaseModel):
-    PoliceStation_Name : str
-    PoliceStation_Subdivision:int
-    PoliceStation_Village : int
-    PoliceStation_Taluka: int
-    PoliceStation_Distric:int            
+class PoliceStationModel(BaseModel):
+    PoliceStation:str
+    State_id:int
+    Region_id:int
+    Distric_id:int
+    HeadOffice_id:int
+    Subdivision_id:int
+    Taluka_id:int
+    create_date:datetime=None
+    update_date:datetime=None
+class PoliceStationGet(BaseModel):
+    id:int
+    PoliceStation:str
+    create_date:datetime=None
+    update_date:datetime=None
+    State_id:StateGet
+    Region_id:RegionGet
+    Distric_id:DistricGet
+    HeadOffice_id:HeadOfficeGet
+    Subdivision_id:SubdivisionGet
+    Taluka_id:TalukaGet
+
+
+
 
 
 

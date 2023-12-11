@@ -47,6 +47,7 @@ class StateModel(Base):
     update_date = Column(DateTime,default=datetime.utcnow,onupdate=datetime.utcnow)
     headoffices= relationship('HeadOfficeModel',back_populates='state')
     subdivision=relationship('SubdivisionModel',back_populates='state')
+    taluka=relationship('TalukaModel',back_populates='state')
 
 class RegionModel(Base):
     __tablename__='region' 
@@ -55,7 +56,8 @@ class RegionModel(Base):
     create_date = Column(DateTime,default=datetime.utcnow)
     update_date = Column(DateTime,default=datetime.utcnow,onupdate=datetime.utcnow)
     headoffices= relationship('HeadOfficeModel',back_populates='region') 
-    subdivision=relationship('SubdivisionModel',back_populates='region')  
+    subdivision=relationship('SubdivisionModel',back_populates='region')
+    taluka=relationship('TalukaModel',back_populates='region')  
 
 class DistricModel(Base):
     __tablename__='distric'
@@ -65,6 +67,7 @@ class DistricModel(Base):
     update_date = Column(DateTime,default=datetime.utcnow,onupdate=datetime.utcnow)
     headoffices = relationship('HeadOfficeModel',back_populates='distric')   
     subdivision=relationship('SubdivisionModel',back_populates='distric')
+    taluka=relationship('TalukaModel',back_populates='distric')
 class HeadOfficeModel(Base):
     __tablename__='headoffice'
     id = Column(Integer,primary_key=True,autoincrement=True,index=True) 
@@ -78,6 +81,7 @@ class HeadOfficeModel(Base):
     region = relationship('RegionModel',back_populates='headoffices')
     distric = relationship('DistricModel',back_populates='headoffices')
     subdivision=relationship('SubdivisionModel',back_populates='headoffice')
+    taluka=relationship('TalukaModel',back_populates='headoffice')
 class SubdivisionModel(Base):
     __tablename__='subdivision'
     id=Column(Integer,primary_key=True,autoincrement=True)
@@ -92,5 +96,22 @@ class SubdivisionModel(Base):
     region=relationship('RegionModel',back_populates='subdivision')
     distric=relationship('DistricModel',back_populates='subdivision')
     headoffice=relationship('HeadOfficeModel',back_populates='subdivision')
+    taluka=relationship('TalukaModel',back_populates='subdivision')
+class TalukaModel(Base):
+    __tablename__='taluka'
+    id=Column(Integer,primary_key=True,autoincrement=True,index=True)
+    Taluka=Column(String(200))
+    State_id=Column(Integer,ForeignKey('state.id'))
+    Region_id=Column(Integer,ForeignKey('region.id'))
+    Distric_id=Column(Integer,ForeignKey('distric.id'))
+    HeadOffice_id=Column(Integer,ForeignKey('headoffice.id'))
+    Subdivision_id=Column(Integer,ForeignKey('subdivision.id')) 
+    create_date=Column(DateTime,default=datetime.utcnow)
+    update_date=Column(DateTime,default=datetime.utcnow,onupdate=datetime.utcnow)
+    state=relationship('StateModel',back_populates='taluka')
+    region=relationship('RegionModel',back_populates='taluka')  
+    distric=relationship('DistricModel',back_populates='taluka') 
+    headoffice=relationship('HeadOfficeModel',back_populates='taluka')
+    subdivision=relationship('SubdivisionModel',back_populates='taluka')
 
 Base.metadata.create_all(bind=engine)

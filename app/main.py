@@ -2,7 +2,7 @@ from .routers import users,admin
 from .dependencies import *
 
 origins = ["*"]
-app = FastAPI(openapi_tags=tags_metadata)
+app = FastAPI()
 app.include_router(users.router)
 app.include_router(admin.router)
 app.mount("/Static",StaticFiles(directory="./Static") , name="images")
