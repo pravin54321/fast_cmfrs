@@ -148,7 +148,7 @@ class TalukaGet(BaseModel):
     class config:
         orm_mode=True       
 
-class PoliceStationModel(BaseModel):
+class PoliceStationBase(BaseModel):
     PoliceStation:str
     State_id:int
     Region_id:int
@@ -163,12 +163,14 @@ class PoliceStationGet(BaseModel):
     PoliceStation:str
     create_date:datetime=None
     update_date:datetime=None
-    State_id:StateGet
-    Region_id:RegionGet
-    Distric_id:DistricGet
-    HeadOffice_id:HeadOfficeGet
-    Subdivision_id:SubdivisionGet
-    Taluka_id:TalukaGet
+    state:StateGet
+    region:RegionGet
+    distric:DistricGet
+    headoffice:HeadOfficeGet
+    subdivision:SubdivisionGet
+    taluka:TalukaGet
+    class config:
+        orm_mode=True
 
 
 

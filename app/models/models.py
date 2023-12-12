@@ -48,6 +48,7 @@ class StateModel(Base):
     headoffices= relationship('HeadOfficeModel',back_populates='state')
     subdivision=relationship('SubdivisionModel',back_populates='state')
     taluka=relationship('TalukaModel',back_populates='state')
+    policestation=relationship('PoliceStationModel',back_populates='state')
 
 class RegionModel(Base):
     __tablename__='region' 
@@ -57,7 +58,8 @@ class RegionModel(Base):
     update_date = Column(DateTime,default=datetime.utcnow,onupdate=datetime.utcnow)
     headoffices= relationship('HeadOfficeModel',back_populates='region') 
     subdivision=relationship('SubdivisionModel',back_populates='region')
-    taluka=relationship('TalukaModel',back_populates='region')  
+    taluka=relationship('TalukaModel',back_populates='region')
+    policestation=relationship('PoliceStationModel',back_populates='region')  
 
 class DistricModel(Base):
     __tablename__='distric'
@@ -68,6 +70,7 @@ class DistricModel(Base):
     headoffices = relationship('HeadOfficeModel',back_populates='distric')   
     subdivision=relationship('SubdivisionModel',back_populates='distric')
     taluka=relationship('TalukaModel',back_populates='distric')
+    policestation=relationship('PoliceStationModel',back_populates='distric')
 class HeadOfficeModel(Base):
     __tablename__='headoffice'
     id = Column(Integer,primary_key=True,autoincrement=True,index=True) 
@@ -82,6 +85,7 @@ class HeadOfficeModel(Base):
     distric = relationship('DistricModel',back_populates='headoffices')
     subdivision=relationship('SubdivisionModel',back_populates='headoffice')
     taluka=relationship('TalukaModel',back_populates='headoffice')
+    policestation=relationship('PoliceStationModel',back_populates='headoffice')
 class SubdivisionModel(Base):
     __tablename__='subdivision'
     id=Column(Integer,primary_key=True,autoincrement=True)
@@ -97,6 +101,7 @@ class SubdivisionModel(Base):
     distric=relationship('DistricModel',back_populates='subdivision')
     headoffice=relationship('HeadOfficeModel',back_populates='subdivision')
     taluka=relationship('TalukaModel',back_populates='subdivision')
+    policestation=relationship('PoliceStationModel',back_populates='subdivision')
 class TalukaModel(Base):
     __tablename__='taluka'
     id=Column(Integer,primary_key=True,autoincrement=True,index=True)
@@ -113,5 +118,48 @@ class TalukaModel(Base):
     distric=relationship('DistricModel',back_populates='taluka') 
     headoffice=relationship('HeadOfficeModel',back_populates='taluka')
     subdivision=relationship('SubdivisionModel',back_populates='taluka')
+    policestation=relationship('PoliceStationModel',back_populates='taluka')
+class PoliceStationModel(Base):
+    __tablename__='policestation'
+    id=Column(Integer,primary_key=True,autoincrement=True,index=True)
+    PoliceStation=Column(String(200))
+    State_id=Column(Integer,ForeignKey('state.id'))
+    Region_id=Column(Integer,ForeignKey('region.id'))
+    Distric_id=Column(Integer,ForeignKey('distric.id'))
+    HeadOffice_id=Column(Integer,ForeignKey('headoffice.id'))
+    Subdivision_id=Column(Integer,ForeignKey('subdivision.id'))
+    Taluka_id=Column(Integer,ForeignKey('taluka.id'))
+    create_date=Column(DateTime,default=datetime.utcnow)
+    update_date=Column(DateTime,default=datetime.utcnow,onupdate=datetime.utcnow)
+    state=relationship('StateModel',back_populates='policestation')
+    region=relationship('RegionModel',back_populates='policestation')
+    distric=relationship('DistricModel',back_populates='policestation')
+    headoffice=relationship('HeadOfficeModel',back_populates='policestation')
+    subdivision=relationship('SubdivisionModel',back_populates='policestation')
+    taluka=relationship('TalukaModel',back_populates='policestation')
+    post=relationship('PostModel',back_populates='post')
+
+class PostModel(Base):
+    __tablename__='post'
+    id=Column(Integer,primary_key=True,autoincrement=True)
+    Post=Column(String(200))
+    State_id=Column(Integer,ForeignKey('state.id'))
+    Region_id=Column(Integer,ForeignKey('region.id'))
+    Distric_id=Column(Integer,ForeignKey('distric.id'))
+    HeadOffice_id=Column(Integer,ForeignKey('headoffice.id'))
+    Subdivision_id=Column(Integer,ForeignKey('subdivision.id'))
+    Taluka_id=Column(Integer,ForeignKey('taluka.id'))
+    PoliceStation_id=Column(Integer,ForeignKey('policestation.id'))
+    create_date=Column(DateTime,default=datetime.utcnow)
+    update_date=Column(DateTime,default=datetime.utcnow,onupdate=datetime.utcnow)
+    state=relationship('StateModel',back_populates='post')
+    region=relationship('RegionModel',back_populates='post')
+    distric=relationship('DistricModel',back_populates='post')
+    headoffice=relationship('HeadOfficeModel',back_populates='post')
+    subdivision=relationship('SubdivisionModel',back_populates='post')
+    taluka=relationship('TalukaModel',back_populates='post')
+    policestation=relationship('PoliceStationModel',back_populates='post')
+
+
 
 Base.metadata.create_all(bind=engine)

@@ -231,15 +231,42 @@ async def del_taluka(taluka_id:int,db:Session=Depends(getdb)):
         return Response(content=f'taluka id {taluka_id} has been deleted successfully',status_code=200)
     raise HTTPException(detail=f'tauka id {taluka_id} does not exist')    
 
-
-    
-
-
-
-    
-
-
-
-    
-
-
+#--------police_station-----------
+@router.post('/create_policestation',response_model=PoliceStationBase,tags=['Master_Policestation'])
+async def create_policestation(policestation:PoliceStationBase,db:Session=Depends(getdb)):
+    policestation_exist=db.query(PoliceStationModel).filter(PoliceStationModel.PoliceStation==policestation.PoliceStation).first()
+    if policestation_exist:
+        raise HTTPException(detail=f'{policestation.PoliceStation} police station already exists',status_code=400)
+    policestation_item=PoliceStationModel(**policestation.model_dump())
+    db.add(policestation_item)
+    db.commit()
+    db.refresh(policestation_item)
+    return policestation_item
+@router.get('/get_policestation',response_model=list[PoliceStationGet],tags=['Master_Policestation'])
+async def get_policestation(db:Session=Depends(getdb)):
+    all_policestation=db.query(PoliceStationModel).order_by(PoliceStationModel.id.desc()).all()
+    return all_policestation
+@router.put('/update_policestation/{policestation_id}',response_model=PoliceStationBase,tags=['Master_Policestation'])
+async def update_policestation(policestation_id:int,policestation:PoliceStationBase,db:Session=Depends(getdb)):
+    policestation_duplicate=db.query(PoliceStationModel).filter(PoliceStationModel.PoliceStation==policestation.PoliceStation).first()
+    if policestation_duplicate:
+        raise HTTPException(detail=f'{policestation.PoliceStation} policestation already exist',status_code=400)
+    policestation_exit=db.query(PoliceStationModel).filter(PoliceStationModel.id==policestation_id).first()
+    if policestation_exit:
+        policestation_exit.PoliceStation=policestation.PoliceStation
+        policestation_exit.State_id=policestation.State_id
+        policestation_exit.Distric_id=policestation.Distric_id
+        policestation_exit.HeadOffic_id=policestation.HeadOffice_id
+        policestation_exit.Subdivision_id=policestation.Subdivision_id
+        policestation_exit.Taluka_id=policestation.Taluka_id
+        policestation_exit.update_date=datetime.utcnow()
+        db.commit()
+        db.refresh(policestation_exit)
+        return policestation_exit
+@router.delete('/del_policestation/{policestation_id}',tags=['Master_Policestation'])
+async def del_policestation(policestation_id:int,db:Session=Depends(getdb)):
+    policestation_exist=db.query(PoliceStationModel).filter(PoliceStationModel.id==policestation_id).first()  
+    if policestation_exist: 
+        db.delete(policestation_exist)
+        return Response(content=f' police station id {policestation_id}  has been deleted successfully',status_code=200) 
+    raise HTTPException(detail=f'police id {policestation_id} ddoes not exist', status_code=400)
