@@ -270,3 +270,50 @@ async def del_policestation(policestation_id:int,db:Session=Depends(getdb)):
         db.delete(policestation_exist)
         return Response(content=f' police station id {policestation_id}  has been deleted successfully',status_code=200) 
     raise HTTPException(detail=f'police id {policestation_id} ddoes not exist', status_code=400)
+#--------post------------
+@router.post('/create_post',response_model=PostBase,tags=['Master_Post'])
+async def post_create(post:PostBase,db:Session=Depends(getdb)):
+    post_exist=db.query(PostModel).filter(PostModel.Post==post.Post).first()
+    if post_exist:
+        raise HTTPException(detail=f'{post.Post} post already exist',status_code=400)
+    post_item=PostModel(**post.model_dump())
+    db.add(post_item)
+    db.commit()
+    db.refresh(post_item)
+    return post_item
+@router.get('/get_post',response_model=list[PostGet],tags=['Master_Post'])
+async def get_post(db:Session=Depends(getdb)):
+   all_post=db.query(PostModel).order_by(PostModel.id.desc()).all()
+   return all_post
+@router.put('/update/{post_id}',response_model=PostBase,tags=['Master_Post'])
+async def update_post(post_id:int,post:PostBase,db:Session=Depends(getdb)):
+    post_duplicate=db.query(PostModel).filter(PostModel.Post==post.Post).first()
+    if post_duplicate:
+        raise HTTPException(detail=f"{post.Post} post already exist",status_code=400)
+    post_exit=db.query(PostModel).filter(PostModel.id==post_id).first()
+    if post_exit:
+        post_exit.Post=post.Post
+        post_exit.State_id=post.State_id
+        post_exit.Region_id=post.Region_id
+        post_exit.Distric_id=post.Distric_id
+        post_exit.HeadOffice_id=post.HeadOffice_id
+        post_exit.Subdivision_id=post.Subdivision_id
+        post_exit.Taluka_id=post.Subdivision_id
+        post_exit.PoliceStation_id=post.PoliceStation_id
+        post_exit.update_date=datetime.utcnow()
+        db.commit()
+        db.refresh(post_exit)
+        return post_exit
+    raise HTTPException(detail=f'{post_id} id does not exist',status_code=400)
+@router.delete('/del_post/{post_id}',tags=['Master_Post'])
+async def del_post(post_id:int,db:Session=Depends(getdb)):
+    post_exist=db.query(PostModel).filter(PostModel.id==post_id).first()
+    if post_exist:
+        db.delete(post_exist)
+        db.commit()
+        return Response(content=f' id {post_id} has been deleted successfully',status_code=200)
+    raise HTTPException(detail=f'id-{post_id} does not exist',status_code=400)
+
+    
+
+

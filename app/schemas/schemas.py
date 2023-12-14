@@ -172,6 +172,32 @@ class PoliceStationGet(BaseModel):
     class config:
         orm_mode=True
 
+class PostBase(BaseModel):
+    Post:str
+    State_id:int
+    Region_id:int
+    Distric_id:int
+    HeadOffice_id:int
+    Subdivision_id:int
+    Taluka_id:int
+    PoliceStation_id:int
+    update_date:datetime=None
+    create_date:datetime=None
+class PostGet(BaseModel):
+    id:int
+    Post:str
+    create_date:datetime=None
+    update_date:datetime=None
+    state:StateGet  
+    region:RegionGet
+    distric:DistricGet
+    headoffice:HeadOfficeGet
+    subdivision:SubdivisionGet
+    taluka:TalukaGet
+    policestation:PoliceStationGet  
+
+
+
 
 
 

@@ -5,6 +5,7 @@ from ..models.models import *
 from  ..schemas.schemas import *
 from .algo import imgprocess,SearchImage
 from .authentication import *
+home_dir='C:/Cluematrix/FaceRecogniationNewProject/'
 
 
 #--------------------------Authuntication---------------------------------
@@ -192,16 +193,20 @@ async def search_groupimg(img:UploadFile = File(..., media_type="image/jpeg, ima
          raise MyCustomeException(detail=str(e))
 #------------------------------search_group_image-------------------------------------------------------
 @router.post('/searchgroupimg',tags=['group_image'])
-async def gimg_search(img:UploadFile = File(..., midia_type='image/jpg,image/png'),db:Session=Depends(getdb)):
+async def gimg_search(img:str,db:Session=Depends(getdb)):
+     img_path=home_dir+img
      try:
           obj = imgprocess()
-          await obj.store_img(img,"search_img")    
-          await obj.facedetection("search_faceimage",db,save=False)
-          await obj.facelandmark("search_faceimage")
+        #   await obj.store_img(img,"search_img")    
+        #   await obj.facedetection("search_faceimage",db,save=False)
+          await obj.facelandmark_gimg("gface_landmark",img_path)
           embedding=await obj.embedding(None,None)
           obj_01 = SearchImage(embedding,db)
           result = await obj_01.SingaleImageSearch_02()
           data = await obj_01.FinalResult(result)
-          return data
+          all_image=db.query(GroupImageModel).all()
+          return {'Result':data,
+                  'Image':all_image
+                  }
      except Exception as e:
           raise MyCustomeException(detail=str(e))

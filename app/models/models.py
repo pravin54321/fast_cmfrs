@@ -49,6 +49,7 @@ class StateModel(Base):
     subdivision=relationship('SubdivisionModel',back_populates='state')
     taluka=relationship('TalukaModel',back_populates='state')
     policestation=relationship('PoliceStationModel',back_populates='state')
+    post=relationship('PostModel',back_populates='state')
 
 class RegionModel(Base):
     __tablename__='region' 
@@ -59,7 +60,8 @@ class RegionModel(Base):
     headoffices= relationship('HeadOfficeModel',back_populates='region') 
     subdivision=relationship('SubdivisionModel',back_populates='region')
     taluka=relationship('TalukaModel',back_populates='region')
-    policestation=relationship('PoliceStationModel',back_populates='region')  
+    policestation=relationship('PoliceStationModel',back_populates='region')
+    post=relationship('PostModel',back_populates='region')  
 
 class DistricModel(Base):
     __tablename__='distric'
@@ -71,6 +73,7 @@ class DistricModel(Base):
     subdivision=relationship('SubdivisionModel',back_populates='distric')
     taluka=relationship('TalukaModel',back_populates='distric')
     policestation=relationship('PoliceStationModel',back_populates='distric')
+    post=relationship('PostModel',back_populates='distric')
 class HeadOfficeModel(Base):
     __tablename__='headoffice'
     id = Column(Integer,primary_key=True,autoincrement=True,index=True) 
@@ -86,6 +89,7 @@ class HeadOfficeModel(Base):
     subdivision=relationship('SubdivisionModel',back_populates='headoffice')
     taluka=relationship('TalukaModel',back_populates='headoffice')
     policestation=relationship('PoliceStationModel',back_populates='headoffice')
+    post=relationship('PostModel',back_populates='headoffice')
 class SubdivisionModel(Base):
     __tablename__='subdivision'
     id=Column(Integer,primary_key=True,autoincrement=True)
@@ -102,6 +106,7 @@ class SubdivisionModel(Base):
     headoffice=relationship('HeadOfficeModel',back_populates='subdivision')
     taluka=relationship('TalukaModel',back_populates='subdivision')
     policestation=relationship('PoliceStationModel',back_populates='subdivision')
+    post=relationship('PostModel',back_populates='subdivision')
 class TalukaModel(Base):
     __tablename__='taluka'
     id=Column(Integer,primary_key=True,autoincrement=True,index=True)
@@ -119,6 +124,7 @@ class TalukaModel(Base):
     headoffice=relationship('HeadOfficeModel',back_populates='taluka')
     subdivision=relationship('SubdivisionModel',back_populates='taluka')
     policestation=relationship('PoliceStationModel',back_populates='taluka')
+    post=relationship('PostModel',back_populates='taluka')
 class PoliceStationModel(Base):
     __tablename__='policestation'
     id=Column(Integer,primary_key=True,autoincrement=True,index=True)
@@ -137,7 +143,7 @@ class PoliceStationModel(Base):
     headoffice=relationship('HeadOfficeModel',back_populates='policestation')
     subdivision=relationship('SubdivisionModel',back_populates='policestation')
     taluka=relationship('TalukaModel',back_populates='policestation')
-    post=relationship('PostModel',back_populates='post')
+    post=relationship('PostModel',back_populates='policestation')
 
 class PostModel(Base):
     __tablename__='post'
@@ -159,6 +165,7 @@ class PostModel(Base):
     subdivision=relationship('SubdivisionModel',back_populates='post')
     taluka=relationship('TalukaModel',back_populates='post')
     policestation=relationship('PoliceStationModel',back_populates='post')
+    
 
 
 

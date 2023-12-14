@@ -50,8 +50,8 @@ class imgprocess:
         if cls.file_path is not None:
             time_stamp = datetime.now().strftime("%Y%m%d%H%M%S")
             face_image_directory = os.path.join(StoreImage,subdir)
-            try:
-                img = cv2.imread(cls.file_path)
+            try:          
+                img = cv2.imread(cls.file_path)# it's for singale image
                 mp_face_mesh = mediapipe.solutions.face_mesh
                 face_mesh = mp_face_mesh.FaceMesh(static_image_mode=True)
                 results = face_mesh.process(
@@ -97,6 +97,59 @@ class imgprocess:
                 print(f"Error occurred while processing face : {str(e)}")
         else:
             pass
+    @classmethod
+    async def facelandmark_gimg(cls,subdir,file_path):
+        cls.file_path=file_path
+        if cls.file_path is not None:
+            time_stamp = datetime.now().strftime("%Y%m%d%H%M%S")
+            face_image_directory = os.path.join(StoreImage,subdir)
+            try:          
+                img = cv2.imread(cls.file_path)# it's for singale image
+                mp_face_mesh = mediapipe.solutions.face_mesh
+                face_mesh = mp_face_mesh.FaceMesh(static_image_mode=True)
+                results = face_mesh.process(
+                    cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+                landmarks = results.multi_face_landmarks[0]
+                face_oval = mp_face_mesh.FACEMESH_FACE_OVAL
+               
+                df = pd.DataFrame(list(face_oval), columns=["p1", "p2"])
+                routes_idx = []
+                p1 = df.iloc[0]["p1"]
+                p2 = df.iloc[0]["p2"]
+                for i in range(0, df.shape[0]):
+                    obj = df[df["p1"] == p2]
+                    p1 = obj["p1"].values[0]
+                    p2 = obj["p2"].values[0]
+                    route_idx = []
+                    route_idx.append(p1)
+                    route_idx.append(p2)
+                    routes_idx.append(route_idx)
+                # for route_idx in routes_idx:
+                #      print(f"Draw a line between {route_idx[0]}th landmark point to {route_idx[1]}th landmark point")
+                #      pass
+                routes = []
+                for source_idx, target_idx in routes_idx:
+                    source = landmarks.landmark[source_idx]
+                    target = landmarks.landmark[target_idx]
+                    relative_source = (
+                        int(img.shape[1] * source.x), int(img.shape[0] * source.y))
+                    relative_target = (
+                        int(img.shape[1] * target.x), int(img.shape[0] * target.y))
+                    routes.append(relative_source)
+                    routes.append(relative_target)
+                import numpy as np
+                mask = np.zeros((img.shape[0], img.shape[1]))
+                mask = cv2.fillConvexPoly(mask, np.array(routes), 1)
+                mask = mask.astype(bool)
+                out = np.zeros_like(img)
+                out[mask] = img[mask]
+                unique_filename3 = f"{time_stamp}.png"
+                cls.file_path = os.path.join(face_image_directory, unique_filename3)
+                cv2.imwrite(cls.file_path, out)
+            except Exception as e:
+                print(f"Error occurred while processing face : {str(e)}")
+        else:
+            pass    
     @classmethod
     async def embedding(cls,id:str,db):
         if cls.file_path is not None:
