@@ -313,7 +313,81 @@ async def del_post(post_id:int,db:Session=Depends(getdb)):
         db.commit()
         return Response(content=f' id {post_id} has been deleted successfully',status_code=200)
     raise HTTPException(detail=f'id-{post_id} does not exist',status_code=400)
+#_____________________________master_cast_______________________________________
+@router.post('/create_religion',response_model=ReligionGet,tags=['Master_Religion'])
+async def religion_create(religion:ReligionBase,db:Session=Depends(getdb)):
+    religion_exist=db.query(ReligionModel).filter(ReligionModel.Religion==religion.Religion).first()
+    if religion_exist:
+        raise HTTPException(detail=f'{religion.Religion} religion already exist',status_code=400)
+    religion_item=ReligionModel(**religion.model_dump())
+    db.add(religion_item)
+    db.commit()
+    db.refresh(religion_item) 
+    return religion_item
+@router.get('/get_religion/{religion_id}',response_model=list[ReligionGet],tags=['Master_Religion'])
+async def get_religion(db:Session=Depends(getdb)):
+    all_religion=db.query(ReligionModel).order_by(ReligionModel.id.desc()).all()
+    return all_religion
+@router.put('/update_religion/{religion_id}',response_model=ReligionGet,tags=['Master_Religion'])
+async def religion_update(religion_id:int,religion:ReligionBase,db:Session=Depends(getdb)):
+    duplicate_religion=db.query(ReligionModel).filter(ReligionModel.Religion==religion.Religion).first()
+    if duplicate_religion:
+        raise HTTPException(detail=f'{religion.Religion} religion already exist',status_code=400)
+    religion_exist=db.query(ReligionModel).filter(ReligionModel.id==religion_id).first()
+    if religion_exist:
+        religion_exist.Religion=religion.Religion
+        db.commit()
+        db.refresh(religion_exist)
+        return religion_exist
+    raise HTTPException(detail=f'{religion_id} id does not exist ',status_code=400)
+@router.delete('/religion_del/{religion_id}',tags=['Master_Religion'])
+async def religion_del(religion_id=int,db:Session=Depends(getdb)):
+    religion_exist=db.query(ReligionModel).filter(ReligionModel.id==religion_id).first()
+    if religion_exist:
+        db.delete(religion_exist)
+        db.commit()
+        return Response(content=f' Religion id {religion_id} has been deleted successfully',status_code=200) 
+    raise HTTPException(detail=f'religion id {religion_id} does not exist',status_code=400)
+   
 
-    
+@router.post('/create_cast',response_model=CasteGet,tags=['Master_Cast'])
+async def create_cast(cast:CastBase,db:Session=Depends(getdb)):
+    cast_exit=db.query(CastModel).filter(CastModel.Cast==cast.Cast).first()
+    if cast_exit:
+        raise HTTPException(detail='{cast.Cast} already exist',status_code=400)
+    cast_item=CastModel(**cast.model_dump())
+    db.add(cast_item)
+    db.refresh()
+    db.commit(cast_item)   
+    return cast_item 
+@router.get('/get_cast',response_model=list[CasteGet],tags=['Master_Cast'])
+async def get_cast(db:Session=Depends(getdb)):
+    all_cast=db.query(CasteGet).order_by(CastModel.id.desc()).all()
+    return all_cast
+@router.get('/update_cast/cast_id',response_model=list[CasteGet],tags=['Master_Cast'])
+async def update_cast(cast_id:int,cast:CastBase,db:Session=Depends(getdb)):
+    duplicate_cast=db.query(CastModel).filter(CastModel.Cast==cast.Cast).first()
+    if duplicate_cast:
+        raise HTTPException(detail='{cast.Cost} already exist',status_code=400)
+    cast_exist=db.query(CastModel).filter(CastModel.id==cast_id).first()
+    if cast_exist:
+        cast_exist.Cast=cast.Cast
+        cast_exist.Religion_id=cast.Religion_id
+        db.commit()
+        db.refresh(cast_exist)
+        return cast_exist
+    raise HTTPException(detail=f'id {cast_id} does not exist',status_code=400)
+@router.delete('/cast_del/{cast_id}',tags=['Master_Cast'])
+async def del_cast(cast_id:int,db:Session=Depends(getdb)):
+    cast_exist=db.query(CastModel).filter(CastModel.id==cast_id).first()
+    if cast_exist:
+        db.delete(cast_exist)
+        return Response(content=f"id-{cast_id} has been deleted successfully",status_code=200)
+    raise HTTPException(detail=f'id-{cast_id} does not exist',status_code=400)
+
+
+
+
+
 
 

@@ -147,7 +147,7 @@ class TalukaGet(BaseModel):
     subdivision:SubdivisionGet
     class config:
         orm_mode=True       
-
+#_____police_station_________
 class PoliceStationBase(BaseModel):
     PoliceStation:str
     State_id:int
@@ -171,7 +171,7 @@ class PoliceStationGet(BaseModel):
     taluka:TalukaGet
     class config:
         orm_mode=True
-
+#_______post_________
 class PostBase(BaseModel):
     Post:str
     State_id:int
@@ -196,6 +196,23 @@ class PostGet(BaseModel):
     taluka:TalukaGet
     policestation:PoliceStationGet  
 
+# __________caste_shema___________________
+class ReligionBase(BaseModel):
+    Religion:str
+   
+class ReligionGet(ReligionBase):
+    id:int 
+    create_date:datetime=None
+    update_date:datetime=None  
+
+ #_________cast_shema___________        
+class CastBase(BaseModel):
+    Cast:str
+    Religion_id:int 
+class CasteGet(CastBase):
+    id:int
+    create_date:datetime=None       
+    update_date:datetime=None
 
 
 

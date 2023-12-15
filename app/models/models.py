@@ -165,6 +165,24 @@ class PostModel(Base):
     subdivision=relationship('SubdivisionModel',back_populates='post')
     taluka=relationship('TalukaModel',back_populates='post')
     policestation=relationship('PoliceStationModel',back_populates='post')
+
+class ReligionModel(Base):
+    __tablename__='religion'
+    id=Column(Integer,primary_key=True,autoincrement=True,index=True)
+    Religion=Column(String(200))
+    create_date=Column(DateTime,default=datetime.utcnow)
+    update_date=Column(DateTime,default=datetime.utcnow,onupdate=datetime.utcnow) 
+    cast=relationship(Dat) 
+class CastModel(Base):
+    __tablename__='cast'
+    id=Column(Integer,primary_key=True,autoincrement=True,index=True) 
+    Cast=Column(String(200))
+    Religion_id=Column(Integer,ForeignKey('religion.id'))
+    create_date=Column(DateTime,default=datetime.utcnow)
+    update_date=Column(DateTime,default=datetime.utcnow,onupdate=datetime.utcnow)
+    religion=relationship('ReligionModel',back_populates='cast') 
+
+
     
 
 
