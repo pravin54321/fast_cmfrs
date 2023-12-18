@@ -144,7 +144,7 @@ class PoliceStationModel(Base):
     subdivision=relationship('SubdivisionModel',back_populates='policestation')
     taluka=relationship('TalukaModel',back_populates='policestation')
     post=relationship('PostModel',back_populates='policestation')
-
+   
 class PostModel(Base):
     __tablename__='post'
     id=Column(Integer,primary_key=True,autoincrement=True)
@@ -165,6 +165,7 @@ class PostModel(Base):
     subdivision=relationship('SubdivisionModel',back_populates='post')
     taluka=relationship('TalukaModel',back_populates='post')
     policestation=relationship('PoliceStationModel',back_populates='post')
+   
 
 class ReligionModel(Base):
     __tablename__='religion'
@@ -172,7 +173,9 @@ class ReligionModel(Base):
     Religion=Column(String(200))
     create_date=Column(DateTime,default=datetime.utcnow)
     update_date=Column(DateTime,default=datetime.utcnow,onupdate=datetime.utcnow) 
-    cast=relationship(Dat) 
+    cast=relationship('CastModel',back_populates='religion') 
+    subcast=relationship('SubcastModel',back_populates='religion')
+
 class CastModel(Base):
     __tablename__='cast'
     id=Column(Integer,primary_key=True,autoincrement=True,index=True) 
@@ -180,7 +183,25 @@ class CastModel(Base):
     Religion_id=Column(Integer,ForeignKey('religion.id'))
     create_date=Column(DateTime,default=datetime.utcnow)
     update_date=Column(DateTime,default=datetime.utcnow,onupdate=datetime.utcnow)
-    religion=relationship('ReligionModel',back_populates='cast') 
+    religion=relationship('ReligionModel',back_populates='cast')
+    subcast=relationship('SubcastModel',back_populates='cast') 
+class SubcastModel(Base):
+    __tablename__='subcast'
+    id=Column(Integer,primary_key=True,autoincrement=True)  
+    Subcast=Column(String(200))
+    Religion_id=Column(Integer,ForeignKey('religion.id'))
+    Cast_id=Column(Integer,ForeignKey('cast.id')) 
+    create_date=Column(DateTime,default=datetime.utcnow)
+    update_date=Column(DateTime,default=datetime.utcnow,onupdate=datetime.utcnow)
+    religion=relationship('ReligionModel',back_populates='subcast')
+    cast=relationship('CastModel',back_populates='subcast')
+#--------langues_model--------
+class LanguesModel(Base):
+    __tablename__='langues'
+    id=Column(Integer,autoincrement=True,primary_key=True)
+    Langues=Column(String(200))
+    create_date=Column(DateTime,default=datetime.utcnow)
+    update_date=Column(DateTime,default=datetime.utcnow,onupdate=datetime.utcnow)        
 
 
     

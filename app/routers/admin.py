@@ -349,26 +349,26 @@ async def religion_del(religion_id=int,db:Session=Depends(getdb)):
         return Response(content=f' Religion id {religion_id} has been deleted successfully',status_code=200) 
     raise HTTPException(detail=f'religion id {religion_id} does not exist',status_code=400)
    
-
+#---------create_cast--------------
 @router.post('/create_cast',response_model=CasteGet,tags=['Master_Cast'])
 async def create_cast(cast:CastBase,db:Session=Depends(getdb)):
     cast_exit=db.query(CastModel).filter(CastModel.Cast==cast.Cast).first()
     if cast_exit:
-        raise HTTPException(detail='{cast.Cast} already exist',status_code=400)
+        raise HTTPException(detail=f'{cast.Cast} already exist',status_code=400)
     cast_item=CastModel(**cast.model_dump())
     db.add(cast_item)
-    db.refresh()
-    db.commit(cast_item)   
+    db.commit()
+    db.refresh(cast_item)   
     return cast_item 
 @router.get('/get_cast',response_model=list[CasteGet],tags=['Master_Cast'])
 async def get_cast(db:Session=Depends(getdb)):
-    all_cast=db.query(CasteGet).order_by(CastModel.id.desc()).all()
+    all_cast=db.query(CastModel).order_by(CastModel.id.desc()).all()
     return all_cast
-@router.get('/update_cast/cast_id',response_model=list[CasteGet],tags=['Master_Cast'])
+@router.put('/update_cast/{cast_id}',response_model=CasteGet,tags=['Master_Cast'])
 async def update_cast(cast_id:int,cast:CastBase,db:Session=Depends(getdb)):
     duplicate_cast=db.query(CastModel).filter(CastModel.Cast==cast.Cast).first()
     if duplicate_cast:
-        raise HTTPException(detail='{cast.Cost} already exist',status_code=400)
+        raise HTTPException(detail=f'{cast.Cast} already exist',status_code=400)
     cast_exist=db.query(CastModel).filter(CastModel.id==cast_id).first()
     if cast_exist:
         cast_exist.Cast=cast.Cast
@@ -382,8 +382,82 @@ async def del_cast(cast_id:int,db:Session=Depends(getdb)):
     cast_exist=db.query(CastModel).filter(CastModel.id==cast_id).first()
     if cast_exist:
         db.delete(cast_exist)
+        db.commit()
         return Response(content=f"id-{cast_id} has been deleted successfully",status_code=200)
     raise HTTPException(detail=f'id-{cast_id} does not exist',status_code=400)
+#-----subcast-----------
+@router.post('/create_subcast',response_model=SubcastGet,tags=['Master_Subcast'])
+async def create_subcast(subcast:SubcastBase,db:Session=Depends(getdb)):
+    subcast_exit=db.query(SubcastModel).filter(SubcastModel.Subcast==subcast.Subcast).first()
+    if subcast_exit:
+        raise HTTPException(detail=f'{subcast.Subcast} already exist',status_code=400)
+    subcast_item=SubcastModel(**subcast.model_dump())
+    db.add(subcast_item)
+    db.commit()
+    db.refresh(subcast_item)
+    return subcast_item
+@router.get('/get_subcast',response_model=list[SubcastGet],tags=['Master_Subcast'])
+async def get_subcast(db:Session=Depends(getdb)):
+    all_subcast=db.query(SubcastModel).order_by(SubcastModel.id.desc()).all()
+    return(all_subcast)
+@router.put('/update_subcast/{subcast_item}',response_model=SubcastGet,tags=['Master_Subcast'])
+async def update_subcast(subcast_item:int,subcast:SubcastBase,db:Session=Depends(getdb)):
+    subcast_duplicate=db.query(SubcastModel).filter(SubcastModel.Subcast==subcast.Subcast).first()
+    if subcast_duplicate:
+       raise HTTPException(detail=f'{subcast.Subcast} already exit',status_code=400)
+    subcast_exit=db.query(SubcastModel).filter(SubcastModel.id==subcast_item).first()
+    if subcast_exit:
+        subcast_exit.Subcast=subcast.Subcast
+        subcast_exit.Religion_id=subcast.Religion_id
+        subcast_exit.Cast_id=subcast.Cast_id
+        db.commit()
+        db.refresh(subcast_exit)
+        return subcast_exit
+    raise HTTPException(detail='id-{subcast_item} does not exist',status_code=400)
+@router.delete('/delete_subcast/{subcast_item}',tags=['Master_Subcast'])
+async def del_subcast(subcast_item:int,db:Session=Depends(getdb)):
+    subcast_exit=db.query(SubcastModel).filter(SubcastModel.id==subcast_item).first()
+    if subcast_exit:
+        db.delete(subcast_exit)
+        db.commit()
+        return Response(content=f'id-{subcast_item} has been deleted successfully',status_code=200)
+    raise HTTPException(detail=f'id-{subcast_item} does not exist',status_code=400)
+#--------langues----------
+@router.post('/create_langues',response_model=LanguesGet,tags=['Master_Langues'])
+async def create_langues(langues:LanguesBase,db:Session=Depends(Session)):
+    langues_exit=db.query(LanguesModel).filter(LanguesModel.Langues==langues.Langues).first()
+    if langues_exit:
+        raise HTTPException(detail=f'{langues.Langues} already exist',status_code=400)
+    langues_item=LanguesModel(**langues.model_dump())
+    db.add(langues_item)
+    db.commit()
+    db.refresh(langues_exit)
+    return langues_exit
+@router.get('/get_langues',response_model=list[LanguesGet])
+async def get_langues(db:Session=Depends(getdb)):
+    all_langues=db.query(LanguesModel).order_by(LanguesModel.id.desc()).all()
+    return all_langues
+@router.put('/update_langues/{langues_id}',response_model=LanguesGet,tags=['Master_Langues'])
+async def update_langues(langues_id:int,langues:LanguesBase,db:Session=Depends(getdb)):
+    langues_duplicate=db.query(LanguesModel).filter(LanguesModel.Langues==langues.Langues).first()
+    if langues_duplicate:
+        raise HTTPException(detail=f'{langues.Langues} already exist',status_code=400)
+    langues_exit=db.query(LanguesModel).filter(LanguesModel.id==langues_id).first()
+    if langues_exit:
+        langues_exit.Langues=langues.Langues
+        db.commit()
+        db.refresh(langues_exit)
+        return langues_exit
+@router.delete('/del_langues/{langues_id}')
+async def dlt_langues(langues_id:int,db:Session=Depends(getdb)):
+    langues_exit=db.query(LanguesModel).filter(LanguesModel.id==langues_id).first()
+    if langues_exit:
+        db.delete(langues_exit)
+        db.commit()
+        return Response(content=f'id-{langues_id} has been  deleted successfully',status_code=200)  
+    raise HTTPException(detail=f'id-{langues_id} does not exist',status_code=400)  
+
+
 
 
 

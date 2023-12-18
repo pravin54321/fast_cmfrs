@@ -203,16 +203,50 @@ class ReligionBase(BaseModel):
 class ReligionGet(ReligionBase):
     id:int 
     create_date:datetime=None
-    update_date:datetime=None  
+    update_date:datetime=None 
+    class config:
+        orm_model:True 
 
  #_________cast_shema___________        
 class CastBase(BaseModel):
     Cast:str
     Religion_id:int 
-class CasteGet(CastBase):
+class CasteGet(BaseModel):
     id:int
+    Cast:str
+    religion:ReligionGet
     create_date:datetime=None       
     update_date:datetime=None
+    class config:
+        orm_mode=True       
+#________subcast_________
+class SubcastBase(BaseModel):
+    Subcast:str
+    Religion_id:int
+    Cast_id:int
+class SubcastGet(BaseModel):
+    id:int
+    Subcast:str
+    religion:ReligionGet
+    cast:CasteGet
+    create_date:datetime=None
+    update_date:datetime=None
+    class config:
+        orm_mode=True
+#____langues_______
+class LanguesBase(BaseModel):
+    Langues:str
+    create_date:datetime=None
+    update_date:datetime=None
+class LanguesGet(BaseModel):
+    id:int
+    Langues:str
+    create_date:None
+    update_date:None
+
+
+      
+
 
 
 
