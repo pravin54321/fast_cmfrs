@@ -210,9 +210,10 @@ class OccupationModel(Base):
     create_date=Column(DateTime,default=datetime.utcnow)
     update_date=Column(DateTime,default=datetime.utcnow,onupdate=datetime.utcnow) 
 #_________outhperson_model________
+class OuthPersonModel(Base):   
     __tablename__='outhperson'
     id=Column(Integer,primary_key=True,autoincrement=True,index=True)                 
-    OthPerson=Column(String(200))
+    OuthPerson=Column(String(200))
     create_date=Column(DateTime,default=datetime.utcnow)
     update_date=Column(DateTime,default=datetime.utcnow,onupdate=datetime.utcnow)
 

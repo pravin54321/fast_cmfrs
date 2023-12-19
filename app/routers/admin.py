@@ -504,7 +504,35 @@ async def dlt_occupation(current_user:Annotated[UserBase,Depends(get_current_act
         return Response(content=f'id-{occupation_id} has been deleted successfully',status_code=200) 
     raise HTTPException(detail=f"id-{occupation_id} does not exist",status_code=400) 
 #______outhperson________
-# @router.post('/create_outhperson',response_model=)
+@router.post('/create_outhperson',response_model=OuthPersonBase,tags=['Master_Outhperson'])
+async def create_outhperson(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                            outhperson:OuthPersonBase,db:Session=Depends(getdb)):
+    outhperson_exist=db.query(OuthPersonModel).filter(OuthPersonModel.OuthPerson==outhperson.OuthPerson).first()
+    if outhperson_exist:
+        raise HTTPException(detail=f'{outhperson.OuthPerson} already exist',status_code=400)
+    outhperson_item=OuthPersonModel(**outhperson.model_dump())
+    db.add(outhperson_exist)
+    db.commit()
+    db.refresh(outhperson_item)
+    return outhperson_item
+@router.get('/get_outhperson',response_model=list[OuthPersonGet],tags=['Master_OuthPerson'])
+async def get_outhperson(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                         db:Session=Depends(getdb)):
+    all_outhperson=db.query(OuthPersonModel).order_by(OuthPersonModel.id.desc()).all()
+    return all_outhperson
+@router.put('/update_outhperson/{outhperson_id}',response_model=OuthPersonGet,tags=['Master_Outhperson'])
+async def update_outhperson(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                            outhperson_id:int,outhperson:OuthPersonModel,db:Session=Depends(getdb)):
+    outhperson_duplicate=db.query(OuthPersonModel).filter(OuthPersonModel.OuthPerson==outhperson.OuthPerson).first() 
+    if outhperson_duplicate:
+        raise HTTPException(detail=f'{outhperson.OuthPerson} does not exit',status_code=400)
+    outhperson_exist=db.query(OuthPersonModel).filter(OuthPersonModel.id==outhperson_id).first()
+    if outhperson_exist:
+        outhperson_exist.OuthPerson=outhperson.OuthPerson
+        db.commit()
+        db.refresh(outhperson_exist)
+        return outhperson_exist 
+
 
 
 
