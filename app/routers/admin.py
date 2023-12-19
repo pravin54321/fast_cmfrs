@@ -3,6 +3,7 @@ from ..dependencies import *
 from ..models.models import *
 from ..schemas.schemas import *
 from .authentication import *
+
 router = APIRouter()
 
 #---------------master--------------------------
@@ -387,7 +388,8 @@ async def del_cast(cast_id:int,db:Session=Depends(getdb)):
     raise HTTPException(detail=f'id-{cast_id} does not exist',status_code=400)
 #-----subcast-----------
 @router.post('/create_subcast',response_model=SubcastGet,tags=['Master_Subcast'])
-async def create_subcast(subcast:SubcastBase,db:Session=Depends(getdb)):
+async def create_subcast(current_user: Annotated[UserBase, Depends(get_current_active_user)],
+                        subcast:SubcastBase,db:Session=Depends(getdb)):
     subcast_exit=db.query(SubcastModel).filter(SubcastModel.Subcast==subcast.Subcast).first()
     if subcast_exit:
         raise HTTPException(detail=f'{subcast.Subcast} already exist',status_code=400)
@@ -397,11 +399,13 @@ async def create_subcast(subcast:SubcastBase,db:Session=Depends(getdb)):
     db.refresh(subcast_item)
     return subcast_item
 @router.get('/get_subcast',response_model=list[SubcastGet],tags=['Master_Subcast'])
-async def get_subcast(db:Session=Depends(getdb)):
+async def get_subcast(current_user: Annotated[UserBase, Depends(get_current_active_user)],
+                      db:Session=Depends(getdb)):
     all_subcast=db.query(SubcastModel).order_by(SubcastModel.id.desc()).all()
     return(all_subcast)
 @router.put('/update_subcast/{subcast_item}',response_model=SubcastGet,tags=['Master_Subcast'])
-async def update_subcast(subcast_item:int,subcast:SubcastBase,db:Session=Depends(getdb)):
+async def update_subcast(current_user: Annotated[UserBase, Depends(get_current_active_user)],
+                         subcast_item:int,subcast:SubcastBase,db:Session=Depends(getdb)):
     subcast_duplicate=db.query(SubcastModel).filter(SubcastModel.Subcast==subcast.Subcast).first()
     if subcast_duplicate:
        raise HTTPException(detail=f'{subcast.Subcast} already exit',status_code=400)
@@ -415,7 +419,8 @@ async def update_subcast(subcast_item:int,subcast:SubcastBase,db:Session=Depends
         return subcast_exit
     raise HTTPException(detail='id-{subcast_item} does not exist',status_code=400)
 @router.delete('/delete_subcast/{subcast_item}',tags=['Master_Subcast'])
-async def del_subcast(subcast_item:int,db:Session=Depends(getdb)):
+async def del_subcast( current_user: Annotated[UserBase, Depends(get_current_active_user)],
+                       subcast_item:int,db:Session=Depends(getdb)):
     subcast_exit=db.query(SubcastModel).filter(SubcastModel.id==subcast_item).first()
     if subcast_exit:
         db.delete(subcast_exit)
@@ -424,21 +429,24 @@ async def del_subcast(subcast_item:int,db:Session=Depends(getdb)):
     raise HTTPException(detail=f'id-{subcast_item} does not exist',status_code=400)
 #--------langues----------
 @router.post('/create_langues',response_model=LanguesGet,tags=['Master_Langues'])
-async def create_langues(langues:LanguesBase,db:Session=Depends(Session)):
+async def create_langues(current_user: Annotated[UserBase, Depends(get_current_active_user)],
+                        langues:LanguesBase,db:Session=Depends(getdb)):
     langues_exit=db.query(LanguesModel).filter(LanguesModel.Langues==langues.Langues).first()
     if langues_exit:
         raise HTTPException(detail=f'{langues.Langues} already exist',status_code=400)
     langues_item=LanguesModel(**langues.model_dump())
     db.add(langues_item)
     db.commit()
-    db.refresh(langues_exit)
-    return langues_exit
-@router.get('/get_langues',response_model=list[LanguesGet])
-async def get_langues(db:Session=Depends(getdb)):
+    db.refresh(langues_item)
+    return langues_item
+@router.get('/get_langues',response_model=list[LanguesGet],tags=['Master_Langues'])
+async def get_langues(current_user: Annotated[UserBase, Depends(get_current_active_user)],
+                      db:Session=Depends(getdb)):
     all_langues=db.query(LanguesModel).order_by(LanguesModel.id.desc()).all()
     return all_langues
 @router.put('/update_langues/{langues_id}',response_model=LanguesGet,tags=['Master_Langues'])
-async def update_langues(langues_id:int,langues:LanguesBase,db:Session=Depends(getdb)):
+async def update_langues( current_user: Annotated[UserBase, Depends(get_current_active_user)],
+                          langues_id:int,langues:LanguesBase,db:Session=Depends(getdb)):
     langues_duplicate=db.query(LanguesModel).filter(LanguesModel.Langues==langues.Langues).first()
     if langues_duplicate:
         raise HTTPException(detail=f'{langues.Langues} already exist',status_code=400)
@@ -448,14 +456,55 @@ async def update_langues(langues_id:int,langues:LanguesBase,db:Session=Depends(g
         db.commit()
         db.refresh(langues_exit)
         return langues_exit
-@router.delete('/del_langues/{langues_id}')
-async def dlt_langues(langues_id:int,db:Session=Depends(getdb)):
+@router.delete('/del_langues/{langues_id}',tags=['Master_Langues'])
+async def dlt_langues(current_user: Annotated[UserBase, Depends(get_current_active_user)],
+                      langues_id:int,db:Session=Depends(getdb)):
     langues_exit=db.query(LanguesModel).filter(LanguesModel.id==langues_id).first()
     if langues_exit:
         db.delete(langues_exit)
         db.commit()
         return Response(content=f'id-{langues_id} has been  deleted successfully',status_code=200)  
-    raise HTTPException(detail=f'id-{langues_id} does not exist',status_code=400)  
+    raise HTTPException(detail=f'id-{langues_id} does not exist',status_code=400) 
+#_____occupation_________
+@router.post('/create_occupation',response_model=OccupationGet,tags=['Master_Occupation'])
+async def create_occupation(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                            occupation:OccupationBase,db:Session=Depends(getdb)):
+    occupation_exist=db.query(OccupationModel).filter(OccupationModel.Occupation==occupation.Occupation).first()
+    if occupation_exist:
+        raise HTTPException(detail=f'{occupation.Occupation} already exist',status_code=400)
+    occupation_item=OccupationModel(**occupation.model_dump())
+    db.add(occupation_item)
+    db.commit()
+    db.refresh(occupation_item)
+    return occupation_item
+@router.get('/get_occupation',response_model=list[OccupationGet],tags=['Master_Occupation'])
+async def get_occupation(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                         db:Session=Depends(getdb)):
+    all_occupation=db.query(OccupationModel).order_by(OccupationModel.id.desc()).all() 
+    return all_occupation
+@router.put('/update_occupation/{occupation_id}',response_model=OccupationGet,tags=['Master_Occupation'])
+async def update_occupation(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                             occupation:OccupationBase,occupation_id:int,db:Session=Depends(getdb)):
+    occupation_duplicate=db.query(OccupationModel).filter(OccupationModel.Occupation==occupation.Occupation).first()
+    if occupation_duplicate:
+        raise HTTPException(detail=f"{occupation.Occupation} already exist",status_code=400)
+    occupation_exist=db.query(OccupationModel).filter(OccupationModel.id==occupation_id).first()
+    if occupation_exist:
+        occupation_exist.Occupation=occupation.Occupation
+        db.commit()
+        db.refresh(occupation_exist)
+        return occupation_exist
+@router.delete('/dlt_occupation/{occupation_item}',tags=['Master_Occupation'])
+async def dlt_occupation(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                         occupation_id:int,db:Session=Depends(getdb)):
+    occupation_exist=db.query(OccupationModel).filter(OccupationModel.id==occupation_id).first() 
+    if occupation_exist:
+        db.delete(occupation_exist)
+        db.commit()
+        return Response(content=f'id-{occupation_id} has been deleted successfully',status_code=200) 
+    raise HTTPException(detail=f"id-{occupation_id} does not exist",status_code=400) 
+#______outhperson________
+# @router.post('/create_outhperson',response_model=)
 
 
 

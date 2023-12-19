@@ -197,12 +197,24 @@ class SubcastModel(Base):
     cast=relationship('CastModel',back_populates='subcast')
 #--------langues_model--------
 class LanguesModel(Base):
-    __tablename__='langues'
+    __tablename__='langues'         
     id=Column(Integer,autoincrement=True,primary_key=True)
     Langues=Column(String(200))
     create_date=Column(DateTime,default=datetime.utcnow)
-    update_date=Column(DateTime,default=datetime.utcnow,onupdate=datetime.utcnow)        
-
+    update_date=Column(DateTime,default=datetime.utcnow,onupdate=datetime.utcnow)  
+#________Occupation_model_________
+class OccupationModel(Base):
+    __tablename__='Occupation'
+    id=Column(Integer,autoincrement=True,index=True,primary_key=True)
+    Occupation=Column(String(200))
+    create_date=Column(DateTime,default=datetime.utcnow)
+    update_date=Column(DateTime,default=datetime.utcnow,onupdate=datetime.utcnow) 
+#_________outhperson_model________
+    __tablename__='outhperson'
+    id=Column(Integer,primary_key=True,autoincrement=True,index=True)                 
+    OthPerson=Column(String(200))
+    create_date=Column(DateTime,default=datetime.utcnow)
+    update_date=Column(DateTime,default=datetime.utcnow,onupdate=datetime.utcnow)
 
     
 

@@ -236,13 +236,21 @@ class SubcastGet(BaseModel):
 #____langues_______
 class LanguesBase(BaseModel):
     Langues:str
-    create_date:datetime=None
-    update_date:datetime=None
+   
 class LanguesGet(BaseModel):
     id:int
     Langues:str
-    create_date:None
-    update_date:None
+    create_date:datetime=None
+    update_date:datetime=None
+
+#________Occupation________
+class OccupationBase(BaseModel):
+    Occupation:str
+class OccupationGet(OccupationBase):
+    id:int
+    create_date:datetime=None
+    update_date:datetime=None
+                
 
 
       
