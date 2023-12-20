@@ -47,79 +47,94 @@ async def delete_state(current_user:Annotated[UserBase,Depends(get_current_activ
     
 #--------master_region---------
 @router.get('/get_region',response_model=list[RegionGet],tags=['Master_region'])
-async def get_region(db:Session=Depends(getdb)):
+async def get_region(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                     db:Session=Depends(getdb)):
     all_region = db.query(RegionModel).order_by(RegionModel.id.desc()).all()
     return all_region
-@router.post('/create_region',response_model=RegionBase,tags=['Master_region'])
-async def create_region(region:RegionBase,db:Session=Depends(getdb)):
+@router.post('/create_region',response_model=RegionGet,tags=['Master_region'])
+async def create_region(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                        region:RegionBase,db:Session=Depends(getdb)):
     region_exist = db.query(RegionModel).filter(RegionModel==region.Region).first()
     if region_exist:
-        raise HTTPException(status_code=400,detail='Region already exist')
+        raise HTTPException(status_code=400,detail=f'{region.Region} already exist')
     region = RegionModel(**region.model_dump())
     db.add(region)
     db.commit()
     db.refresh(region)
     return region
-@router.put('/update_region/{region_id}',response_model=RegionBase,tags=['Master_region'])
-async def update_region(region_id:int,region:RegionBase,db:Session=Depends(getdb)):
+@router.put('/update_region/{region_id}',response_model=RegionGet,tags=['Master_region'])
+async def update_region(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                        region_id:int,region:RegionBase,db:Session=Depends(getdb)):
     duplicate_exist = db.query(RegionModel).filter(RegionModel.Region==region.Region).first()
     if duplicate_exist:
-        raise HTTPException(detail='Region already exists',status_code=400)
+        raise HTTPException(detail=f'{region.Region} already exists',status_code=400)
     region_exist = db.query(RegionModel).filter(RegionModel.id==region_id).first()
     if region_exist:
         region_exist.Region = region.Region
-        region_exist.update_date = datetime.utcnow()
+        region_exist.State_id=region.State_id     
         db.commit()
         db.refresh(region_exist)
         return region_exist
-    raise HTTPException(detail='region id does not exists',status_code=400)
+    raise HTTPException(detail=f'id-{region_id} does not exist',status_code=400)
 @router.delete('/del_region/{region_id}',tags=['Master_region'])
-async def del_region(region_id:int,db:Session=Depends(getdb)):
+async def del_region(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                     region_id:int,db:Session=Depends(getdb)):
     region_exist = db.query(RegionModel).filter(RegionModel.id == region_id ).first()
     if region_exist:
         db.delete(region_exist)
         db.commit()
-        return Response(content='region has been deleted successfully',status_code=200)
-    raise HTTPException(detail='region id doess not exist',status_code=400)
+        return Response(content=f'id-{region_id} has been deleted successfully',status_code=200)
+    raise HTTPException(detail=f'id-{region_id} doess not exist',status_code=400)
 #---------master_distric------------------------
 @router.get('/get_distric',response_model=list[DistricGet],tags=['Master_Distric'])
-async def get_distric(db:Session=Depends(getdb)):
+async def get_distric(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                      db:Session=Depends(getdb)):
     all_distric = db.query(DistricModel).order_by(DistricModel.id.desc()).all()
     return all_distric
-@router.post('/distric_create',response_model=DistricBase,tags=['Master_Distric'])
-async def distric_create(distric:DistricBase,db:Session=Depends(getdb)):
+@router.post('/distric_create',response_model=DistricGet,tags=['Master_Distric'])
+async def distric_create(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                         distric:DistricBase,db:Session=Depends(getdb)):
     distric_exist = db.query(DistricModel).filter(DistricModel.Distric==distric.Distric).first()
     if distric_exist:
-        raise HTTPException(detail='Distric already exists',status_code=400)
+        raise HTTPException(detail=f'{distric.Distric} already exists',status_code=400)
     distric_item = DistricModel(**distric.model_dump())
     db.add(distric_item)
     db.commit()
     db.refresh(distric_item)
     return distric_item
-@router.put('/update_distric/{distric_id}',response_model=DistricBase,tags=['Master_Distric'])
-async def update_distric(distric_id:int,distric:DistricBase,db:Session=Depends(getdb)):
+@router.put('/update_distric/{distric_id}',response_model=DistricGet,tags=['Master_Distric'])
+async def update_distric(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                        distric_id:int,distric:DistricBase,db:Session=Depends(getdb)):
     duplicate_exist = db.query(DistricModel).filter(DistricModel.Distric==distric.Distric).first()
     if duplicate_exist:
-        raise HTTPException(detail='Distric already Available',status_code=400)
+        raise HTTPException(detail=f'{distric.Distric} already Available',status_code=400)
     distric_exist = db.query(DistricModel).filter(DistricModel.id==distric_id).first()
     if distric_exist:
-        distric_exist.Distric =  distric.Distric
-        distric_exist.update_date = datetime.utcnow()
+        distric_exist.Distric =  distric.Distric 
+        distric_exist.State_id=distric.State_id
+        distric_exist.Region_id=distric.Region_id   
         db.commit()
         db.refresh(distric_exist)
         return distric_exist
-    raise HTTPException(detail=f"distric id {distric_id} does not exist",status_code=400)
+    raise HTTPException(detail=f"id {distric_id} does not exist",status_code=400)
 @router.delete('/del_distric/{distric_id}',tags=['Master_Distric'])
-async def del_distric(distric_id:int,db:Session=Depends(getdb)):
+async def del_distric(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                     distric_id:int,db:Session=Depends(getdb)):
     distric_exist = db.query(DistricModel).filter(DistricModel.id==distric_id).first()
     if distric_exist:
         db.delete(distric_exist)
         db.commit()
-        return Response(content="distric has been delete successfully",status_code=200)
+        return Response(content=f"distric id-{distric_id} has been delete successfully",status_code=200)
     raise HTTPException(detail=f"distric id {distric_id} does not exists",status_code=400)
+@router.get('/state_region/{state_id}',response_model=list[StateRegion],tags=['Master_Distric'])
+async def state_region(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                       state_id:int,db:Session=Depends(getdb)):
+    region_exist=db.query(RegionModel).filter(RegionModel.State_id==state_id).all()
+    return region_exist
 #--------head_office---------
-@router.post('/headoffice_create',response_model=HeadOfficeBase,tags=['Master_HeadOffice'])
-async def headoffice_create(headoffice:HeadOfficeBase,db:Session=Depends(getdb)):
+@router.post('/headoffice_create',response_model=HeadOfficeGet,tags=['Master_HeadOffice'])
+async def headoffice_create(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                            headoffice:HeadOfficeBase,db:Session=Depends(getdb)):
     headoffice_exist = db.query(HeadOfficeModel).filter(HeadOfficeModel.HeadOffice==headoffice.HeadOffice).first()
     if headoffice_exist:
         raise HTTPException(detail=f'{headoffice.HeadOffice} already exist',status_code=400)
@@ -129,11 +144,13 @@ async def headoffice_create(headoffice:HeadOfficeBase,db:Session=Depends(getdb))
     db.refresh(head_office)
     return head_office
 @router.get('/get_headoffice',response_model=list[HeadOfficeGet],tags=['Master_HeadOffice'])    
-async def get_headoffice(db:Session=Depends(getdb)):
+async def get_headoffice(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                         db:Session=Depends(getdb)):
     all_headoffice=db.query(HeadOfficeModel).order_by(HeadOfficeModel.id.desc()).all()
     return all_headoffice
 @router.put('/update_headoffice/{headoffice_id}',response_model=HeadOfficeBase,tags=['Master_HeadOffice'])
-async def  update_headoffice(headoffice_id:int,headoffice:HeadOfficeBase,db:Session=Depends(getdb)):
+async def  update_headoffice(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                             headoffice_id:int,headoffice:HeadOfficeBase,db:Session=Depends(getdb)):
     dupilicate_exist= db.query(HeadOfficeModel).filter(HeadOfficeModel.HeadOffice==headoffice.HeadOffice).first()
     if dupilicate_exist:
         raise HTTPException(detail=f' headoffice {headoffice.HeadOffice} already exist',status_code=400)
@@ -142,23 +159,29 @@ async def  update_headoffice(headoffice_id:int,headoffice:HeadOfficeBase,db:Sess
         headoffice_exist.HeadOffice=headoffice.HeadOffice
         headoffice_exist.State_id=headoffice_exist.HeadOffice
         headoffice_exist.Region_id=headoffice.Region_id
-        headoffice_exist.Distric_id=headoffice.Distric_id
-        headoffice_exist.update_date=datetime.utcnow()
+        headoffice_exist.Distric_id=headoffice.Distric_id      
         db.commit()
         db.refresh(headoffice_exist)
         return headoffice_exist
     raise HTTPException(detail=f'headoffice {headoffice_id} does not exist',status_code=400)
 @router.delete('/del_headoffice/{headoffice_id}',tags=['Master_HeadOffice'])
-async def del_headoffice(head_office_id:int,db:Session=Depends(getdb)):
-    headoffice_exist=db.query(HeadOfficeModel).filter(HeadOfficeModel.id==head_office_id).first()
+async def del_headoffice(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                         headoffice_id:int,db:Session=Depends(getdb)):
+    headoffice_exist=db.query(HeadOfficeModel).filter(HeadOfficeModel.id==headoffice_id).first()
     if headoffice_exist:
         db.delete(headoffice_exist)
         db.commit()
-        return Response(content=f"headoffice has been deleted successfully",status_code=200)
-    raise HTTPException(detail=f"headoffice id {head_office_id} does not exist",status_code=400) 
+        return Response(content=f"headoffice id-{headoffice_id} has been deleted successfully",status_code=200)
+    raise HTTPException(detail=f"headoffice id {headoffice_id} does not exist",status_code=400) 
+@router.get('/region_distric/{region_id}',response_model=list[RegionDistric],tags=['Master_HeadOffice'])
+async def region_distric(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                         region_id:int,db:Session=Depends(getdb)):
+    list_distric=db.query(DistricModel).filter(DistricModel.Region_id==region_id).all()
+    return list_distric
 #------subdivision----------------#
-@router.post('/crete_subdivision',response_model=SubdivisionBase,tags=['Master_Subdivision'])
-async def create_subdivision(subdivision:SubdivisionBase,db:Session=Depends(getdb)):
+@router.post('/crete_subdivision',response_model=SubdivisionGet,tags=['Master_Subdivision'])
+async def create_subdivision(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                             subdivision:SubdivisionBase,db:Session=Depends(getdb)):
     subdivision_exist=db.query(SubdivisionModel).filter(SubdivisionModel.Subdivision==subdivision.Subdivision).first()
     if subdivision_exist:
         raise HTTPException(detail=f'{subdivision.Subdivision} subdivision already exist',status_code=400)
@@ -168,11 +191,13 @@ async def create_subdivision(subdivision:SubdivisionBase,db:Session=Depends(getd
     db.refresh(subdivision)
     return subdivision
 @router.get('/get_subdivision',response_model=list[SubdivisionGet],tags=['Master_Subdivision'])
-async def get_subdivision(db:Session=Depends(getdb)):
+async def get_subdivision(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                          db:Session=Depends(getdb)):
     all_subdiviion=db.query(SubdivisionModel).order_by(SubdivisionModel.id.desc()).all()
     return all_subdiviion
 @router.put('/update_subdivision/{sudivision_id}',response_model=SubdivisionBase,tags=['Master_Subdivision'])
-async def update_subdivision(subdivision_id:int,subdivision:SubdivisionBase,db:Session=Depends(getdb)):
+async def update_subdivision(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                             subdivision_id:int,subdivision:SubdivisionBase,db:Session=Depends(getdb)):
     subdivision_duplicate=db.query(SubdivisionModel).filter(SubdivisionModel.Subdivision==subdivision.Subdivision).first()
     if subdivision_duplicate:
         raise HTTPException(detail=f'{subdivision.Subdivision} subdivision already exist',status_code=400)
@@ -182,23 +207,30 @@ async def update_subdivision(subdivision_id:int,subdivision:SubdivisionBase,db:S
        subdivision_exist.State_id=subdivision.State_id
        subdivision_exist.Region_id=subdivision.Region_id
        subdivision_exist.Distric_id=subdivision.Distric_id
-       subdivision_exist.HeadOffice_id=subdivision.HeadOffice_id
-       subdivision_exist.update_date=datetime.utcnow()
+       subdivision_exist.HeadOffice_id=subdivision.HeadOffice_id     
        db.commit()
        db.refresh(subdivision_exist)
        return subdivision_exist   
     raise HTTPException(detail=f'subdivision id {subdivision_id} does not exist',status_code=400) 
 @router.delete('/del_subdivision/{subdivision_id}',tags=['Master_Subdivision'])
-async def del_subdivision(subdivision_id:int,db:Session=Depends(getdb)):
+async def del_subdivision(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                          subdivision_id:int,db:Session=Depends(getdb)):
     subdivision_exit=db.query(SubdivisionModel).filter(SubdivisionModel.id==subdivision_id).first()
     if subdivision_exit:
         db.delete(subdivision_exit)
         db.commit()
         return Response(content=f'subdivision id {subdivision_id} has deleted successfully',status_code=200)
-    raise HTTPException(detail=f'subdivision id {subdivision_id} does not exist',status_code=400) 
+    raise HTTPException(detail=f'subdivision id {subdivision_id} does not exist',status_code=400)
+@router.get('/distric_headoffice/{distric_id}',response_model=list[DistricHeadoffice],tags=['Master_Subdivision'])
+async def distric_headoffice(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                             distric_id:int,db:Session=Depends(getdb)):
+    list_headoffice=db.query(HeadOfficeModel).filter(HeadOfficeModel.Distric_id==distric_id).all()
+    return list_headoffice
+
 #-----taluka---------
 @router.post('/create_taluka',response_model=TalukaBase,tags=['Master_Taluka'])
-async def create_taluka(taluka:TalukaBase,db:Session=Depends(getdb)):
+async def create_taluka(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                        taluka:TalukaBase,db:Session=Depends(getdb)):
     taluka_exit=db.query(TalukaModel).filter(TalukaModel.Taluka==taluka.Taluka).first()
     if taluka_exit:
         raise HTTPException(detail=f'{taluka.Taluka} taluka already exist',status_code=400)
@@ -208,11 +240,13 @@ async def create_taluka(taluka:TalukaBase,db:Session=Depends(getdb)):
     db.refresh(taluka_item) 
     return taluka_item
 @router.get('/get_taluka',response_model=list[TalukaGet],tags=['Master_Taluka'])
-async def get_taluka(db:Session=Depends(getdb)):
+async def get_taluka(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                     db:Session=Depends(getdb)):
     all_taluka=db.query(TalukaModel).order_by(TalukaModel.id.desc()).all()
     return all_taluka
 @router.put('update_taluka/{taluka_id}',response_model=TalukaBase,tags=['Master_Taluka'])
-async def update_taluka(taluka_id:int,taluka:TalukaBase,db:Session=Depends(getdb)):
+async def update_taluka(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                        taluka_id:int,taluka:TalukaBase,db:Session=Depends(getdb)):
     duplicate_taluka=db.query(TalukaModel).filter(TalukaModel.Taluka==taluka.Taluka).first()
     if duplicate_taluka:
         raise HTTPException(detail=f'{taluka.Taluka} already exist',status_code=400)
@@ -224,12 +258,12 @@ async def update_taluka(taluka_id:int,taluka:TalukaBase,db:Session=Depends(getdb
         taluka_exist.Distric_id=taluka.Distric_id
         taluka_exist.HeadOffice_id=taluka.HeadOffice_id
         taluka_exist.Subdivision_id=taluka.Subdivision_id
-        taluka_exist.update_date=datetime.utcnow()
         db.commit()
         db.refresh(taluka_exist)
         return taluka_exist
 @router.delete('del_taluka/{taluka_id}',tags=['Master_Taluka'])
-async def del_taluka(taluka_id:int,db:Session=Depends(getdb)):
+async def del_taluka(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                     taluka_id:int,db:Session=Depends(getdb)):
     taluka_exist=db.query(TalukaModel).filter(TalukaModel.id==taluka_id)
     if taluka_exist:
         db.delete(taluka_exist)
@@ -329,7 +363,7 @@ async def religion_create(religion:ReligionBase,db:Session=Depends(getdb)):
     db.commit()
     db.refresh(religion_item) 
     return religion_item
-@router.get('/get_religion/{religion_id}',response_model=list[ReligionGet],tags=['Master_Religion'])
+@router.get('/get_religion',response_model=list[ReligionGet],tags=['Master_Religion'])
 async def get_religion(db:Session=Depends(getdb)):
     all_religion=db.query(ReligionModel).order_by(ReligionModel.id.desc()).all()
     return all_religion
@@ -524,18 +558,19 @@ async def get_outhperson(current_user:Annotated[UserBase,Depends(get_current_act
                          db:Session=Depends(getdb)):
     all_outhperson=db.query(OuthPersonModel).order_by(OuthPersonModel.id.desc()).all()
     return all_outhperson
-# @router.put('/update_outhperson/{outhperson_id}',response_model=OuthPersonGet,tags=['Master_Outhperson'])
-# async def update_outhperson(current_user:Annotated[UserBase,Depends(get_current_active_user)],
-#                             outhperson_id:int,outhperson:OuthPersonModel,db:Session=Depends(getdb)):
-#     outhperson_duplicate=db.query(OuthPersonModel).filter(OuthPersonModel.OuthPerson==outhperson.OuthPerson).first() 
-#     if outhperson_duplicate:
-#         raise HTTPException(detail=f'{outhperson.OuthPerson} does not exit',status_code=400)
-#     outhperson_exist=db.query(OuthPersonModel).filter(OuthPersonModel.id==outhperson_id).first()
-#     if outhperson_exist:
-#         outhperson_exist.OuthPerson=outhperson.OuthPerson
-#         db.commit()
-#         db.refresh(outhperson_exist)
-#         return outhperson_exist 
+@router.put('/update_outhperson/{outhperson_id}',response_model=OuthPersonGet,tags=['Master_Outhperson'])
+async def update_outhperson(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                            outhperson_id:int,outhperson:OuthPersonBase,db:Session=Depends(getdb)):
+    outhperson_duplicate=db.query(OuthPersonModel).filter(OuthPersonModel.OuthPerson==outhperson.OuthPerson).first() 
+    if outhperson_duplicate:
+        raise HTTPException(detail=f'{outhperson.OuthPerson} does not exit',status_code=400)
+    outhperson_exist=db.query(OuthPersonModel).filter(OuthPersonModel.id==outhperson_id).first()
+    if outhperson_exist:
+        outhperson_exist.OuthPerson=outhperson.OuthPerson
+        db.commit()
+        db.refresh(outhperson_exist)
+        return outhperson_exist 
+    raise HTTPException(detail=f'id-{outhperson_id} does not exist',status_code=400)
 @router.delete('/dlt_outhperson/{outhperson_item}')
 async def dlt_outhperson(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                          outhperson_item:int,db:Session=Depends(getdb)):

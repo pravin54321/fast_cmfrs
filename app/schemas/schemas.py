@@ -76,25 +76,36 @@ class StateGet(StateBase):
     update_date: datetime = None  
 #-----------master_region--------------------
 class RegionBase(BaseModel):
-    Region: str   
-class RegionGet(RegionBase):
+    Region: str
+    State_id:int   
+class RegionGet(BaseModel):
     id: int
+    Region:str
     state:StateGet
     create_date: datetime = None
     update_date: datetime = None
     class config:
         orm_mode:True
+class StateRegion(BaseModel):
+    id:int
+    Region:str        
 #------------master_distric-------------
 class DistricBase(BaseModel):
     Distric: str
-class DistricGet(DistricBase):
+    State_id:int
+    Region_id:int
+class DistricGet(BaseModel):
     id:int
+    Distric:str
     state:StateGet
     region:RegionGet
     create_date: datetime = None
     update_date: datetime = None 
     class config:
         orm_mode:True 
+class RegionDistric(BaseModel):
+    id:int
+    Distric:str        
 #----------head_office----------
 class HeadOfficeBase(BaseModel):
     HeadOffice: str
@@ -113,6 +124,10 @@ class HeadOfficeGet(BaseModel):
     distric:DistricGet
     class config:
         orm_mode =True
+class DistricHeadoffice(BaseModel):
+    id:int
+    HeadOffice:str  
+#-----------subdivision----------        
 class SubdivisionBase(BaseModel):
     Subdivision:str
     State_id:int
