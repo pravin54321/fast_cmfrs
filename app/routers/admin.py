@@ -8,11 +8,12 @@ router = APIRouter()
 
 #---------------master--------------------------
 @router.get('/get_state',response_model=list[StateGet],tags=['Master_state'])
-async def get_state(db:Session=Depends(getdb)):
+async def get_state(current_user:Annotated[UserBase,Depends(get_current_active_user)],db:Session=Depends(getdb)):
     all_state = db.query(StateModel).order_by(StateModel.id.desc()).all()
     return all_state
-@router.post('/state',tags=['Master_state'])
-async def state_create(state:StateBase,db:Session=Depends(getdb)):
+@router.post('/state',response_model=StateGet,tags=['Master_state'])
+async def state_create(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                       state:StateBase,db:Session=Depends(getdb)):
     state_exist = db.query(StateModel).filter(StateModel.State==state.State).first()
     if state_exist:
         raise HTTPException(status_code=400,detail='State already exist')
@@ -21,26 +22,29 @@ async def state_create(state:StateBase,db:Session=Depends(getdb)):
     db.commit()
     db.refresh(state)
     return state
-@router.put('/update_state/{state_id}',response_model=StateBase,tags=['Master_state'])
-async def update_state(state_id:int,state:StateBase,db:Session=Depends(getdb)):
+@router.put('/update_state/{state_id}',response_model=StateGet,tags=['Master_state'])
+async def update_state(current_user:Annotated[UserBase,Depends(get_current_active_user)]
+                       ,state_id:int,state:StateBase,db:Session=Depends(getdb)):
     duplicate_state = db.query(StateModel).filter(StateModel.State==state.State).first()
     if duplicate_state:
-        raise HTTPException(status_code=400,detail="State already exists")
+        raise HTTPException(status_code=400,detail=f"{state.State} already exists")
     state_exist = db.query(StateModel).filter(StateModel.id==state_id).first()
     if state_exist:
         state_exist.State = state.State
-        state_exist.update_date = datetime.utcnow()
         db.commit()
         db.refresh(state_exist)
         return state_exist
-    raise HTTPException(status_code=404,detail="State not present") 
+    raise HTTPException(status_code=404,detail=f"id-{state_id} does not exist",) 
 @router.delete('/delete_state/{state_id}',tags=['Master_state'])
-async def delete_state(state_id:int,db:Session=Depends(getdb)):
+async def delete_state(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                       state_id:int,db:Session=Depends(getdb)):
     state_exist = db.query(StateModel).filter(StateModel.id==state_id).first()
     if state_exist:
         db.delete(state_exist)
         db.commit()
-        return Response(content=f"State has been deleted successfully",status_code=200) 
+        return Response(content=f"State_id {state_id} has been deleted successfully",status_code=200) 
+    raise HTTPException(detail=f"id-{state_id} does not exist",status_code=400)
+    
 #--------master_region---------
 @router.get('/get_region',response_model=list[RegionGet],tags=['Master_region'])
 async def get_region(db:Session=Depends(getdb)):
@@ -520,18 +524,29 @@ async def get_outhperson(current_user:Annotated[UserBase,Depends(get_current_act
                          db:Session=Depends(getdb)):
     all_outhperson=db.query(OuthPersonModel).order_by(OuthPersonModel.id.desc()).all()
     return all_outhperson
-@router.put('/update_outhperson/{outhperson_id}',response_model=OuthPersonGet,tags=['Master_Outhperson'])
-async def update_outhperson(current_user:Annotated[UserBase,Depends(get_current_active_user)],
-                            outhperson_id:int,outhperson:OuthPersonModel,db:Session=Depends(getdb)):
-    outhperson_duplicate=db.query(OuthPersonModel).filter(OuthPersonModel.OuthPerson==outhperson.OuthPerson).first() 
-    if outhperson_duplicate:
-        raise HTTPException(detail=f'{outhperson.OuthPerson} does not exit',status_code=400)
-    outhperson_exist=db.query(OuthPersonModel).filter(OuthPersonModel.id==outhperson_id).first()
-    if outhperson_exist:
-        outhperson_exist.OuthPerson=outhperson.OuthPerson
+# @router.put('/update_outhperson/{outhperson_id}',response_model=OuthPersonGet,tags=['Master_Outhperson'])
+# async def update_outhperson(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+#                             outhperson_id:int,outhperson:OuthPersonModel,db:Session=Depends(getdb)):
+#     outhperson_duplicate=db.query(OuthPersonModel).filter(OuthPersonModel.OuthPerson==outhperson.OuthPerson).first() 
+#     if outhperson_duplicate:
+#         raise HTTPException(detail=f'{outhperson.OuthPerson} does not exit',status_code=400)
+#     outhperson_exist=db.query(OuthPersonModel).filter(OuthPersonModel.id==outhperson_id).first()
+#     if outhperson_exist:
+#         outhperson_exist.OuthPerson=outhperson.OuthPerson
+#         db.commit()
+#         db.refresh(outhperson_exist)
+#         return outhperson_exist 
+@router.delete('/dlt_outhperson/{outhperson_item}')
+async def dlt_outhperson(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                         outhperson_item:int,db:Session=Depends(getdb)):
+    outhperson_exit=db.query(OuthPersonModel).filter(OuthPersonModel.id==outhperson_item).first()
+    if outhperson_exit:
+        db.delete(outhperson_exit)
         db.commit()
-        db.refresh(outhperson_exist)
-        return outhperson_exist 
+        return Response(content=f"id-{outhperson_item} has been deleted successfully",status_code=200)
+    raise HTTPException(detail=f' id-{outhperson_item} does not exist',status_code=400)
+
+        
 
 
 

@@ -55,6 +55,7 @@ class RegionModel(Base):
     __tablename__='region' 
     id = Column(Integer,primary_key=True,autoincrement=True)
     Region = Column(String(200),unique=True,nullable= False)
+    State_id=Column(Integer,ForeignKey('state.id'))
     create_date = Column(DateTime,default=datetime.utcnow)
     update_date = Column(DateTime,default=datetime.utcnow,onupdate=datetime.utcnow)
     headoffices= relationship('HeadOfficeModel',back_populates='region') 
@@ -67,6 +68,8 @@ class DistricModel(Base):
     __tablename__='distric'
     id = Column(Integer,primary_key=True,autoincrement=True)
     Distric = Column(String(200),unique=True,nullable=True)
+    State_id = Column(Integer,ForeignKey('state.id'))
+    Region_id = Column(Integer,ForeignKey('region.id'))
     create_date = Column(DateTime,default=datetime.utcnow)
     update_date = Column(DateTime,default=datetime.utcnow,onupdate=datetime.utcnow)
     headoffices = relationship('HeadOfficeModel',back_populates='distric')   

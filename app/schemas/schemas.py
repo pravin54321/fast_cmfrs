@@ -70,24 +70,31 @@ class GroupImg(BaseModel):
 #------------master_policestattion--------------
 class StateBase(BaseModel):
     State: str
-    create_date: datetime = None
-    update_date: datetime = None 
 class StateGet(StateBase):
-    id:int  
+    id:int 
+    create_date: datetime = None
+    update_date: datetime = None  
 #-----------master_region--------------------
 class RegionBase(BaseModel):
-    Region: str
-    create_date: datetime = None
-    update_date: datetime = None
+    Region: str   
 class RegionGet(RegionBase):
     id: int
+    state:StateGet
+    create_date: datetime = None
+    update_date: datetime = None
+    class config:
+        orm_mode:True
 #------------master_distric-------------
 class DistricBase(BaseModel):
     Distric: str
-    create_date: datetime = None
-    update_date: datetime = None
 class DistricGet(DistricBase):
-    id:int  
+    id:int
+    state:StateGet
+    region:RegionGet
+    create_date: datetime = None
+    update_date: datetime = None 
+    class config:
+        orm_mode:True 
 #----------head_office----------
 class HeadOfficeBase(BaseModel):
     HeadOffice: str
@@ -250,7 +257,13 @@ class OccupationGet(OccupationBase):
     id:int
     create_date:datetime=None
     update_date:datetime=None
-                
+#-----------outherise_person--------------
+class OuthPersonBase(BaseModel):
+    OuthPerson:str
+class OuthPersonGet(OuthPersonBase):
+    id:int
+    create_date:datetime=None
+    update_date:datetime=None                        
 
 
       
