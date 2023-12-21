@@ -1,13 +1,15 @@
 from ..dependencies import *
-from ..database import SessionLocal
-db = SessionLocal()
+from ..database import SessionLocal,getdb
+from fastapi import FastAPI,Depends
+from sqlalchemy.orm import Session
+
 
 
 def verify_password(plain_password,hashed_password):
     return pwd_context.verify(plain_password,hashed_password)
 def get_password_hash(password):
     return pwd_context.hash(password)
-def get_user(UserName:str):
+def get_user(UserName:str,db):
     user_data = db.query(UserModel).filter(UserModel.UserName==UserName).first()
     if user_data is not None:
         user_dict = {
@@ -19,11 +21,12 @@ def get_user(UserName:str):
         return hash_password(**user_dict)
     else:
         return None
-def authuntication(UserName:str,password:str):
-    user = get_user(UserName)
+def authuntication(UserName:str,password:str,db):
+    user = get_user(UserName,db)
     if not user:
         return False
-    if not verify_password(password,user.UserPassword):
+    verify_pwd=verify_password(password,user.UserPassword)
+    if not verify_pwd:
         return False
     return user
 def create_access_token(data: dict, expires_delta: Union[timedelta, None] = None):
@@ -60,7 +63,7 @@ async def get_current_active_user(current_user:Annotated[UserBase,Depends(get_cu
     return current_user
 
 
-async def check_duplicate_email(email:str):
+async def check_duplicate_email(email:str,db):
     user = db.query(UserModel).filter(UserModel.UserEmail == email).first()
     if user is not None:
        return False

@@ -112,8 +112,6 @@ class HeadOfficeBase(BaseModel):
     State_id:int
     Region_id:int
     Distric_id:int
-    create_date:datetime = None
-    update_date:datetime = None
 class HeadOfficeGet(BaseModel):
     id: int
     HeadOffice:str
@@ -133,9 +131,7 @@ class SubdivisionBase(BaseModel):
     State_id:int
     Region_id:int
     Distric_id:int
-    HeadOffice_id:int
-    create_date:datetime=None
-    update_date:datetime=None
+    HeadOffice_id:int   
 class SubdivisionGet(BaseModel):
     id:int
     Subdivision:str
@@ -154,9 +150,7 @@ class TalukaBase(BaseModel):
     Region_id:int
     Distric_id:int
     HeadOffice_id:int
-    Subdivision_id:int 
-    create_date:datetime=None
-    update_date:datetime=None       
+    Subdivision_id:int     
 class TalukaGet(BaseModel):
     id:int
     Taluka:str
@@ -177,9 +171,7 @@ class PoliceStationBase(BaseModel):
     Distric_id:int
     HeadOffice_id:int
     Subdivision_id:int
-    Taluka_id:int
-    create_date:datetime=None
-    update_date:datetime=None
+    Taluka_id:int  
 class PoliceStationGet(BaseModel):
     id:int
     PoliceStation:str
@@ -202,9 +194,7 @@ class PostBase(BaseModel):
     HeadOffice_id:int
     Subdivision_id:int
     Taluka_id:int
-    PoliceStation_id:int
-    update_date:datetime=None
-    create_date:datetime=None
+    PoliceStation_id:int    
 class PostGet(BaseModel):
     id:int
     Post:str

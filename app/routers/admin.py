@@ -272,7 +272,8 @@ async def del_taluka(current_user:Annotated[UserBase,Depends(get_current_active_
 
 #--------police_station-----------
 @router.post('/create_policestation',response_model=PoliceStationBase,tags=['Master_Policestation'])
-async def create_policestation(policestation:PoliceStationBase,db:Session=Depends(getdb)):
+async def create_policestation(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                               policestation:PoliceStationBase,db:Session=Depends(getdb)):
     policestation_exist=db.query(PoliceStationModel).filter(PoliceStationModel.PoliceStation==policestation.PoliceStation).first()
     if policestation_exist:
         raise HTTPException(detail=f'{policestation.PoliceStation} police station already exists',status_code=400)
@@ -282,11 +283,13 @@ async def create_policestation(policestation:PoliceStationBase,db:Session=Depend
     db.refresh(policestation_item)
     return policestation_item
 @router.get('/get_policestation',response_model=list[PoliceStationGet],tags=['Master_Policestation'])
-async def get_policestation(db:Session=Depends(getdb)):
+async def get_policestation(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                            db:Session=Depends(getdb)):
     all_policestation=db.query(PoliceStationModel).order_by(PoliceStationModel.id.desc()).all()
     return all_policestation
 @router.put('/update_policestation/{policestation_id}',response_model=PoliceStationBase,tags=['Master_Policestation'])
-async def update_policestation(policestation_id:int,policestation:PoliceStationBase,db:Session=Depends(getdb)):
+async def update_policestation(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                               policestation_id:int,policestation:PoliceStationBase,db:Session=Depends(getdb)):
     policestation_duplicate=db.query(PoliceStationModel).filter(PoliceStationModel.PoliceStation==policestation.PoliceStation).first()
     if policestation_duplicate:
         raise HTTPException(detail=f'{policestation.PoliceStation} policestation already exist',status_code=400)
@@ -298,12 +301,12 @@ async def update_policestation(policestation_id:int,policestation:PoliceStationB
         policestation_exit.HeadOffic_id=policestation.HeadOffice_id
         policestation_exit.Subdivision_id=policestation.Subdivision_id
         policestation_exit.Taluka_id=policestation.Taluka_id
-        policestation_exit.update_date=datetime.utcnow()
         db.commit()
         db.refresh(policestation_exit)
         return policestation_exit
 @router.delete('/del_policestation/{policestation_id}',tags=['Master_Policestation'])
-async def del_policestation(policestation_id:int,db:Session=Depends(getdb)):
+async def del_policestation(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                            policestation_id:int,db:Session=Depends(getdb)):
     policestation_exist=db.query(PoliceStationModel).filter(PoliceStationModel.id==policestation_id).first()  
     if policestation_exist: 
         db.delete(policestation_exist)
@@ -311,7 +314,8 @@ async def del_policestation(policestation_id:int,db:Session=Depends(getdb)):
     raise HTTPException(detail=f'police id {policestation_id} ddoes not exist', status_code=400)
 #--------post------------
 @router.post('/create_post',response_model=PostBase,tags=['Master_Post'])
-async def post_create(post:PostBase,db:Session=Depends(getdb)):
+async def post_create(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                      post:PostBase,db:Session=Depends(getdb)):
     post_exist=db.query(PostModel).filter(PostModel.Post==post.Post).first()
     if post_exist:
         raise HTTPException(detail=f'{post.Post} post already exist',status_code=400)
@@ -321,11 +325,13 @@ async def post_create(post:PostBase,db:Session=Depends(getdb)):
     db.refresh(post_item)
     return post_item
 @router.get('/get_post',response_model=list[PostGet],tags=['Master_Post'])
-async def get_post(db:Session=Depends(getdb)):
+async def get_post(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                   db:Session=Depends(getdb)):
    all_post=db.query(PostModel).order_by(PostModel.id.desc()).all()
    return all_post
 @router.put('/update/{post_id}',response_model=PostBase,tags=['Master_Post'])
-async def update_post(post_id:int,post:PostBase,db:Session=Depends(getdb)):
+async def update_post(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                      post_id:int,post:PostBase,db:Session=Depends(getdb)):
     post_duplicate=db.query(PostModel).filter(PostModel.Post==post.Post).first()
     if post_duplicate:
         raise HTTPException(detail=f"{post.Post} post already exist",status_code=400)
@@ -339,13 +345,13 @@ async def update_post(post_id:int,post:PostBase,db:Session=Depends(getdb)):
         post_exit.Subdivision_id=post.Subdivision_id
         post_exit.Taluka_id=post.Subdivision_id
         post_exit.PoliceStation_id=post.PoliceStation_id
-        post_exit.update_date=datetime.utcnow()
         db.commit()
         db.refresh(post_exit)
         return post_exit
     raise HTTPException(detail=f'{post_id} id does not exist',status_code=400)
 @router.delete('/del_post/{post_id}',tags=['Master_Post'])
-async def del_post(post_id:int,db:Session=Depends(getdb)):
+async def del_post(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                  post_id:int,db:Session=Depends(getdb)):
     post_exist=db.query(PostModel).filter(PostModel.id==post_id).first()
     if post_exist:
         db.delete(post_exist)
@@ -354,7 +360,8 @@ async def del_post(post_id:int,db:Session=Depends(getdb)):
     raise HTTPException(detail=f'id-{post_id} does not exist',status_code=400)
 #_____________________________master_cast_______________________________________
 @router.post('/create_religion',response_model=ReligionGet,tags=['Master_Religion'])
-async def religion_create(religion:ReligionBase,db:Session=Depends(getdb)):
+async def religion_create(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                          religion:ReligionBase,db:Session=Depends(getdb)):
     religion_exist=db.query(ReligionModel).filter(ReligionModel.Religion==religion.Religion).first()
     if religion_exist:
         raise HTTPException(detail=f'{religion.Religion} religion already exist',status_code=400)
@@ -364,11 +371,13 @@ async def religion_create(religion:ReligionBase,db:Session=Depends(getdb)):
     db.refresh(religion_item) 
     return religion_item
 @router.get('/get_religion',response_model=list[ReligionGet],tags=['Master_Religion'])
-async def get_religion(db:Session=Depends(getdb)):
+async def get_religion(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                       db:Session=Depends(getdb)):
     all_religion=db.query(ReligionModel).order_by(ReligionModel.id.desc()).all()
     return all_religion
 @router.put('/update_religion/{religion_id}',response_model=ReligionGet,tags=['Master_Religion'])
-async def religion_update(religion_id:int,religion:ReligionBase,db:Session=Depends(getdb)):
+async def religion_update(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                          religion_id:int,religion:ReligionBase,db:Session=Depends(getdb)):
     duplicate_religion=db.query(ReligionModel).filter(ReligionModel.Religion==religion.Religion).first()
     if duplicate_religion:
         raise HTTPException(detail=f'{religion.Religion} religion already exist',status_code=400)
@@ -380,7 +389,8 @@ async def religion_update(religion_id:int,religion:ReligionBase,db:Session=Depen
         return religion_exist
     raise HTTPException(detail=f'{religion_id} id does not exist ',status_code=400)
 @router.delete('/religion_del/{religion_id}',tags=['Master_Religion'])
-async def religion_del(religion_id=int,db:Session=Depends(getdb)):
+async def religion_del(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                       religion_id=int,db:Session=Depends(getdb)):
     religion_exist=db.query(ReligionModel).filter(ReligionModel.id==religion_id).first()
     if religion_exist:
         db.delete(religion_exist)
@@ -390,7 +400,8 @@ async def religion_del(religion_id=int,db:Session=Depends(getdb)):
    
 #---------create_cast--------------
 @router.post('/create_cast',response_model=CasteGet,tags=['Master_Cast'])
-async def create_cast(cast:CastBase,db:Session=Depends(getdb)):
+async def create_cast(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                      cast:CastBase,db:Session=Depends(getdb)):
     cast_exit=db.query(CastModel).filter(CastModel.Cast==cast.Cast).first()
     if cast_exit:
         raise HTTPException(detail=f'{cast.Cast} already exist',status_code=400)
@@ -400,11 +411,13 @@ async def create_cast(cast:CastBase,db:Session=Depends(getdb)):
     db.refresh(cast_item)   
     return cast_item 
 @router.get('/get_cast',response_model=list[CasteGet],tags=['Master_Cast'])
-async def get_cast(db:Session=Depends(getdb)):
+async def get_cast(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                   db:Session=Depends(getdb)):
     all_cast=db.query(CastModel).order_by(CastModel.id.desc()).all()
     return all_cast
 @router.put('/update_cast/{cast_id}',response_model=CasteGet,tags=['Master_Cast'])
-async def update_cast(cast_id:int,cast:CastBase,db:Session=Depends(getdb)):
+async def update_cast(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                      cast_id:int,cast:CastBase,db:Session=Depends(getdb)):
     duplicate_cast=db.query(CastModel).filter(CastModel.Cast==cast.Cast).first()
     if duplicate_cast:
         raise HTTPException(detail=f'{cast.Cast} already exist',status_code=400)
@@ -417,7 +430,8 @@ async def update_cast(cast_id:int,cast:CastBase,db:Session=Depends(getdb)):
         return cast_exist
     raise HTTPException(detail=f'id {cast_id} does not exist',status_code=400)
 @router.delete('/cast_del/{cast_id}',tags=['Master_Cast'])
-async def del_cast(cast_id:int,db:Session=Depends(getdb)):
+async def del_cast(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                   cast_id:int,db:Session=Depends(getdb)):
     cast_exist=db.query(CastModel).filter(CastModel.id==cast_id).first()
     if cast_exist:
         db.delete(cast_exist)
@@ -553,7 +567,7 @@ async def create_outhperson(current_user:Annotated[UserBase,Depends(get_current_
     db.commit()
     db.refresh(outhperson_item)
     return outhperson_item
-@router.get('/get_outhperson',response_model=list[OuthPersonGet],tags=['Master_OuthPerson'])
+@router.get('/get_outhperson',response_model=list[OuthPersonGet],tags=['Master_Outhperson'])
 async def get_outhperson(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                          db:Session=Depends(getdb)):
     all_outhperson=db.query(OuthPersonModel).order_by(OuthPersonModel.id.desc()).all()
@@ -571,7 +585,7 @@ async def update_outhperson(current_user:Annotated[UserBase,Depends(get_current_
         db.refresh(outhperson_exist)
         return outhperson_exist 
     raise HTTPException(detail=f'id-{outhperson_id} does not exist',status_code=400)
-@router.delete('/dlt_outhperson/{outhperson_item}')
+@router.delete('/dlt_outhperson/{outhperson_item}',tags=['Master_Outhperson'])
 async def dlt_outhperson(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                          outhperson_item:int,db:Session=Depends(getdb)):
     outhperson_exit=db.query(OuthPersonModel).filter(OuthPersonModel.id==outhperson_item).first()
