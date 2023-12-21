@@ -143,6 +143,9 @@ class SubdivisionGet(BaseModel):
     headoffice:HeadOfficeGet
     class config:
         orm_mode=True
+class HodSubdivision(BaseModel):
+    id:int
+    Subdivision:str        
 #-------taluka------------
 class TalukaBase(BaseModel):
     Taluka:str

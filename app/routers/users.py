@@ -12,7 +12,7 @@ home_dir='C:/Cluematrix/FaceRecogniationNewProject/'
 #-----------------signup-----------------------------
 @router.post("/signup",response_model=hash_password,tags=['Authentication'])
 async def user_creation(user:hash_password,db:Session=Depends(getdb)):
-    email = await check_duplicate_email(user.UserEmail,db)
+    email = await check_duplicate_email(user.UserEmail)
     if email is None:
         password = get_password_hash(user.UserPassword) 
         user=UserModel(UserName=user.UserName,UserEmail=user.UserEmail,UserPassword=password)
@@ -25,7 +25,7 @@ async def user_creation(user:hash_password,db:Session=Depends(getdb)):
 #------------------logine--------------------------
 @router.post('/login',tags=['Authentication'])
 def logine_for_acess_token(form_data : Annotated[OAuth2PasswordRequestForm, Depends()],db:Session=Depends(getdb)):  
-    user = authuntication(form_data.username,form_data.password,db)
+    user = authuntication(form_data.username,form_data.password)
     if not user:
         raise HTTPException(
                status_code=status.HTTP_401_UNAUTHORIZED,

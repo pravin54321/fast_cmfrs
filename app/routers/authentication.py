@@ -2,6 +2,7 @@ from ..dependencies import *
 from ..database import SessionLocal,getdb
 from fastapi import FastAPI,Depends
 from sqlalchemy.orm import Session
+db=SessionLocal()
 
 
 
@@ -9,7 +10,7 @@ def verify_password(plain_password,hashed_password):
     return pwd_context.verify(plain_password,hashed_password)
 def get_password_hash(password):
     return pwd_context.hash(password)
-def get_user(UserName:str,db):
+def get_user(UserName:str):
     user_data = db.query(UserModel).filter(UserModel.UserName==UserName).first()
     if user_data is not None:
         user_dict = {
@@ -63,7 +64,7 @@ async def get_current_active_user(current_user:Annotated[UserBase,Depends(get_cu
     return current_user
 
 
-async def check_duplicate_email(email:str,db):
+async def check_duplicate_email(email:str):
     user = db.query(UserModel).filter(UserModel.UserEmail == email).first()
     if user is not None:
        return False

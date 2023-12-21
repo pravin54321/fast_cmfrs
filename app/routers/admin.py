@@ -268,7 +268,12 @@ async def del_taluka(current_user:Annotated[UserBase,Depends(get_current_active_
     if taluka_exist:
         db.delete(taluka_exist)
         return Response(content=f'taluka id {taluka_id} has been deleted successfully',status_code=200)
-    raise HTTPException(detail=f'tauka id {taluka_id} does not exist')    
+    raise HTTPException(detail=f'tauka id {taluka_id} does not exist') 
+@router.get('/headoffice_subdivision/{headoffice_id}',response_model=list[HodSubdivision],tags=['Master_Taluka'])
+async def hod_subdivision(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                          headoffice_id:int,db:Session=Depends(getdb)):
+    list_subdivision=db.query(SubdivisionModel).filter(SubdivisionModel.HeadOffice_id==headoffice_id).all()
+    return list_subdivision   
 
 #--------police_station-----------
 @router.post('/create_policestation',response_model=PoliceStationBase,tags=['Master_Policestation'])
