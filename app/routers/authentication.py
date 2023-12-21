@@ -22,8 +22,8 @@ def get_user(UserName:str):
         return hash_password(**user_dict)
     else:
         return None
-def authuntication(UserName:str,password:str,db):
-    user = get_user(UserName,db)
+def authuntication(UserName:str,password:str):
+    user = get_user(UserName)
     if not user:
         return False
     verify_pwd=verify_password(password,user.UserPassword)
