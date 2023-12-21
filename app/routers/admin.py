@@ -303,7 +303,7 @@ async def update_policestation(current_user:Annotated[UserBase,Depends(get_curre
         policestation_exit.PoliceStation=policestation.PoliceStation
         policestation_exit.State_id=policestation.State_id
         policestation_exit.Distric_id=policestation.Distric_id
-        policestation_exit.HeadOffic_id=policestation.HeadOffice_id
+        policestation_exit.HeadOffice_id=policestation.HeadOffice_id
         policestation_exit.Subdivision_id=policestation.Subdivision_id
         policestation_exit.Taluka_id=policestation.Taluka_id
         db.commit()
@@ -317,6 +317,11 @@ async def del_policestation(current_user:Annotated[UserBase,Depends(get_current_
         db.delete(policestation_exist)
         return Response(content=f' police station id {policestation_id}  has been deleted successfully',status_code=200) 
     raise HTTPException(detail=f'police id {policestation_id} ddoes not exist', status_code=400)
+@router.get('/subdivision_taluka/{subdivision_id}',response_model=list[SubdivisionTaluka],tags=['Master_Policestation'])
+async def subdivision_taluka(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                             subdivision_id:int,db:Session=Depends(getdb)):
+    list_taluka=db.query(TalukaModel).filter(TalukaModel.Subdivision_id==subdivision_id).all()
+    return list_taluka
 #--------post------------
 @router.post('/create_post',response_model=PostBase,tags=['Master_Post'])
 async def post_create(current_user:Annotated[UserBase,Depends(get_current_active_user)],
@@ -363,6 +368,11 @@ async def del_post(current_user:Annotated[UserBase,Depends(get_current_active_us
         db.commit()
         return Response(content=f' id {post_id} has been deleted successfully',status_code=200)
     raise HTTPException(detail=f'id-{post_id} does not exist',status_code=400)
+@router.get('/taluka_policestation/{taluka_id}',response_model=list[TalukaPolicestation],tags=['Master_Post'])
+async def taluka_policestation(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                                taluka_id:int,db:Session=Depends(getdb)):
+    list_policestation=db.query(PoliceStationModel).filter(PoliceStationModel.Taluka_id==taluka_id).all()
+    return list_policestation
 #_____________________________master_cast_______________________________________
 @router.post('/create_religion',response_model=ReligionGet,tags=['Master_Religion'])
 async def religion_create(current_user:Annotated[UserBase,Depends(get_current_active_user)],

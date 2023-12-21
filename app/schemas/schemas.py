@@ -165,7 +165,10 @@ class TalukaGet(BaseModel):
     headoffice:HeadOfficeGet
     subdivision:SubdivisionGet
     class config:
-        orm_mode=True       
+        orm_mode=True 
+class SubdivisionTaluka(BaseModel):
+    id:int
+    Taluka:str              
 #_____police_station_________
 class PoliceStationBase(BaseModel):
     PoliceStation:str
@@ -188,6 +191,9 @@ class PoliceStationGet(BaseModel):
     taluka:TalukaGet
     class config:
         orm_mode=True
+class TalukaPolicestation(BaseModel):
+    id:int
+    PoliceStation:str        
 #_______post_________
 class PostBase(BaseModel):
     Post:str
