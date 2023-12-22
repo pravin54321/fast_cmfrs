@@ -225,6 +225,14 @@ class OuthPersonModel(Base):
     OuthPerson=Column(String(200),unique=True,nullable=False)
     create_date=Column(DateTime,default=datetime.utcnow)
     update_date=Column(DateTime,default=datetime.utcnow,onupdate=datetime.utcnow)
+#___________crimekalam__________________
+class CrimeKalamModel(Base):
+    __tablename__='kalam'
+    id=Column(Integer,primary_key=True,unique=True,index=True,autoincrement=True)
+    Kalam=Column(String(200),nullable=False,unique=True)
+    create_date=Column(DateTime,default=datetime.utcnow)
+    update_date=Column(DateTime,default=datetime.utcnow,onupdate=datetime.utcnow)
+
 
     
 

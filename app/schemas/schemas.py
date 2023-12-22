@@ -277,7 +277,19 @@ class OuthPersonBase(BaseModel):
 class OuthPersonGet(OuthPersonBase):
     id:int
     create_date:datetime=None
-    update_date:datetime=None                        
+    update_date:datetime=None    
+#-------crime_kalam---------
+class CrimeKalamBase(BaseModel):
+    Kalam:str
+class CrimeKalamGet(BaseModel):
+    id:int
+    Kalam:str
+    create_date:datetime=None
+    update_date:datetime=None
+
+
+
+
 
 
       

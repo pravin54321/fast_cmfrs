@@ -609,7 +609,46 @@ async def dlt_outhperson(current_user:Annotated[UserBase,Depends(get_current_act
         db.commit()
         return Response(content=f"id-{outhperson_item} has been deleted successfully",status_code=200)
     raise HTTPException(detail=f' id-{outhperson_item} does not exist',status_code=400)
-
+#---------crime method-----------
+@router.post('/create_kalam',response_model=CrimeKalamGet,tags=['Master_Kalam'])
+async def create_kalam(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                       kalam:CrimeKalamBase,db:Session=Depends(getdb)):
+    kalam_exit=db.query(CrimeKalamModel).filter(CrimeKalamModel==kalam.Kalam).first()
+    if kalam_exit:
+        raise HTTPException(detail=f'{kalam.Kalam} alrady exist',status_code=400)
+    kalam_item=CrimeKalamModel(**kalam.model_dump())
+    db.add(kalam_item)
+    db.commit()
+    db.refresh(kalam_item)
+    return kalam_item
+@router.get('/get_kalam',response_model=list[CrimeKalamGet],tags=['Master_Kalam'])
+async def get_kalam(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                    db:Session=Depends(getdb)):
+    list_kalam=db.query(CrimeKalamModel).order_by(CrimeKalamModel.id.desc()).all()
+    return list_kalam
+@router.put('/update_kalam/kalam_id',response_model=CrimeKalamGet,tags=['Master_Kalam'])
+async def update_kalam(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                       kalam_id:int,kalam:CrimeKalamBase,db:Session=Depends(getdb)):
+    kalm_duplicate=db.query(CrimeKalamModel).filter(CrimeKalamModel.Kalam==kalam.Kalam).first()
+    if kalm_duplicate:
+        raise HTTPException(detail=f'{kalam.Kalam} does not exist',status_code=400)
+    kalam_exist=db.query(CrimeKalamModel).filter(CrimeKalamModel.id==kalam_id).first()
+    if kalam_exist:
+        kalam_exist.Kalam=kalam.Kalam
+        db.add(kalam_exist)
+        db.commit()
+        db.refresh(kalam_exist)
+        return kalam_exist
+    raise HTTPException(detail=f'id-{kalam_id} does not exist',status_code=400)
+@router.delete('/dlt_kalam/{kalam_id}',tags=['Master_Kalam'])
+async def del_kalam(current_user:Annotated[UserModel,Depends(get_current_active_user)],
+                    kalam_id:int,db:Session=Depends(getdb)):
+    kalam_exit=db.query(CrimeKalamModel).filter(CrimeKalamModel.id==kalam_id).first()
+    if kalam_exit:
+          db.delete(kalam_exit)
+          db.commit()
+          return Response(content=f'id-{kalam_id} has been deleted successfully',status_code=200)
+    raise HTTPException(detail=f'id-{kalam_id} has been deleted successfully',status_code=400)
         
 
 
