@@ -286,6 +286,7 @@ class CrimeKalamGet(BaseModel):
     Kalam:str
     create_date:datetime=None
     update_date:datetime=None
+    
 
 
 

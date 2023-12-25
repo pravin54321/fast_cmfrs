@@ -2,6 +2,7 @@ from ..dependencies import *
 from ..database import SessionLocal,getdb
 from fastapi import FastAPI,Depends
 from sqlalchemy.orm import Session
+import mysql.connector
 
 
 
@@ -72,3 +73,11 @@ async def check_duplicate_email(email:str):
        return False
     else: 
         return None
+def create_db(db_name):
+    my_con=mysql.connector.connect(host='localhost',user='root',passwd='')
+    cur=my_con.cursor()
+    try:
+        cur.execute(f'create database {db_name}')
+    except:
+        my_con.rollback()
+    my_con.close()        
