@@ -148,16 +148,16 @@ async def get_headoffice(current_user:Annotated[UserBase,Depends(get_current_act
                          db:Session=Depends(getdb)):
     all_headoffice=db.query(HeadOfficeModel).order_by(HeadOfficeModel.id.desc()).all()
     return all_headoffice
-@router.put('/update_headoffice/{headoffice_id}',response_model=HeadOfficeBase,tags=['Master_HeadOffice'])
+@router.put('/update_headoffice/{headoffice_id}',response_model=HeadOfficeGet,tags=['Master_HeadOffice'])
 async def  update_headoffice(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                              headoffice_id:int,headoffice:HeadOfficeBase,db:Session=Depends(getdb)):
-    dupilicate_exist= db.query(HeadOfficeModel).filter(HeadOfficeModel.HeadOffice==headoffice.HeadOffice,HeadOfficeModel.id!=headoffice_id).first()
+    dupilicate_exist= db.query(HeadOfficeModel).filter(HeadOfficeModel.HeadOffice==headoffice.HeadOffice,HeadOfficeModel.id != headoffice_id).first()
     if dupilicate_exist:
         raise HTTPException(detail=f' headoffice {headoffice.HeadOffice} already exist',status_code=400)
     headoffice_exist= db.query(HeadOfficeModel).filter(HeadOfficeModel.id == headoffice_id).first()
     if headoffice_exist:
         headoffice_exist.HeadOffice=headoffice.HeadOffice
-        headoffice_exist.State_id=headoffice_exist.HeadOffice
+        headoffice_exist.State_id=headoffice_exist.State_id
         headoffice_exist.Region_id=headoffice.Region_id
         headoffice_exist.Distric_id=headoffice.Distric_id      
         db.commit()
@@ -228,7 +228,7 @@ async def distric_headoffice(current_user:Annotated[UserBase,Depends(get_current
     return list_headoffice
 
 #-----taluka---------
-@router.post('/create_taluka',response_model=TalukaBase,tags=['Master_Taluka'])
+@router.post('/create_taluka',response_model=TalukaGet,tags=['Master_Taluka'])
 async def create_taluka(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                         taluka:TalukaBase,db:Session=Depends(getdb)):
     taluka_exit=db.query(TalukaModel).filter(TalukaModel.Taluka==taluka.Taluka).first()
@@ -244,7 +244,7 @@ async def get_taluka(current_user:Annotated[UserBase,Depends(get_current_active_
                      db:Session=Depends(getdb)):
     all_taluka=db.query(TalukaModel).order_by(TalukaModel.id.desc()).all()
     return all_taluka
-@router.put('update_taluka/{taluka_id}',response_model=TalukaBase,tags=['Master_Taluka'])
+@router.put('/update_taluka/{taluka_id}',response_model=TalukaGet,tags=['Master_Taluka'])
 async def update_taluka(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                         taluka_id:int,taluka:TalukaBase,db:Session=Depends(getdb)):
     duplicate_taluka=db.query(TalukaModel).filter(TalukaModel.Taluka==taluka.Taluka,TalukaModel.id!=taluka_id).first()
@@ -276,7 +276,7 @@ async def hod_subdivision(current_user:Annotated[UserBase,Depends(get_current_ac
     return list_subdivision   
 
 #--------police_station-----------
-@router.post('/create_policestation',response_model=PoliceStationBase,tags=['Master_Policestation'])
+@router.post('/create_policestation',response_model=PoliceStationGet,tags=['Master_Policestation'])
 async def create_policestation(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                                policestation:PoliceStationBase,db:Session=Depends(getdb)):
     policestation_exist=db.query(PoliceStationModel).filter(PoliceStationModel.PoliceStation==policestation.PoliceStation).first()
@@ -292,7 +292,7 @@ async def get_policestation(current_user:Annotated[UserBase,Depends(get_current_
                             db:Session=Depends(getdb)):
     all_policestation=db.query(PoliceStationModel).order_by(PoliceStationModel.id.desc()).all()
     return all_policestation
-@router.put('/update_policestation/{policestation_id}',response_model=PoliceStationBase,tags=['Master_Policestation'])
+@router.put('/update_policestation/{policestation_id}',response_model=PoliceStationGet,tags=['Master_Policestation'])
 async def update_policestation(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                                policestation_id:int,policestation:PoliceStationBase,db:Session=Depends(getdb)):
     policestation_duplicate=db.query(PoliceStationModel).filter(PoliceStationModel.PoliceStation==policestation.PoliceStation,PoliceStationModel.id!=policestation_id).first()
@@ -302,6 +302,7 @@ async def update_policestation(current_user:Annotated[UserBase,Depends(get_curre
     if policestation_exit:
         policestation_exit.PoliceStation=policestation.PoliceStation
         policestation_exit.State_id=policestation.State_id
+        policestation_exit.Region_id=policestation.Region_id
         policestation_exit.Distric_id=policestation.Distric_id
         policestation_exit.HeadOffice_id=policestation.HeadOffice_id
         policestation_exit.Subdivision_id=policestation.Subdivision_id
@@ -323,7 +324,7 @@ async def subdivision_taluka(current_user:Annotated[UserBase,Depends(get_current
     list_taluka=db.query(TalukaModel).filter(TalukaModel.Subdivision_id==subdivision_id).all()
     return list_taluka
 #--------post------------
-@router.post('/create_post',response_model=PostBase,tags=['Master_Post'])
+@router.post('/create_post',response_model=PostGet,tags=['Master_Post'])
 async def post_create(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                       post:PostBase,db:Session=Depends(getdb)):
     post_exist=db.query(PostModel).filter(PostModel.Post==post.Post).first()
@@ -339,7 +340,7 @@ async def get_post(current_user:Annotated[UserBase,Depends(get_current_active_us
                    db:Session=Depends(getdb)):
    all_post=db.query(PostModel).order_by(PostModel.id.desc()).all()
    return all_post
-@router.put('/update/{post_id}',response_model=PostBase,tags=['Master_Post'])
+@router.put('/update/{post_id}',response_model=PostGet,tags=['Master_Post'])
 async def update_post(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                       post_id:int,post:PostBase,db:Session=Depends(getdb)):
     post_duplicate=db.query(PostModel).filter(PostModel.Post==post.Post,PostModel.id!=post_id).first()
