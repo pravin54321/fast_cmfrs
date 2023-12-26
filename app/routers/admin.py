@@ -65,7 +65,7 @@ async def create_region(current_user:Annotated[UserBase,Depends(get_current_acti
 @router.put('/update_region/{region_id}',response_model=RegionGet,tags=['Master_region'])
 async def update_region(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                         region_id:int,region:RegionBase,db:Session=Depends(getdb)):
-    duplicate_exist = db.query(RegionModel).filter(RegionModel.Region==region.Region).first()
+    duplicate_exist = db.query(RegionModel).filter(RegionModel.Region==region.Region,RegionModel.id !=region_id).first()
     if duplicate_exist:
         raise HTTPException(detail=f'{region.Region} already exists',status_code=400)
     region_exist = db.query(RegionModel).filter(RegionModel.id==region_id).first()
@@ -105,7 +105,7 @@ async def distric_create(current_user:Annotated[UserBase,Depends(get_current_act
 @router.put('/update_distric/{distric_id}',response_model=DistricGet,tags=['Master_Distric'])
 async def update_distric(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                         distric_id:int,distric:DistricBase,db:Session=Depends(getdb)):
-    duplicate_exist = db.query(DistricModel).filter(DistricModel.Distric==distric.Distric).first()
+    duplicate_exist = db.query(DistricModel).filter(DistricModel.Distric==distric.Distric,DistricModel.id !=distric_id).first()
     if duplicate_exist:
         raise HTTPException(detail=f'{distric.Distric} already Available',status_code=400)
     distric_exist = db.query(DistricModel).filter(DistricModel.id==distric_id).first()
@@ -151,7 +151,7 @@ async def get_headoffice(current_user:Annotated[UserBase,Depends(get_current_act
 @router.put('/update_headoffice/{headoffice_id}',response_model=HeadOfficeBase,tags=['Master_HeadOffice'])
 async def  update_headoffice(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                              headoffice_id:int,headoffice:HeadOfficeBase,db:Session=Depends(getdb)):
-    dupilicate_exist= db.query(HeadOfficeModel).filter(HeadOfficeModel.HeadOffice==headoffice.HeadOffice).first()
+    dupilicate_exist= db.query(HeadOfficeModel).filter(HeadOfficeModel.HeadOffice==headoffice.HeadOffice,HeadOfficeModel.id!=headoffice_id).first()
     if dupilicate_exist:
         raise HTTPException(detail=f' headoffice {headoffice.HeadOffice} already exist',status_code=400)
     headoffice_exist= db.query(HeadOfficeModel).filter(HeadOfficeModel.id == headoffice_id).first()
@@ -198,7 +198,7 @@ async def get_subdivision(current_user:Annotated[UserBase,Depends(get_current_ac
 @router.put('/update_subdivision/{sudivision_id}',response_model=SubdivisionBase,tags=['Master_Subdivision'])
 async def update_subdivision(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                              subdivision_id:int,subdivision:SubdivisionBase,db:Session=Depends(getdb)):
-    subdivision_duplicate=db.query(SubdivisionModel).filter(SubdivisionModel.Subdivision==subdivision.Subdivision).first()
+    subdivision_duplicate=db.query(SubdivisionModel).filter(SubdivisionModel.Subdivision==subdivision.Subdivision,SubdivisionModel.id!=subdivision_id).first()
     if subdivision_duplicate:
         raise HTTPException(detail=f'{subdivision.Subdivision} subdivision already exist',status_code=400)
     subdivision_exist=db.query(SubdivisionModel).filter(SubdivisionModel.id==subdivision_id).first()
@@ -247,7 +247,7 @@ async def get_taluka(current_user:Annotated[UserBase,Depends(get_current_active_
 @router.put('update_taluka/{taluka_id}',response_model=TalukaBase,tags=['Master_Taluka'])
 async def update_taluka(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                         taluka_id:int,taluka:TalukaBase,db:Session=Depends(getdb)):
-    duplicate_taluka=db.query(TalukaModel).filter(TalukaModel.Taluka==taluka.Taluka).first()
+    duplicate_taluka=db.query(TalukaModel).filter(TalukaModel.Taluka==taluka.Taluka,TalukaModel.id!=taluka_id).first()
     if duplicate_taluka:
         raise HTTPException(detail=f'{taluka.Taluka} already exist',status_code=400)
     taluka_exist=db.query(TalukaModel).filter(TalukaModel.id==taluka_id).first()
@@ -295,7 +295,7 @@ async def get_policestation(current_user:Annotated[UserBase,Depends(get_current_
 @router.put('/update_policestation/{policestation_id}',response_model=PoliceStationBase,tags=['Master_Policestation'])
 async def update_policestation(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                                policestation_id:int,policestation:PoliceStationBase,db:Session=Depends(getdb)):
-    policestation_duplicate=db.query(PoliceStationModel).filter(PoliceStationModel.PoliceStation==policestation.PoliceStation).first()
+    policestation_duplicate=db.query(PoliceStationModel).filter(PoliceStationModel.PoliceStation==policestation.PoliceStation,PoliceStationModel.id!=policestation_id).first()
     if policestation_duplicate:
         raise HTTPException(detail=f'{policestation.PoliceStation} policestation already exist',status_code=400)
     policestation_exit=db.query(PoliceStationModel).filter(PoliceStationModel.id==policestation_id).first()
@@ -342,7 +342,7 @@ async def get_post(current_user:Annotated[UserBase,Depends(get_current_active_us
 @router.put('/update/{post_id}',response_model=PostBase,tags=['Master_Post'])
 async def update_post(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                       post_id:int,post:PostBase,db:Session=Depends(getdb)):
-    post_duplicate=db.query(PostModel).filter(PostModel.Post==post.Post).first()
+    post_duplicate=db.query(PostModel).filter(PostModel.Post==post.Post,PostModel.id!=post_id).first()
     if post_duplicate:
         raise HTTPException(detail=f"{post.Post} post already exist",status_code=400)
     post_exit=db.query(PostModel).filter(PostModel.id==post_id).first()
