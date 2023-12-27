@@ -239,7 +239,10 @@ class CasteGet(BaseModel):
     create_date:datetime=None       
     update_date:datetime=None
     class config:
-        orm_mode=True       
+        orm_mode=True   
+class ReligionCast(BaseModel):
+    id:int
+    Cast:str            
 #________subcast_________
 class SubcastBase(BaseModel):
     Subcast:str

@@ -394,7 +394,7 @@ async def get_religion(current_user:Annotated[UserBase,Depends(get_current_activ
 @router.put('/update_religion/{religion_id}',response_model=ReligionGet,tags=['Master_Religion'])
 async def religion_update(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                           religion_id:int,religion:ReligionBase,db:Session=Depends(getdb)):
-    duplicate_religion=db.query(ReligionModel).filter(ReligionModel.Religion==religion.Religion).first()
+    duplicate_religion=db.query(ReligionModel).filter(ReligionModel.Religion==religion.Religion,ReligionModel.id!=religion_id).first()
     if duplicate_religion:
         raise HTTPException(detail=f'{religion.Religion} religion already exist',status_code=400)
     religion_exist=db.query(ReligionModel).filter(ReligionModel.id==religion_id).first()
@@ -434,7 +434,7 @@ async def get_cast(current_user:Annotated[UserBase,Depends(get_current_active_us
 @router.put('/update_cast/{cast_id}',response_model=CasteGet,tags=['Master_Cast'])
 async def update_cast(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                       cast_id:int,cast:CastBase,db:Session=Depends(getdb)):
-    duplicate_cast=db.query(CastModel).filter(CastModel.Cast==cast.Cast).first()
+    duplicate_cast=db.query(CastModel).filter(CastModel.Cast==cast.Cast,CastModel.id!=cast_id).first()
     if duplicate_cast:
         raise HTTPException(detail=f'{cast.Cast} already exist',status_code=400)
     cast_exist=db.query(CastModel).filter(CastModel.id==cast_id).first()
@@ -454,6 +454,7 @@ async def del_cast(current_user:Annotated[UserBase,Depends(get_current_active_us
         db.commit()
         return Response(content=f"id-{cast_id} has been deleted successfully",status_code=200)
     raise HTTPException(detail=f'id-{cast_id} does not exist',status_code=400)
+
 #-----subcast-----------
 @router.post('/create_subcast',response_model=SubcastGet,tags=['Master_Subcast'])
 async def create_subcast(current_user: Annotated[UserBase, Depends(get_current_active_user)],
@@ -474,7 +475,7 @@ async def get_subcast(current_user: Annotated[UserBase, Depends(get_current_acti
 @router.put('/update_subcast/{subcast_item}',response_model=SubcastGet,tags=['Master_Subcast'])
 async def update_subcast(current_user: Annotated[UserBase, Depends(get_current_active_user)],
                          subcast_item:int,subcast:SubcastBase,db:Session=Depends(getdb)):
-    subcast_duplicate=db.query(SubcastModel).filter(SubcastModel.Subcast==subcast.Subcast).first()
+    subcast_duplicate=db.query(SubcastModel).filter(SubcastModel.Subcast==subcast.Subcast,SubcastModel.id!=subcast_item).first()
     if subcast_duplicate:
        raise HTTPException(detail=f'{subcast.Subcast} already exit',status_code=400)
     subcast_exit=db.query(SubcastModel).filter(SubcastModel.id==subcast_item).first()
@@ -495,6 +496,11 @@ async def del_subcast( current_user: Annotated[UserBase, Depends(get_current_act
         db.commit()
         return Response(content=f'id-{subcast_item} has been deleted successfully',status_code=200)
     raise HTTPException(detail=f'id-{subcast_item} does not exist',status_code=400)
+@router.get('/religion_cast/{religion_id}',response_model=list[ReligionCast],tags=['Master_Subcast'])
+async def religion_cast(current_user:Annotated[UserBase,Depends(get_current_active_user)],religion_id:int,
+                        db:Session=Depends(getdb)):
+    list_cast=db.query(CastModel).filter(CastModel.Religion_id==religion_id).all()
+    return list_cast
 #--------langues----------
 @router.post('/create_langues',response_model=LanguesGet,tags=['Master_Langues'])
 async def create_langues(current_user: Annotated[UserBase, Depends(get_current_active_user)],
