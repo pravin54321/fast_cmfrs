@@ -30,6 +30,9 @@ from typing import Annotated
 from jose import JWTError, jwt
 from datetime import datetime,timedelta
 from decouple import config
+from typing import Annotated
+
+
 
 
 oauth_scheme = OAuth2PasswordBearer(tokenUrl='/login')
@@ -37,9 +40,6 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 SECRET_KEY = config('SECREAT_KEY') 
 ALGORITHM = config("ALGORITHM")
 ACCESS_TOKEN_EXPIRE_MINUTES = config("TIME",cast=int)
-
-
-
 db: Session = Depends(getdb)
 
 class MyCustomeException(HTTPException):

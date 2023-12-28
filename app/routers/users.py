@@ -12,16 +12,17 @@ home_dir='C:/Cluematrix/FaceRecogniationNewProject/'
 #-----------------signup-----------------------------
 @router.post("/signup",response_model=hash_password,tags=['Authentication'])
 async def user_creation(user:hash_password,db:Session=Depends(getdb)):
-    email = await check_duplicate_email(user.UserEmail)
-    if email is None:
-        password = get_password_hash(user.UserPassword) 
-        user=UserModel(UserName=user.UserName,UserEmail=user.UserEmail,UserPassword=password)
-        db.add(user)
-        db.commit()
-        db.refresh(user)
-        return user
-    else:
-         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail='User with this email already exists')
+    email_exist = db.query(UserModel).filter(UserModel.UserEmail==user.UserEmail).first()
+    if email_exist:
+         raise HTTPException(detail='Email id already exist',status_code=status.HTTP_400_BAD_REQUEST)
+   
+    password = get_password_hash(user.UserPassword)
+    user=UserModel(UserName=user.UserName,UserEmail=user.UserEmail,UserPassword=password)
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return user
+    
 #------------------logine--------------------------
 @router.post('/login',tags=['Authentication'])
 def logine_for_acess_token(form_data : Annotated[OAuth2PasswordRequestForm, Depends()],db:Session=Depends(getdb)):  

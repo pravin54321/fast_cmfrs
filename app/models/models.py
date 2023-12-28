@@ -32,6 +32,7 @@ class UserModel(Base):
     UserEmail = Column(String(200),nullable=False, unique=True)
     UserPassword = Column(String(200))
     disabled =  Column(Boolean,default=True)
+   
 
 class GroupImageModel(Base):
     __tablename__='groupimg'
@@ -239,6 +240,7 @@ class Create_PoliceModel(Base):
     db_name=Column(String(200),nullable=False,unique=True)
     create_date=Column(DateTime,default=datetime.utcnow)
     update_date=Column(DateTime,default=datetime.utcnow,onupdate=datetime.utcnow)    
+
 
 
     

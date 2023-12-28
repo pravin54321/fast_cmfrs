@@ -648,7 +648,7 @@ async def update_kalam(current_user:Annotated[UserBase,Depends(get_current_activ
         return kalam_exist
     raise HTTPException(detail=f'id-{kalam_id} does not exist',status_code=400)
 @router.delete('/dlt_kalam/{kalam_id}',tags=['Master_Kalam'])
-async def del_kalam(current_user:Annotated[UserModel,Depends(get_current_active_user)],
+async def del_kalam(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                     kalam_id:int,db:Session=Depends(getdb)):
     kalam_exit=db.query(CrimeKalamModel).filter(CrimeKalamModel.id==kalam_id).first()
     if kalam_exit:
@@ -657,19 +657,10 @@ async def del_kalam(current_user:Annotated[UserModel,Depends(get_current_active_
           return Response(content=f'id-{kalam_id} has been deleted successfully',status_code=200)
     raise HTTPException(detail=f'id-{kalam_id} does not exist',status_code=400)
 #-------------------policestation_created------------------------------
-@router.post('/create_newpolicestation')
-async def create_policestation(current_user:Annotated[UserBase,Depends(get_current_active_user)],
-                               policestation_new:str,db:Session=Depends(getdb)):
-        policestation_item = Create_PoliceModel(
-             PoliceStation=policestation_new,
-             db_name=f'{policestation_new}_db'
-         )
-
-        db.add(policestation_item)
-        db.commit()
-        db.refresh(policestation_item)
-        create_db(policestation_item.db_name)
-        return policestation_item
+@router.post('/create_newpolicestation/{user_id}',response_model=UserBase)
+async def create_policestation(user_id: int, db=Depends(getdb)):
+    all_user=db.query(UserModel).all()
+    return all_user
 
 
         

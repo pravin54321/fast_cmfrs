@@ -1,8 +1,13 @@
 from ..dependencies import *
+from ..models.models import *
 from ..database import SessionLocal,getdb
 from fastapi import FastAPI,Depends
 from sqlalchemy.orm import Session
 import mysql.connector
+from ..schemas import *
+from datetime import datetime,timedelta
+
+
 
 
 
@@ -19,7 +24,8 @@ def get_user(UserName:str):
             "UserName": user_data.UserName,
             "UserEmail": user_data.UserEmail,
             "UserPassword": user_data.UserPassword,
-            "disabled":user_data.disabled
+            "disabled":user_data.disabled,
+          
         }
         return hash_password(**user_dict)
     else:
@@ -66,18 +72,18 @@ async def get_current_active_user(current_user:Annotated[UserBase,Depends(get_cu
     return current_user
 
 
-async def check_duplicate_email(email:str):
+def check_duplicate_email():
     db = SessionLocal()
-    user = db.query(UserModel).filter(UserModel.UserEmail == email).first()
-    if user is not None:
-       return False
-    else: 
-        return None
+    user = db.query(UserModel).all()
+    print('_______________',user)
+    return user
 def create_db(db_name):
+    
     my_con=mysql.connector.connect(host='localhost',user='root',passwd='')
     cur=my_con.cursor()
     try:
         cur.execute(f'create database {db_name}')
+
     except:
         my_con.rollback()
     my_con.close()        
