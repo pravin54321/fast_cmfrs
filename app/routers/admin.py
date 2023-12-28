@@ -261,12 +261,13 @@ async def update_taluka(current_user:Annotated[UserBase,Depends(get_current_acti
         db.commit()
         db.refresh(taluka_exist)
         return taluka_exist
-@router.delete('del_taluka/{taluka_id}',tags=['Master_Taluka'])
+@router.delete('/del_taluka/{taluka_id}',tags=['Master_Taluka'])
 async def del_taluka(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                      taluka_id:int,db:Session=Depends(getdb)):
-    taluka_exist=db.query(TalukaModel).filter(TalukaModel.id==taluka_id)
+    taluka_exist=db.query(TalukaModel).filter(TalukaModel.id==taluka_id).first()
     if taluka_exist:
         db.delete(taluka_exist)
+        db.commit()
         return Response(content=f'taluka id {taluka_id} has been deleted successfully',status_code=200)
     raise HTTPException(detail=f'tauka id {taluka_id} does not exist') 
 @router.get('/headoffice_subdivision/{headoffice_id}',response_model=list[HodSubdivision],tags=['Master_Taluka'])
@@ -316,6 +317,7 @@ async def del_policestation(current_user:Annotated[UserBase,Depends(get_current_
     policestation_exist=db.query(PoliceStationModel).filter(PoliceStationModel.id==policestation_id).first()  
     if policestation_exist: 
         db.delete(policestation_exist)
+        db.commit()
         return Response(content=f' police station id {policestation_id}  has been deleted successfully',status_code=200) 
     raise HTTPException(detail=f'police id {policestation_id} ddoes not exist', status_code=400)
 @router.get('/subdivision_taluka/{subdivision_id}',response_model=list[SubdivisionTaluka],tags=['Master_Policestation'])
@@ -578,14 +580,14 @@ async def dlt_occupation(current_user:Annotated[UserBase,Depends(get_current_act
         return Response(content=f'id-{occupation_id} has been deleted successfully',status_code=200) 
     raise HTTPException(detail=f"id-{occupation_id} does not exist",status_code=400) 
 #______outhperson________
-@router.post('/create_outhperson',response_model=OuthPersonBase,tags=['Master_Outhperson'])
+@router.post('/create_outhperson',response_model=OuthPersonGet,tags=['Master_Outhperson'])
 async def create_outhperson(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                             outhperson:OuthPersonBase,db:Session=Depends(getdb)):
     outhperson_exist=db.query(OuthPersonModel).filter(OuthPersonModel.OuthPerson==outhperson.OuthPerson).first()
     if outhperson_exist:
         raise HTTPException(detail=f'{outhperson.OuthPerson} already exist',status_code=400)
     outhperson_item=OuthPersonModel(**outhperson.model_dump())
-    db.add(outhperson_exist)
+    db.add(outhperson_item)
     db.commit()
     db.refresh(outhperson_item)
     return outhperson_item
@@ -599,7 +601,7 @@ async def update_outhperson(current_user:Annotated[UserBase,Depends(get_current_
                             outhperson_id:int,outhperson:OuthPersonBase,db:Session=Depends(getdb)):
     outhperson_duplicate=db.query(OuthPersonModel).filter(OuthPersonModel.OuthPerson==outhperson.OuthPerson).first() 
     if outhperson_duplicate:
-        raise HTTPException(detail=f'{outhperson.OuthPerson} does not exit',status_code=400)
+        raise HTTPException(detail=f'{outhperson.OuthPerson} already exist',status_code=400)
     outhperson_exist=db.query(OuthPersonModel).filter(OuthPersonModel.id==outhperson_id).first()
     if outhperson_exist:
         outhperson_exist.OuthPerson=outhperson.OuthPerson
