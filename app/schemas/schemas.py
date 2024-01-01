@@ -289,6 +289,16 @@ class CrimeKalamGet(BaseModel):
     Kalam:str
     create_date:datetime=None
     update_date:datetime=None
+
+#-------------designation_schema-----------
+class DesignationBase(BaseModel):
+    Designation:str
+class DesignationGet(BaseModel):
+    id:int
+    Designation:str
+    create_date:datetime=None
+    update_date:datetime=None
+
     
 
 

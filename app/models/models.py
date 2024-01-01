@@ -233,13 +233,14 @@ class CrimeKalamModel(Base):
     Kalam=Column(String(200),nullable=False,unique=True)
     create_date=Column(DateTime,default=datetime.utcnow)
     update_date=Column(DateTime,default=datetime.utcnow,onupdate=datetime.utcnow)
-class Create_PoliceModel(Base):
-    __tablename__='policestation_new'
-    id=Column(Integer,primary_key=True,index=True,autoincrement=True)
-    PoliceStation=Column(String(200),nullable=False,unique=True)
-    db_name=Column(String(200),nullable=False,unique=True)
+
+#---------designation_model------------------
+class DesignationModel(Base):
+    __tablename__='designation'
+    id=Column(Integer,primary_key=True,index=True)
+    Designation=Column(String(200),unique=True,nullable=False) 
     create_date=Column(DateTime,default=datetime.utcnow)
-    update_date=Column(DateTime,default=datetime.utcnow,onupdate=datetime.utcnow)    
+    update_date=Column(DateTime,default=datetime.utcnow,onupdate=datetime.utcnow)       
 
 
 

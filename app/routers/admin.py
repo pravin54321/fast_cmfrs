@@ -157,7 +157,7 @@ async def  update_headoffice(current_user:Annotated[UserBase,Depends(get_current
     headoffice_exist= db.query(HeadOfficeModel).filter(HeadOfficeModel.id == headoffice_id).first()
     if headoffice_exist:
         headoffice_exist.HeadOffice=headoffice.HeadOffice
-        headoffice_exist.State_id=headoffice_exist.State_id
+        headoffice_exist.State_id=headoffice.State_id
         headoffice_exist.Region_id=headoffice.Region_id
         headoffice_exist.Distric_id=headoffice.Distric_id      
         db.commit()
@@ -658,12 +658,40 @@ async def del_kalam(current_user:Annotated[UserBase,Depends(get_current_active_u
           db.commit()
           return Response(content=f'id-{kalam_id} has been deleted successfully',status_code=200)
     raise HTTPException(detail=f'id-{kalam_id} does not exist',status_code=400)
-#-------------------policestation_created------------------------------
-@router.post('/create_newpolicestation/{user_id}',response_model=UserBase)
-async def create_policestation(user_id: int, db=Depends(getdb)):
-    all_user=db.query(UserModel).all()
-    return all_user
-
+#_________designation_api_____________
+@router.post('/designation_created',response_model=DesignationGet,tags=['Master_Designation'])
+async def create_designation(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                             designation:DesignationBase,db:Session=Depends(getdb)):
+    designation_exist=db.query(DesignationModel).filter(DesignationModel.Designation==designation.Designation).first()
+    if designation_exist:
+        raise HTTPException(detail=f"{designation.Designation} is already exist",status_code=status.HTTP_400_BAD_REQUEST)
+    designation_item=db.add(**designation.model_dump)
+    db.add(designation_item)
+    db.commit()
+    db.refresh(designation_item)
+@router.put('/update_designation/{designation_id}',response_model=DesignationGet,tags=['Master_Designation'])
+async def update_designation(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                             designation_id:int,designation:DesignationBase,db:Session=Depends(getdb)):
+    designation_duplicate=db.query(DesignationModel).filter(DesignationModel.Designation==designation.Designation)
+    if designation_duplicate:
+        raise HTTPException(detail=f'{designation.Designation} is already exist',status_code=status.HTTP_400_BAD_REQUEST)
+    designation_exist=db.query(DesignationModel).filter(DesignationModel.id==designation_id).first()
+    if designation_exist:
+        designation_exist.Designation=designation.Designation
+        db.add(designation_exist)
+        db.commit()
+        db.refresh(designation_exist)
+        return designation_exist
+    raise HTTPException(detail=f'id-{designation_id} id does not exist',status_code=status.HTTP_404_NOT_FOUND)
+@router.delete('/del_designation/designation_id',tags=['Master_Designation'])
+async def del_designation(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                          designation_id:int,db:Session=Depends(getdb)):
+    designation_exist=db.query(DesignationModel).filter(DesignationModel.id==designation_id).first()
+    if designation_exist:
+        db.delete(designation_exist)
+        db.commit()
+        return Response(content=f'id-{designation_id} has been deleted successfully',status_code=status.HTTP_200_OK)
+    raise HTTPException(detail=f'id {designation_id} deos not exist',status_code=status.HTTP_404_NOT_FOUND)
 
         
 
