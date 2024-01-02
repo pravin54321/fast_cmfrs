@@ -43,7 +43,7 @@ async def delete_state(current_user:Annotated[UserBase,Depends(get_current_activ
         db.delete(state_exist)
         db.commit()
         return Response(content=f"State_id {state_id} has been deleted successfully",status_code=200) 
-    raise HTTPException(detail=f"id-{state_id} does not exist",status_code=400)
+    raise HTTPException(detail=f"id-{state_id} does not exist",status_code=status.HTTP_404_NOT_FOUND)
     
 #--------master_region---------
 @router.get('/get_region',response_model=list[RegionGet],tags=['Master_region'])
@@ -361,7 +361,7 @@ async def update_post(current_user:Annotated[UserBase,Depends(get_current_active
         db.commit()
         db.refresh(post_exit)
         return post_exit
-    raise HTTPException(detail=f'{post_id} id does not exist',status_code=400)
+    raise HTTPException(detail=f'{post_id} id does not exist',status_code=status.HTTP_404_NOT_FOUND)
 @router.delete('/del_post/{post_id}',tags=['Master_Post'])
 async def del_post(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                   post_id:int,db:Session=Depends(getdb)):
@@ -370,7 +370,7 @@ async def del_post(current_user:Annotated[UserBase,Depends(get_current_active_us
         db.delete(post_exist)
         db.commit()
         return Response(content=f' id {post_id} has been deleted successfully',status_code=200)
-    raise HTTPException(detail=f'id-{post_id} does not exist',status_code=400)
+    raise HTTPException(detail=f'id-{post_id} does not exist',status_code=status.HTTP_404_NOT_FOUND)
 @router.get('/taluka_policestation/{taluka_id}',response_model=list[TalukaPolicestation],tags=['Master_Post'])
 async def taluka_policestation(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                                 taluka_id:int,db:Session=Depends(getdb)):
@@ -405,7 +405,7 @@ async def religion_update(current_user:Annotated[UserBase,Depends(get_current_ac
         db.commit()
         db.refresh(religion_exist)
         return religion_exist
-    raise HTTPException(detail=f'{religion_id} id does not exist ',status_code=400)
+    raise HTTPException(detail=f'{religion_id} id does not exist ',status_code=status.HTTP_404_NOT_FOUND)
 @router.delete('/religion_del/{religion_id}',tags=['Master_Religion'])
 async def religion_del(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                        religion_id=int,db:Session=Depends(getdb)):
@@ -699,7 +699,9 @@ async def del_designation(current_user:Annotated[UserBase,Depends(get_current_ac
         db.delete(designation_exist)
         db.commit()
         return Response(content=f'id-{designation_id} has been deleted successfully',status_code=status.HTTP_200_OK)
-    # raise HTTPException(detail=f'id {designation_id} deos not exist',status_code=status.HTTP_404_NOT_FOUND)
+    raise HTTPException(detail=f'id {designation_id} deos not exist',status_code=status.HTTP_404_NOT_FOUND)
+# #_________create_policestation_logine________
+# @router.post('/policestation_login',)
 
         
 
