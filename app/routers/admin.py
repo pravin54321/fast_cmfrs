@@ -659,20 +659,26 @@ async def del_kalam(current_user:Annotated[UserBase,Depends(get_current_active_u
           return Response(content=f'id-{kalam_id} has been deleted successfully',status_code=200)
     raise HTTPException(detail=f'id-{kalam_id} does not exist',status_code=400)
 #_________designation_api_____________
+@router.get('/get_designation',response_model=list[DesignationGet],tags=['Master_Designation'])
+async def get_designation(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                          db:Session=Depends(getdb)):
+    designation_list=db.query(DesignationModel).order_by(DesignationModel.id.desc()).all()
+    return designation_list
 @router.post('/designation_created',response_model=DesignationGet,tags=['Master_Designation'])
 async def create_designation(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                              designation:DesignationBase,db:Session=Depends(getdb)):
     designation_exist=db.query(DesignationModel).filter(DesignationModel.Designation==designation.Designation).first()
     if designation_exist:
         raise HTTPException(detail=f"{designation.Designation} is already exist",status_code=status.HTTP_400_BAD_REQUEST)
-    designation_item=db.add(**designation.model_dump)
+    designation_item=DesignationModel(**designation.model_dump())
     db.add(designation_item)
     db.commit()
     db.refresh(designation_item)
+    return designation_item
 @router.put('/update_designation/{designation_id}',response_model=DesignationGet,tags=['Master_Designation'])
 async def update_designation(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                              designation_id:int,designation:DesignationBase,db:Session=Depends(getdb)):
-    designation_duplicate=db.query(DesignationModel).filter(DesignationModel.Designation==designation.Designation)
+    designation_duplicate=db.query(DesignationModel).filter(DesignationModel.Designation==designation.Designation).first()
     if designation_duplicate:
         raise HTTPException(detail=f'{designation.Designation} is already exist',status_code=status.HTTP_400_BAD_REQUEST)
     designation_exist=db.query(DesignationModel).filter(DesignationModel.id==designation_id).first()
@@ -687,11 +693,13 @@ async def update_designation(current_user:Annotated[UserBase,Depends(get_current
 async def del_designation(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                           designation_id:int,db:Session=Depends(getdb)):
     designation_exist=db.query(DesignationModel).filter(DesignationModel.id==designation_id).first()
+    print(f"Received request to delete designation with ID: {designation_id}")
     if designation_exist:
+        print(f"Designation exist: {designation_exist}")
         db.delete(designation_exist)
         db.commit()
         return Response(content=f'id-{designation_id} has been deleted successfully',status_code=status.HTTP_200_OK)
-    raise HTTPException(detail=f'id {designation_id} deos not exist',status_code=status.HTTP_404_NOT_FOUND)
+    # raise HTTPException(detail=f'id {designation_id} deos not exist',status_code=status.HTTP_404_NOT_FOUND)
 
         
 
