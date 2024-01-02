@@ -723,6 +723,12 @@ async def policestation_logine(current_user:Annotated[UserBase,Depends(get_curre
     db.commit()
     db.refresh(logine_item)
     return logine_item
+@router.get('/get_station_login',response_model=list[PoliceLoginGet],tags=['Policestation_Logine'])
+async def get_station_login(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                            db:Session=Depends(getdb)):
+    list_policelogin=db.query(PoliceStationLogineModel).order_by(PoliceStationLogineModel.id.desc()).all()
+    return list_policelogin
+
 
 
         
