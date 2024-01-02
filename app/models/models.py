@@ -153,6 +153,7 @@ class PoliceStationModel(Base):
     headoffice=relationship('HeadOfficeModel',back_populates='policestation')
     subdivision=relationship('SubdivisionModel',back_populates='policestation')
     taluka=relationship('TalukaModel',back_populates='policestation')
+    policestation_login=relationship('PoliceStationLogineModel',back_populates='policestation')
     post=relationship('PostModel',back_populates='policestation',cascade='all,delete')
    
 class PostModel(Base):
@@ -240,9 +241,24 @@ class DesignationModel(Base):
     id=Column(Integer,primary_key=True,index=True)
     Designation=Column(String(200),unique=True,nullable=False) 
     create_date=Column(DateTime,default=datetime.utcnow)
-    update_date=Column(DateTime,default=datetime.utcnow,onupdate=datetime.utcnow)       
+    update_date=Column(DateTime,default=datetime.utcnow,onupdate=datetime.utcnow) 
+    policestation_login=relationship('PoliceStationLogineModel',back_populates='designation')      
 
-
+class PoliceStationLogineModel(Base):
+    __tablename__='policestation_logine'
+    id=Column(Integer,primary_key=True,index=True,autoincrement=True)
+    PoliceStation_id=Column(Integer,ForeignKey('policestation.id'),nullable=False)
+    User_Name=Column(String(200),nullable=False)
+    Designation_id=Column(Integer,ForeignKey('designation.id'),nullable=False)
+    Mob_Number=Column(String(200),nullable=False)
+    Email=Column(String(200),nullable=False,unique=True)
+    Password=Column(String(200),nullable=False)
+    create_date=Column(DateTime,default=datetime.utcnow)
+    update_date=Column(DateTime,default=datetime.utcnow,onupdate=datetime.utcnow)
+    policestation=relationship('PoliceStationModel',back_populates='policestation_login')
+    designation=relationship('DesignationModel',back_populates='policestation_login')
+   
+    
 
     
 

@@ -700,8 +700,30 @@ async def del_designation(current_user:Annotated[UserBase,Depends(get_current_ac
         db.commit()
         return Response(content=f'id-{designation_id} has been deleted successfully',status_code=status.HTTP_200_OK)
     raise HTTPException(detail=f'id {designation_id} deos not exist',status_code=status.HTTP_404_NOT_FOUND)
-# #_________create_policestation_logine________
-# @router.post('/policestation_login',)
+#_________create_policestation_logine________
+@router.post('/policestation_login',response_model=PoliceLoginGet,tags=["Policestation_Logine"])
+async def policestation_logine(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                               police_logine:PoliceLogineBase,db:Session=Depends(getdb)):
+    email_exist=db.query(PoliceStationLogineModel).filter(PoliceStationLogineModel.Email==police_logine.Email).first()
+    if email_exist:
+        raise HTTPException(detail=f"{police_logine.Email} email already exist",status_code=status.HTTP_400_BAD_REQUEST)
+    station_exist=db.query(PoliceStationLogineModel).filter(PoliceStationLogineModel.PoliceStation_id==police_logine.PoliceStation_id).first()
+    if station_exist:
+        raise HTTPException(detail='Police Station already exist',status_code=status.HTTP_400_BAD_REQUEST)
+    pwd = get_password_hash(police_logine.Password)
+    logine_item=PoliceStationLogineModel(
+                                        PoliceStation_id=police_logine.PoliceStation_id,
+                                        User_Name=police_logine.User_Name,
+                                        Mob_Number=police_logine.Mob_Number,
+                                        Email=police_logine.Email,
+                                        Designation_id=police_logine.Designation_id,
+                                        Password=pwd
+                                        )
+    db.add(logine_item)
+    db.commit()
+    db.refresh(logine_item)
+    return logine_item
+
 
         
 

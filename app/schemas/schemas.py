@@ -299,6 +299,25 @@ class DesignationGet(BaseModel):
     create_date:datetime=None
     update_date:datetime=None
 
+#--------policestation_logine---------
+class PoliceLogineBase(BaseModel):
+    PoliceStation_id:int
+    User_Name:str
+    Mob_Number:str
+    Email:EmailStr|None=None
+    Designation_id:int
+    Password:str
+class PoliceLoginGet(BaseModel):
+    id:int
+    policestation:PoliceStationGet
+    User_Name:str
+    Mob_Number:str
+    Email:EmailStr|None=None
+    designation:DesignationGet  
+    class config:
+        orm_mode=True
+
+
     
 
 
