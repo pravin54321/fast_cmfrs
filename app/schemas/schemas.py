@@ -324,6 +324,22 @@ class PoliceLoginGet(BaseModel):
     class config:
         orm_mode=True
 
+#-------------complaint_schema---------------
+class ComplaintBase(BaseModel):
+   Complainant_Name:str
+   Mob_Number:str  
+   Email:EmailStr|None=None
+   Address:str
+   Pin_Code:int
+   Station_id:int
+   Auth_Person:str
+   Designation_id:int   
+   Complaint_Against:str
+   Complaint_Desc:str
+class Com_EvidenceBase(BaseModel):
+    Complaint_id:int
+    File_Path:str           
+
 
     
 

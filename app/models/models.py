@@ -257,6 +257,22 @@ class PoliceStationLogineModel(Base):
     update_date=Column(DateTime,default=datetime.utcnow,onupdate=datetime.utcnow)
     policestation=relationship('PoliceStationModel',back_populates='policestation_login')
     designation=relationship('DesignationModel',back_populates='policestation_login')
+#--------------Complaint_model------------------
+class ComplaintModel(Base):
+    __tablename__='complaint'
+    id=Column(Integer,primary_key=True,autoincrement=True,index=True)
+    Complainant_Name=Column(String(200),nullable=False)
+    Mob_Number=Column(String(50),nullable=False)
+    Email=Column(String(200))  
+    Address=Column(Text)
+    Pin_Code=Column(Integer)
+    Station_id=Column(Integer,nullable=False)
+    Auth_Person=Column(String(200),nullable=False)
+    Designation_id=Column(Integer,nullable=False)
+    Complaint_Against=Column(String(200))
+    Complaint_Desc=Column(Text)
+
+
    
     
 
