@@ -245,7 +245,7 @@ class DesignationModel(Base):
     policestation_login=relationship('PoliceStationLogineModel',back_populates='designation')      
 
 class PoliceStationLogineModel(Base):
-    __tablename__='policestation_logine'
+    __tablename__='station_login'
     id=Column(Integer,primary_key=True,index=True,autoincrement=True)
     PoliceStation_id=Column(Integer,ForeignKey('policestation.id'),nullable=False)
     User_Name=Column(String(200),nullable=False)

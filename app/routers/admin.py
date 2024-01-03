@@ -728,24 +728,34 @@ async def get_station_login(current_user:Annotated[UserBase,Depends(get_current_
                             db:Session=Depends(getdb)):
     list_policelogin=db.query(PoliceStationLogineModel).order_by(PoliceStationLogineModel.id.desc()).all()
     return list_policelogin
-@router.put('/update_policelogine/{login_id}',response_model=PoliceLoginGet,tags=['Policestation_Logine'])
+@router.patch('/update_policelogine/{login_id}',response_model=PoliceLoginGet,tags=['Policestation_Logine'])
 async def update_policelogin(current_user:Annotated[UserBase,Depends(get_current_user)],
                              login_id:int,
-                             police_logine:PoliceLogineBase,db:Session=Depends(getdb)):
-    email_exist=db.query(PoliceStationLogineModel).filter(PoliceStationLogineModel.Email==police_logine.Email)
+                             police_logine:PoliceLogine_01,db:Session=Depends(getdb)):
+    email_exist=db.query(PoliceStationLogineModel).filter(PoliceStationLogineModel.Email==police_logine.Email,PoliceStationLogineModel.id!=login_id).first()
     if email_exist:
         raise HTTPException(detail=f'{police_logine.Email} email already exist',status_code=status.HTTP_400_BAD_REQUEST)
-    policestation_exist=db.query(PoliceStationLogineModel).filter(PoliceStationLogineModel.PoliceStation_id).first()
+    policestation_exist=db.query(PoliceStationLogineModel).filter(PoliceStationLogineModel.PoliceStation_id==police_logine.PoliceStation_id,PoliceStationLogineModel.id!=login_id).first()
     if policestation_exist:
         raise HTTPException(detail=f'{police_logine.PoliceStation_id} policestation already exist',status_code=status.HTTP_400_BAD_REQUEST)
     user_exist=db.query(PoliceStationLogineModel).filter(PoliceStationLogineModel.id==login_id).first()  
     if user_exist:
-        user_exist.PoliceStation_id=police_logine.PoliceStation_id,
-        user_exist.Designation_id=police_logine.Designation_id,
-        user_exist.User_Name=police_logine.User_Name,
-        user_exist.Email=police_logine.Email,
-        user_exist.Mob_Number=police_logine.Mob_Number,
-  
+        for field, value in police_logine.model_dump(exclude={"Password"},exclude_unset=True).items():
+          setattr(user_exist, field, value)
+        db.commit()
+        db.refresh(user_exist)
+        return user_exist 
+    raise HTTPException(detail=f'id-{login_id} does not exist',status_code=status.HTTP_404_NOT_FOUND)
+@router.delete("/del_stationlog/{station_id}",tags=['Policestation_Logine'])
+async def del_stationlog(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                         station_id:int,db:Session=Depends(getdb)):
+    station_exist=db.query(PoliceStationLogineModel).filter(PoliceStationLogineModel.id==station_id).first()
+    if station_exist:
+        db.delete(station_exist)
+        db.commit()
+        return Response(content=f'id-{station_id} station logine  has been deleted successfully',status_code=status.HTTP_200_OK)
+    raise HTTPException(detail=f'id-{station_id} does not exist',status_code=status.HTTP_404_NOT_FOUND)
+     
     
     
 

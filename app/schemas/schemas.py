@@ -307,6 +307,13 @@ class PoliceLogineBase(BaseModel):
     Email:EmailStr|None=None
     Designation_id:int
     Password:str
+class PoliceLogine_01(BaseModel):
+    PoliceStation_id:int
+    User_Name:str
+    Mob_Number:str
+    Email:EmailStr|None=None
+    Designation_id:int
+   
 class PoliceLoginGet(BaseModel):
     id:int
     policestation:PoliceStationGet

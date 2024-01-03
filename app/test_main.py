@@ -4,7 +4,7 @@ import pytest
 
 @pytest.fixture(scope='module')
 def auth_headers():
-    auth_token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJwcmF2aW4iLCJleHAiOjE3MDQxODEzNzF9.DlooXmaBKN-gEco806nP1Ze5i6lEYHSjVlfKzMamAcA"
+    auth_token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJwcmF2aW4iLCJleHAiOjE3MDQyNzI3NTl9.rS1cQuoLzK_T7GA2qUeD32eQnhaZqqOgCieZ8bsmKGo"
     return{
          "Authorization": f"Bearer {auth_token}",
         "Content-Type": "application/json"
@@ -44,3 +44,19 @@ def test_delete_designation(auth_headers):
     print("Response body:", response.text)
     
     assert response.status_code == 200 
+
+#----------------testing_user_logine----------------------
+def test_stationlogin(auth_headers):
+    payload={
+        "PoliceStation_id":"6",
+        "Email":"admin3@gmail.com",
+        "Password":"123",
+        "Designation_id":"4",
+        "User_Name":"pravin_03",
+        "Mob_Number":"9158380283"
+        } 
+    response=client.post('policestation_login',json=payload,headers=auth_headers)
+    print('Response body',response.text) 
+    assert response.status_code==200  
+# def test_updstationlogin(auth_headers):
+
