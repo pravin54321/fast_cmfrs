@@ -1,3 +1,4 @@
+from sqlalchemy import func
 from ..dependencies import *
 from ..models.models import *
 from ..database import SessionLocal,getdb
@@ -72,18 +73,17 @@ async def get_current_active_user(current_user:Annotated[UserBase,Depends(get_cu
     return current_user
 
 
-def check_duplicate_email():
-    db = SessionLocal()
-    user = db.query(UserModel).all()
-    print('_______________',user)
-    return user
-def create_db(db_name):
-    
-    my_con=mysql.connector.connect(host='localhost',user='root',passwd='')
-    cur=my_con.cursor()
-    try:
-        cur.execute(f'create database {db_name}')
+#_________________unique_id_for complaint_______________
+def complaint_uid():
+    import datetime
+    db=SessionLocal()
+    prev_complaint=db.query(ComplaintModel).order_by(ComplaintModel.id.desc()).first()
+    if prev_complaint:
+        prev_complaint=prev_complaint.Complaint_uid
+        prev_complaint=int(prev_complaint.split("-")[-1]) + 1
+    else:
+        prev_complaint=1    
+    today_date=datetime.date.today().strftime('%Y%m%d')
+    complaint_id = f"COM-{today_date}-{str(prev_complaint).zfill(5)}"
+    return complaint_id
 
-    except:
-        my_con.rollback()
-    my_con.close()        

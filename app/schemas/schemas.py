@@ -1,5 +1,5 @@
 from pydantic import BaseModel,EmailStr
-from fastapi import UploadFile
+from fastapi import Form, UploadFile
 from datetime import date
 from typing import Union
 from datetime import datetime
@@ -326,7 +326,8 @@ class PoliceLoginGet(BaseModel):
 
 #-------------complaint_schema---------------
 class ComplaintBase(BaseModel):
-   Complainant_Name:str
+   Complainant_Name:str=Form
+   Complaint_uid:str
    Mob_Number:str  
    Email:EmailStr|None=None
    Address:str
@@ -336,9 +337,10 @@ class ComplaintBase(BaseModel):
    Designation_id:int   
    Complaint_Against:str
    Complaint_Desc:str
-class Com_EvidenceBase(BaseModel):
+class ComEvidenceBase(BaseModel):
     Complaint_id:int
-    File_Path:str           
+    File:str 
+    File_Type:str          
 
 
     

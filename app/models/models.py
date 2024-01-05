@@ -261,17 +261,27 @@ class PoliceStationLogineModel(Base):
 class ComplaintModel(Base):
     __tablename__='complaint'
     id=Column(Integer,primary_key=True,autoincrement=True,index=True)
+    Complaint_uid=Column(String(200),nullable=False)
     Complainant_Name=Column(String(200),nullable=False)
     Mob_Number=Column(String(50),nullable=False)
     Email=Column(String(200))  
     Address=Column(Text)
     Pin_Code=Column(Integer)
-    Station_id=Column(Integer,nullable=False)
+    Station_id=Column(Integer,ForeignKey('policestation.id'),nullable=False)
     Auth_Person=Column(String(200),nullable=False)
-    Designation_id=Column(Integer,nullable=False)
+    Designation_id=Column(Integer,ForeignKey('designation.id'),nullable=False)
     Complaint_Against=Column(String(200))
     Complaint_Desc=Column(Text)
-
+    create_date=Column(DateTime,default=datetime.utcnow)
+    update_date=Column(DateTime,default=datetime.utcnow,onupdate=datetime.utcnow)
+class ComEvidenceModel(Base):
+    __tablename__='comevidence'
+    id=Column(Integer,primary_key=True,autoincrement=True,index=True)
+    Complaint_id=Column(Integer,ForeignKey('complaint.id'))
+    File=Column(LargeBinary)
+    File_Type=Column(String(200))    
+    create_date=Column(DateTime,default=datetime.utcnow)
+    update_date=Column(DateTime,default=datetime.utcnow,onupdate=datetime.utcnow)
 
    
     

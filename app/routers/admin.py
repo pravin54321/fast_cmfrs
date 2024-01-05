@@ -756,6 +756,44 @@ async def del_stationlog(current_user:Annotated[UserBase,Depends(get_current_act
         return Response(content=f'id-{station_id} station logine  has been deleted successfully',status_code=status.HTTP_200_OK)
     raise HTTPException(detail=f'id-{station_id} does not exist',status_code=status.HTTP_404_NOT_FOUND)
 #--------complaint_api---------------------------
+@router.post('/create_complaint',response_model=ComplaintBase,tags=["Complaint_Api"])
+async def create_comlaint(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                            complaint:ComplaintBase,evidence: UploadFile = File(...),db:Session=Depends(getdb),
+                            Complainant_Name: str = Form(...),
+                            Complaint_uid: str = Form(...),
+                            Mob_Number: str = Form(...),
+                            Email: str = Form(None),  # Assuming you want EmailStr as a string field
+                            Address: str = Form(...),
+                            Pin_Code: int = Form(...),
+                            Station_id: int = Form(...),
+                            Auth_Person: str = Form(...),
+                            Designation_id: int = Form(...),
+                            Complaint_Against: str = Form(...),
+                            Complaint_Desc: str = Form(...)):
+    complaint_item=ComplaintModel(
+        Complainant_Name=complaint.Complainant_Name,
+        Complaint_uid=complaint_uid(),
+        Mob_Number=complaint.Mob_Number,
+        Email=complaint.Email,
+        Address=complaint.Address,
+        Pin_Code=complaint.Pin_Code,
+        Station_id=complaint.Station_id,
+        Auth_Person=complaint.Auth_Person,
+        Designation_id=complaint.Designation_id, 
+        Complaint_Against=complaint.Complaint_Against,
+        Complaint_Desc=complaint.Complaint_Desc
+    )
+    db.add(complaint_item)
+    db.commit()
+    db.refresh(complaint_item)
+    file_data=evidence.file.read()
+    file_type=evidence.content_type
+    evidence_item=ComEvidenceModel(File=file_data,File_Type=evidence.content_type,
+                                   Complaint_id=complaint_item.id)
+    db.add(evidence_item)
+    db.commit()
+   
+    return complaint_item
      
     
     
