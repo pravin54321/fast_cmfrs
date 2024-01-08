@@ -756,20 +756,9 @@ async def del_stationlog(current_user:Annotated[UserBase,Depends(get_current_act
         return Response(content=f'id-{station_id} station logine  has been deleted successfully',status_code=status.HTTP_200_OK)
     raise HTTPException(detail=f'id-{station_id} does not exist',status_code=status.HTTP_404_NOT_FOUND)
 #--------complaint_api---------------------------
-@router.post('/create_complaint',response_model=ComplaintBase,tags=["Complaint_Api"])
+@router.post('/create_complaint',response_model=ComplaintGet,tags=["Complaint_Api"])
 async def create_comlaint(current_user:Annotated[UserBase,Depends(get_current_active_user)],
-                            complaint:ComplaintBase,evidence: UploadFile = File(...),db:Session=Depends(getdb),
-                            Complainant_Name: str = Form(...),
-                            Complaint_uid: str = Form(...),
-                            Mob_Number: str = Form(...),
-                            Email: str = Form(None),  # Assuming you want EmailStr as a string field
-                            Address: str = Form(...),
-                            Pin_Code: int = Form(...),
-                            Station_id: int = Form(...),
-                            Auth_Person: str = Form(...),
-                            Designation_id: int = Form(...),
-                            Complaint_Against: str = Form(...),
-                            Complaint_Desc: str = Form(...)):
+                         complaint:ComplaintBase=Depends(),evidence: UploadFile = File(None),db:Session=Depends(getdb)):
     complaint_item=ComplaintModel(
         Complainant_Name=complaint.Complainant_Name,
         Complaint_uid=complaint_uid(),
@@ -785,16 +774,40 @@ async def create_comlaint(current_user:Annotated[UserBase,Depends(get_current_ac
     )
     db.add(complaint_item)
     db.commit()
-    db.refresh(complaint_item)
-    file_data=evidence.file.read()
-    file_type=evidence.content_type
-    evidence_item=ComEvidenceModel(File=file_data,File_Type=evidence.content_type,
-                                   Complaint_id=complaint_item.id)
-    db.add(evidence_item)
-    db.commit()
-   
+    if evidence:
+        file_type=evidence.content_type
+        file_path=await imagestore(evidence,'complaint')
+        comevidence_db=ComEvidenceModel(File_Path=f'Static/Images/complaint/{file_path}',File_Type=file_type,Complaint_id=complaint_item.id)
+        db.add(comevidence_db)
+        db.commit()
+        db.refresh(complaint_item)
     return complaint_item
-     
+@router.get('/get_complaint',response_model=list[ComplaintGet],tags=['Complaint_Api'])
+async def get_complaint(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                        db:Session=Depends(getdb)):
+    list_complaint=db.query(ComplaintModel).order_by(ComplaintModel.id.desc()).all()
+    return list_complaint
+@router.patch('/update_complaint/{complaint_id}',response_model=ComplaintGet,tags=['Complaint_Api'])
+async def update_complaint(current_user:Annotated[UserBase,Depends(getdb)],
+                           complaint_id:int,
+                           complaint:ComplaintBase_01,db:Session=Depends(getdb)):
+    complaint_exist=db.query(ComplaintModel).filter(ComplaintModel.id==complaint_id).first()
+    if complaint_exist:
+        for field,value in complaint.model_dump(exclude={'Complaint_uid'},exclude_unset=True).items():
+          setattr(complaint_exist,field,value)
+        db.commit()
+        db.refresh(complaint_exist)
+        return complaint_exist
+    raise HTTPException(detail=f'id-{complaint_id} does not exist',status_code=status.HTTP_404_NOT_FOUND)  
+@router.delete('/del/{complaint_id}',tags=['Complaint_Api'])
+async def del_complaint(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                        complaint_id:int,db:Session=Depends(getdb)):
+    complaint_exist=db.query(ComplaintModel).filter(ComplaintModel.id==complaint_id).first()
+    if complaint_exist:
+        db.delete(complaint_exist)
+        db.commit()
+        return Response(content=f'id-{complaint_id} has been deleted successfully',status_code=status.HTTP_200_OK)  
+    raise HTTPException(detail=f"id-{complaint_id} does not exist",status_code=status.HTTP_404_NOT_FOUND)    
     
     
 

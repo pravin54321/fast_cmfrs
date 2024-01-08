@@ -86,4 +86,16 @@ def complaint_uid():
     today_date=datetime.date.today().strftime('%Y%m%d')
     complaint_id = f"COM-{today_date}-{str(prev_complaint).zfill(5)}"
     return complaint_id
+#_____________image_store_for_complaint---------------------
+from .algo  import StoreImage 
+async def imagestore(file,subdir):
+    unique_filename=f"{datetime.now().strftime('%Y%m%d%H%M%S')}_{file.filename}"
+    file_path=os.path.join(f'{StoreImage}{subdir}',unique_filename)
+    async with aiofiles.open(file_path, "wb") as f:
+            while chunk := await file.read(1024):
+                try:
+                    await f.write(chunk)
+                except Exception as e:
+                    print(f"Error while writing the file: {e}")
+    return unique_filename                
 

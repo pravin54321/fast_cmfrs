@@ -155,6 +155,7 @@ class PoliceStationModel(Base):
     taluka=relationship('TalukaModel',back_populates='policestation')
     policestation_login=relationship('PoliceStationLogineModel',back_populates='policestation')
     post=relationship('PostModel',back_populates='policestation',cascade='all,delete')
+    complaint=relationship('ComplaintModel',back_populates='policestation',cascade="all,delete")
    
 class PostModel(Base):
     __tablename__='post'
@@ -242,7 +243,8 @@ class DesignationModel(Base):
     Designation=Column(String(200),unique=True,nullable=False) 
     create_date=Column(DateTime,default=datetime.utcnow)
     update_date=Column(DateTime,default=datetime.utcnow,onupdate=datetime.utcnow) 
-    policestation_login=relationship('PoliceStationLogineModel',back_populates='designation')      
+    policestation_login=relationship('PoliceStationLogineModel',back_populates='designation')
+    complaint=relationship('ComplaintModel',back_populates='designation')      
 
 class PoliceStationLogineModel(Base):
     __tablename__='station_login'
@@ -274,14 +276,19 @@ class ComplaintModel(Base):
     Complaint_Desc=Column(Text)
     create_date=Column(DateTime,default=datetime.utcnow)
     update_date=Column(DateTime,default=datetime.utcnow,onupdate=datetime.utcnow)
+    evidence=relationship('ComEvidenceModel',back_populates='complaint',cascade='all,delete')
+    policestation=relationship('PoliceStationModel',back_populates='complaint')
+    designation=relationship('DesignationModel',back_populates='complaint')
+
 class ComEvidenceModel(Base):
     __tablename__='comevidence'
     id=Column(Integer,primary_key=True,autoincrement=True,index=True)
     Complaint_id=Column(Integer,ForeignKey('complaint.id'))
-    File=Column(LargeBinary)
+    File_Path=Column(String(200))
     File_Type=Column(String(200))    
     create_date=Column(DateTime,default=datetime.utcnow)
     update_date=Column(DateTime,default=datetime.utcnow,onupdate=datetime.utcnow)
+    complaint=relationship('ComplaintModel',back_populates='evidence')
 
    
     

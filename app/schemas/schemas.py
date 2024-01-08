@@ -1,5 +1,6 @@
-from pydantic import BaseModel,EmailStr
-from fastapi import Form, UploadFile
+import fileinput
+from pydantic import BaseModel,EmailStr,Field
+from fastapi import Form, UploadFile,File
 from datetime import date
 from typing import Union
 from datetime import datetime
@@ -191,6 +192,14 @@ class PoliceStationGet(BaseModel):
     taluka:TalukaGet
     class config:
         orm_mode=True
+class PoliceStation_only(BaseModel):
+    id:int
+    PoliceStation:str
+    create_date:datetime=None
+    update_date:datetime=None
+    class config:
+        orm_mode=True
+
 class TalukaPolicestation(BaseModel):
     id:int
     PoliceStation:str        
@@ -326,7 +335,18 @@ class PoliceLoginGet(BaseModel):
 
 #-------------complaint_schema---------------
 class ComplaintBase(BaseModel):
-   Complainant_Name:str=Form
+   Complainant_Name:str=Form(...)
+   Mob_Number:str=Form(...)  
+   Email:EmailStr|None=Form(None)
+   Address:str=Form(...)
+   Pin_Code:int=Form(...)
+   Station_id:int=Form(...)
+   Auth_Person:str=Form(...)
+   Designation_id:int=Form(...)   
+   Complaint_Against:str=Form(...)
+   Complaint_Desc:str=Form(...)
+class ComplaintBase_01(BaseModel):
+   Complainant_Name:str
    Complaint_uid:str
    Mob_Number:str  
    Email:EmailStr|None=None
@@ -336,11 +356,27 @@ class ComplaintBase(BaseModel):
    Auth_Person:str
    Designation_id:int   
    Complaint_Against:str
-   Complaint_Desc:str
+   Complaint_Desc:str   
 class ComEvidenceBase(BaseModel):
+    id:int
     Complaint_id:int
-    File:str 
-    File_Type:str          
+    File_Path:str
+    File_Type:str       
+
+class ComplaintGet(BaseModel):
+   id:int
+   Complainant_Name:str
+   Mob_Number:str  
+   Email:EmailStr|None=None
+   Address:str
+   Pin_Code:int
+   policestation:PoliceStation_only
+   Auth_Person:str
+   designation:DesignationGet   
+   Complaint_Against:str
+   Complaint_Desc:str
+   evidence:list[ComEvidenceBase]=None 
+
 
 
     
