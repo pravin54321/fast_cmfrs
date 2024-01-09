@@ -153,7 +153,7 @@ class PoliceStationModel(Base):
     headoffice=relationship('HeadOfficeModel',back_populates='policestation')
     subdivision=relationship('SubdivisionModel',back_populates='policestation')
     taluka=relationship('TalukaModel',back_populates='policestation')
-    policestation_login=relationship('PoliceStationLogineModel',back_populates='policestation')
+    policestation_login=relationship('PoliceStationLogineModel',back_populates='policestation',cascade='delete,all')
     post=relationship('PostModel',back_populates='policestation',cascade='all,delete')
     complaint=relationship('ComplaintModel',back_populates='policestation',cascade="all,delete")
    
