@@ -240,7 +240,7 @@ async def store_groupimg(img_path,db,originalimg):
     group_img = GroupImageModel(ImgPath=f'Static/Images/group_face/{img_path}',original_img = f'Static/Images/group_image/{originalimg}')
     db.add(group_img)
     db.commit()
-    db.refresh(group_img)
+    db.refresh(group_img)    
 
 
                      

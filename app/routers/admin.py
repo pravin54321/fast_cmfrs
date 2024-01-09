@@ -803,12 +803,53 @@ async def update_complaint(current_user:Annotated[UserBase,Depends(getdb)],
 async def del_complaint(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                         complaint_id:int,db:Session=Depends(getdb)):
     complaint_exist=db.query(ComplaintModel).filter(ComplaintModel.id==complaint_id).first()
+    evidance_exist=db.query(ComEvidenceModel).filter(ComEvidenceModel.Complaint_id).all()
     if complaint_exist:
+        dlt_file=[dlt_image(evidence.File_Path) for evidence in evidance_exist]
         db.delete(complaint_exist)
         db.commit()
         return Response(content=f'id-{complaint_id} has been deleted successfully',status_code=status.HTTP_200_OK)  
     raise HTTPException(detail=f"id-{complaint_id} does not exist",status_code=status.HTTP_404_NOT_FOUND)    
-    
+#----------------------------evidence_api------------------------
+@router.post("/evidence_create",response_model=ComplaintGet,tags=['Evidence_Api'])
+async def evidence_cretae(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                          complaint_id:int=Form(...),
+                          evidence: UploadFile = File(...),db:Session=Depends(getdb)):
+    complaint_exist=db.query(ComplaintModel).filter(ComplaintModel.id==complaint_id).first() 
+    file_type=evidence.content_type
+    file_path=await imagestore(evidence,'complaint')
+    evidence_db=ComEvidenceModel(File_Path=f'Static/Images/complaint/{file_path}',File_Type=file_type,Complaint_id=complaint_id)
+    db.add(evidence_db)
+    db.commit()
+    db.refresh(evidence_db)
+    return complaint_exist
+@router.put('/update_evidence/{evidence_id}',tags=['Evidence_Api'])
+async def update_evidence(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                          evidence_id:int,complaint_id:int=Form(...),evidence:UploadFile=File(...),
+                          db:Session=Depends(getdb)):
+    evidence_exist=db.query(ComEvidenceModel).filter(ComEvidenceModel.id==evidence_id).first()
+    if evidence_exist:
+        file_path=await imagestore(evidence,'complaint')
+        file_type=evidence.content_type
+        evidence_exist.Complaint_id=complaint_id
+        evidence_exist.File_Path=f'Static/Images/complaint/{file_path}'
+        evidence_exist.File_Type=file_type
+        db.commit()
+        db.refresh(evidence_exist)
+        return evidence_exist
+    raise HTTPException(detail=f"id-{evidence_id} does not exist",status_code=status.HTTP_404_NOT_FOUND)
+@router.delete('/dlt_evidence/{evidence_id}',tags=['Evidence_Api'])
+async def del_evidence(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                       evidence_id:int,db:Session=Depends(getdb)):
+    evidence_exist=db.query(ComEvidenceModel).filter(ComEvidenceModel.id==evidence_id).first()
+    if evidence_exist:
+        dlt_image(evidence_exist.File_Path)
+        db.delete(evidence_exist)
+        db.commit()
+        return Response(content=f'id-{evidence_id} has been delete successfully',status_code=status.HTTP_200_OK)
+    raise HTTPException(detail=f'id-{evidence_id} does not exist',status_code=status.HTTP_404_NOT_FOUND)
+
+
     
 
 

@@ -8,11 +8,7 @@ import mysql.connector
 from ..schemas import *
 from datetime import datetime,timedelta
 
-
-
-
-
-
+dlt_img='C:/Cluematrix/FaceRecogniationNewProject/'
 def verify_password(plain_password,hashed_password):
     return pwd_context.verify(plain_password,hashed_password)
 def get_password_hash(password):
@@ -98,4 +94,13 @@ async def imagestore(file,subdir):
                 except Exception as e:
                     print(f"Error while writing the file: {e}")
     return unique_filename                
-
+#________________delete_image_in folder___________
+def dlt_image(file_path):
+    file_path=f"{dlt_img}/{file_path}"
+    if os.path.exists(file_path):
+        os.remove(file_path)
+        print('file_deleted_successfully')
+      
+    else:
+        print('file_does not delete ')
+       
