@@ -848,7 +848,39 @@ async def del_evidence(current_user:Annotated[UserBase,Depends(get_current_activ
         db.commit()
         return Response(content=f'id-{evidence_id} has been delete successfully',status_code=status.HTTP_200_OK)
     raise HTTPException(detail=f'id-{evidence_id} does not exist',status_code=status.HTTP_404_NOT_FOUND)
-
+#--------------------------Ncr-------------------------------
+@router.post('/create_ncr',response_model=NCRBaseGet,tags=['NCR_API'])
+async def create_ncr(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                     ncr:NCRBase,comp_addresses:list[CompAddressBase],accusess:list[AccusedBase],
+                     ncr_acts:list[NCR_ACTBase],db:Session=Depends((getdb))):
+    ncr_item=NCRModel(**ncr.model_dump())
+    db.add(ncr_item)
+    db.commit()
+    if ncr_item.id:
+        for comp_address in comp_addresses:
+            address_instance = Complainat_AddressModel(
+                Address_Type=comp_address.Address_Type,
+                Address=comp_address.Address,
+                NCR_id=ncr_item.id
+            )
+            db.add(address_instance)  # Add each instance individually
+            db.commit()
+    if ncr_item.id:
+        for ncr_act in ncr_acts:
+            ncract_item=NCR_ACTModel(NCR_id=ncr_item.id,Act_id=ncr_act.Act_id,Section=ncr_act.Section) 
+            db.add(ncract_item)
+        db.commit()   
+    if ncr_item.id:
+        for accused in accusess:
+            add_accused=AccusedModel(NCR_id=ncr_item.id,Name=accused.Name,Father_Name=accused.Father_Name,Age=accused.Age)
+            db.add(add_accused)
+            db.commit()
+            for address in accused.Addresses:
+                add_accuaddress=Accused_AddressModel(Accused_id=add_accused.id,NCR_id=ncr_item.id,Address_Type=address.Address_Type,Address=address.Address)
+                db.add(add_accuaddress)
+            db.commit()
+    # db.refresh(ncr_item)                
+    return ncr_item
 
     
 

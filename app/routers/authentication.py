@@ -82,6 +82,8 @@ def complaint_uid():
     today_date=datetime.date.today().strftime('%Y%m%d')
     complaint_id = f"COM-{today_date}-{str(prev_complaint).zfill(5)}"
     return complaint_id
+
+    
 #_____________image_store_for_complaint---------------------
 from .algo  import StoreImage 
 async def imagestore(file,subdir):

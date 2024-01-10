@@ -2,10 +2,26 @@ from sqlalchemy import Column,Integer,String,Text,ForeignKey,LargeBinary,Boolean
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 from datetime import datetime
-from ..database import Base,engine
+from ..database import Base,engine,SessionLocal
+import pytz
+from sqlalchemy.sql import func
 target_metadata = Base.metadata
 
+def ncr_uid():
+    import datetime
+    db=SessionLocal()
+    prev_ncr=db.query(NCRModel).order_by(NCRModel.id.desc()).first()
+    if prev_ncr:
+        prev_ncr=prev_ncr.NCR_uid
+        prev_ncr=int(prev_ncr.split("-")[-1])+1
+    else:
+        prev_ncr=1
+    today_date=datetime.date.today().strftime('%y%m%d')
+    ncr_id=f"NCR-{today_date}-{str(prev_ncr).zfill(5)}" 
+    return ncr_id   
 
+def get_current_time():
+    return datetime.now(pytz.timezone('Asia/Kolkata'))
 class PersonModel(Base):
     __tablename__="person"
     id = Column(Integer,primary_key=True,index=True)
@@ -156,6 +172,7 @@ class PoliceStationModel(Base):
     policestation_login=relationship('PoliceStationLogineModel',back_populates='policestation',cascade='delete,all')
     post=relationship('PostModel',back_populates='policestation',cascade='all,delete')
     complaint=relationship('ComplaintModel',back_populates='policestation',cascade="all,delete")
+    ncr=relationship('NCRModel',back_populates='police_station',cascade='delete,all')
    
 class PostModel(Base):
     __tablename__='post'
@@ -235,6 +252,7 @@ class CrimeKalamModel(Base):
     Kalam=Column(String(200),nullable=False,unique=True)
     create_date=Column(DateTime,default=datetime.utcnow)
     update_date=Column(DateTime,default=datetime.utcnow,onupdate=datetime.utcnow)
+    ncr_act=relationship('NCR_ACTModel',back_populates='kalam')
 
 #---------designation_model------------------
 class DesignationModel(Base):
@@ -259,6 +277,7 @@ class PoliceStationLogineModel(Base):
     update_date=Column(DateTime,default=datetime.utcnow,onupdate=datetime.utcnow)
     policestation=relationship('PoliceStationModel',back_populates='policestation_login')
     designation=relationship('DesignationModel',back_populates='policestation_login')
+   
 #--------------Complaint_model------------------
 class ComplaintModel(Base):
     __tablename__='complaint'
@@ -289,8 +308,68 @@ class ComEvidenceModel(Base):
     create_date=Column(DateTime,default=datetime.utcnow)
     update_date=Column(DateTime,default=datetime.utcnow,onupdate=datetime.utcnow)
     complaint=relationship('ComplaintModel',back_populates='evidence')
+#------------Ncr_Table---------------------------------------------
 
-   
+class NCRModel(Base):
+    __tablename__='ncr'
+    id=Column(Integer,primary_key=True,autoincrement=True,index=True)  
+    P_Station=Column(Integer,ForeignKey('policestation.id'),nullable=False)
+    info_recive=Column(DateTime)  
+    GD_No=Column(Integer)
+    GD_Date=Column(DateTime)
+    Occurrence_Date=Column(DateTime)
+    Place_Occurrence=Column(Text)
+    Name_Complainant=Column(String(200))
+    NCR_uid=Column(String(200),default=ncr_uid)
+    create_date=Column(DateTime,default=get_current_time)
+    update_date=Column(DateTime,default=get_current_time,onupdate=func.now())
+    compl_address=relationship('Complainat_AddressModel',back_populates='ncr',cascade='delete,all')
+    accused=relationship('AccusedModel',back_populates='ncr',cascade='delete,all')
+    act=relationship('NCR_ACTModel',back_populates='ncr',cascade='delete,all')
+    police_station=relationship('PoliceStationModel',back_populates='ncr')
+class Complainat_AddressModel(Base):
+    __tablename__='com_address'
+    id=Column(Integer,primary_key=True,autoincrement=True,index=True)
+    NCR_id=Column(Integer,ForeignKey('ncr.id'))  
+    Address_Type=Column(String(200))
+    Address=Column(Text)
+    create_date=Column(DateTime,default=get_current_time)
+    update_date=Column(DateTime,default=get_current_time,onupdate=func.now()) 
+    ncr=relationship('NCRModel',back_populates='compl_address')
+class AccusedModel(Base):
+    __tablename__='accused'
+    id=Column(Integer,primary_key=True,index=True,autoincrement=True)
+    NCR_id=Column(Integer,ForeignKey('ncr.id'))
+    Name=Column(String(200))
+    Father_Name=Column(String(200))
+    Age=Column(Integer)
+    create_date=Column(DateTime,default=get_current_time)
+    update_date=Column(DateTime,default=get_current_time,onupdate=func.now())
+    ncr=relationship('NCRModel',back_populates='accused')
+    accus_address=relationship('Accused_AddressModel',back_populates='accused',cascade='delete,all')
+class Accused_AddressModel(Base):
+    __tablename__='accus_address'
+    id=Column(Integer,primary_key=True,index=True,autoincrement=True)    
+    Accused_id=Column(Integer,ForeignKey('accused.id')) 
+    NCR_id=Column(Integer,ForeignKey('ncr.id'))
+    Address_Type=Column(String(200))
+    Address=Column(Text)
+    create_date=Column(DateTime,default=get_current_time)
+    update_time=Column(DateTime,default=get_current_time,onupdate=func.now())
+    accused=relationship('AccusedModel',back_populates='accus_address')  
+class NCR_ACTModel(Base):
+    __tablename__='ncr_act'
+    id=Column(Integer,primary_key=True,unique=True,index=True)  
+    Act_id=Column(Integer,ForeignKey('kalam.id'))
+    NCR_id=Column(Integer,ForeignKey('ncr.id'))
+    Section=Column(Text)  
+    create_date=Column(DateTime,default=get_current_time)
+    update_date=Column(DateTime,default=get_current_time,onupdate=func.now()) 
+    ncr=relationship(NCRModel,back_populates='act')
+    kalam=relationship('CrimeKalamModel',back_populates='ncr_act')
+
+
+
     
 
     

@@ -376,7 +376,60 @@ class ComplaintGet(BaseModel):
    Complaint_Against:str
    Complaint_Desc:str
    evidence:list[ComEvidenceBase]=None 
-
+#---------NCR_SCHEMA------------------
+class NCRBase(BaseModel):
+    P_Station:int
+    info_recive:datetime  
+    GD_No:int
+    GD_Date:datetime
+    Occurrence_Date:datetime
+    Place_Occurrence:str
+    Name_Complainant:str  
+    
+class CompAddressBase(BaseModel):
+    Address_Type:str
+    Address:str 
+class CompAddressBaseGet(BaseModel):
+    id:int
+    Address_Type:str
+    Address:str     
+class AccuAddressBase(BaseModel):
+    Address_Type:str
+    Address:str      
+class AccusedBase(BaseModel):
+    Name:str
+    Father_Name:str
+    Age:int
+    Addresses:list[AccuAddressBase]
+class AccusedBaseGet(BaseModel):
+    id:int
+    Name:str
+    Father_Name:str
+    Age:int
+    accus_address:list[AccuAddressBase]
+   
+class NCR_ACTBase(BaseModel):
+    Act_id:int
+    Section:str 
+class NCR_ACTGet(BaseModel):
+    id:int
+    kalam:CrimeKalamGet    
+    Section:str
+   
+class NCRBaseGet(BaseModel):
+    id:int
+    police_station:PoliceStation_only
+    info_recive:datetime  
+    GD_No:int
+    GD_Date:datetime
+    Occurrence_Date:datetime
+    Place_Occurrence:str
+    Name_Complainant:str
+    compl_address:list[CompAddressBaseGet]=None  
+    accused:list[AccusedBaseGet]=None
+    act:list[NCR_ACTGet]=None      
+   
+   
 
 
     
