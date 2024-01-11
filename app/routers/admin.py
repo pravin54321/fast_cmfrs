@@ -874,13 +874,67 @@ async def create_ncr(current_user:Annotated[UserBase,Depends(get_current_active_
         for accused in accusess:
             add_accused=AccusedModel(NCR_id=ncr_item.id,Name=accused.Name,Father_Name=accused.Father_Name,Age=accused.Age)
             db.add(add_accused)
-            db.commit()
+            db.commit() 
             for address in accused.Addresses:
                 add_accuaddress=Accused_AddressModel(Accused_id=add_accused.id,NCR_id=ncr_item.id,Address_Type=address.Address_Type,Address=address.Address)
                 db.add(add_accuaddress)
             db.commit()
-    # db.refresh(ncr_item)                
+    db.refresh(ncr_item)                
     return ncr_item
+@router.patch('/update_ncr/{ncr_id}',response_model=NCRBaseGet,tags=['NCR_API'])
+def update_ncr(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+               ncr_id:int,ncr_item:NCRBase,comp_addresses:list[CompAddressBase],accused_list:list[AccusedBase],
+               ncr_acts:list[NCR_ACTBase],db:Session=Depends(getdb)):
+    ncr_exist=db.query(NCRModel).filter(NCRModel.id==ncr_id).first()
+    if ncr_exist:
+            if ncr_exist:
+                for field ,value in ncr_item.model_dump(exclude={'NCR_uid'},exclude_unset=True).items():
+                    setattr(ncr_exist,field,value)
+                db.commit()
+            comp_address_exist=db.query(Complainat_AddressModel).filter(Complainat_AddressModel.NCR_id==ncr_id).all()    
+            if comp_address_exist:
+                for address_item in comp_address_exist:
+                    db.delete(address_item)
+                db.commit()
+            for address in comp_addresses:
+                comp_address_item=Complainat_AddressModel(NCR_id=ncr_id,Address_Type=address.Address_Type,Address=address.Address)
+                db.add(comp_address_item)
+            db.commit() 
+            accused_exist=db.query(AccusedModel).filter(AccusedModel.NCR_id==ncr_id).all()
+            for accused_item in accused_exist:
+                db.delete(accused_item)
+            db.commit()        
+            for accused in accused_list:
+                accused_db=AccusedModel(NCR_id=ncr_id,Name=accused.Name,Father_Name=accused.Father_Name,Age=accused.Age) 
+                db.add(accused_db)
+                db.commit()
+                if accused_db.id:
+                    for accused_address in accused.Addresses:
+                        address_db=Accused_AddressModel(NCR_id=ncr_id,Address_Type=accused_address.Address_Type,Address=accused_address.Address,
+                                                        Accused_id=accused_db.id)    
+                        db.add(address_db)
+                    db.commit()  
+            ncr_act_exist=db.query(NCR_ACTModel).filter(NCR_ACTModel.NCR_id==ncr_id).all()
+            if ncr_act_exist:
+                for ncr_act in ncr_act_exist:
+                    db.delete(ncr_act)
+                db.commit() 
+            for act in ncr_acts:
+                ncr_act_db=NCR_ACTModel(Act_id=act.Act_id,NCR_id=ncr_id,Section=act.Section)
+                db.add(ncr_act_db)
+            db.commit()                     
+            return ncr_exist   
+    raise HTTPException(detail=f'{ncr_id} does not exist',status_code=status.HTTP_404_NOT_FOUND)
+@router.delete('/del_ncr/{ncr_id}',tags=['NCR_API'])
+async def del_ncr(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                  ncr_id:int,db:Session=Depends(getdb)):
+    ncr_exist=db.query(NCRModel).filter(NCRModel.id==ncr_id).first()
+    if ncr_exist:
+        db.delete(ncr_exist)
+        db.commit()
+        return Response(content=f'id-{ncr_id} has been deleted successfully',status_code=status.HTTP_200_OK)
+    raise HTTPException(detail=f'id-{ncr_id} does not exist',status_code=status.HTTP_404_NOT_FOUND)
+    
 
     
 

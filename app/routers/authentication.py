@@ -99,10 +99,11 @@ async def imagestore(file,subdir):
 #________________delete_image_in folder___________
 def dlt_image(file_path):
     file_path=f"{dlt_img}/{file_path}"
-    if os.path.exists(file_path):
+    try:
         os.remove(file_path)
         print('file_deleted_successfully')
-      
-    else:
-        print('file_does not delete ')
+    except FileNotFoundError:
+        print('file_does not exist ')
+    except Exception as e:
+        print(f'error deleting file:{e}')    
        
