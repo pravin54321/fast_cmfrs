@@ -1,7 +1,7 @@
 import fileinput
-from pydantic import BaseModel,EmailStr,Field
+from pydantic import BaseModel,EmailStr,Field,conint
 from fastapi import Form, UploadFile,File
-from datetime import date
+from datetime import date,time
 from typing import Union
 from datetime import datetime
 class ImageBase(BaseModel):
@@ -427,7 +427,57 @@ class NCRBaseGet(BaseModel):
     Name_Complainant:str
     compl_address:list[CompAddressBaseGet]=None  
     accused:list[AccusedBaseGet]=None
-    act:list[NCR_ACTGet]=None      
+    act:list[NCR_ACTGet]=None  
+#--------------fir_schema--------------------
+class FirBase(BaseModel):
+    P_Station:int
+    Year: conint(ge=1900, le=2100)
+    Day:str
+    Time_Period:time
+    Date_From:date
+    Date_To:date
+    Time_From:time 
+    Time_To:time
+    Info_Recived_Date:date
+    Info_Recived_Time:time
+    Diary_Entery_No:int
+    Diary_Date:date
+    Diary_Time:time
+    Type_Information:str
+    Dir_distance_From_Ps:str
+    Occurrence_Address:str
+    outside_ps:int
+class Fir_ActBase(BaseModel):
+    Fir_Act:int
+    Fir_Section:str        
+class Fir_ActBaseGet(BaseModel):
+    id:int
+    Fir_Act:int
+    Fir_Section:str        
+class FirBaseGet(BaseModel):
+    id:int
+    police_station:PoliceStation_only
+    Year: conint(ge=1900, le=2100)
+    Day:str
+    Time_Period:time
+    Date_From:date
+    Date_To:date
+    Time_From:time 
+    Time_To:time
+    Info_Recived_Date:date
+    Info_Recived_Time:time
+    Diary_Entery_No:int
+    Diary_Date:date
+    Diary_Time:time
+    Type_Information:str
+    Dir_distance_From_Ps:str
+    Occurrence_Address:str
+    out_side_ps:PoliceStation_only
+    fir_act:list[Fir_ActBaseGet] 
+
+
+
+      
    
    
 

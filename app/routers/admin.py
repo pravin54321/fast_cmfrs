@@ -849,6 +849,10 @@ async def del_evidence(current_user:Annotated[UserBase,Depends(get_current_activ
         return Response(content=f'id-{evidence_id} has been delete successfully',status_code=status.HTTP_200_OK)
     raise HTTPException(detail=f'id-{evidence_id} does not exist',status_code=status.HTTP_404_NOT_FOUND)
 #--------------------------Ncr-------------------------------
+@router.get('/get_ncr',response_model=list[NCRBaseGet],tags=['NCR_API'])
+async def get_ncr(cirrent_user=Annotated[UserBase,Depends(get_current_active_user)],db:Session=Depends(getdb)):
+    list_ncr=db.query(NCRModel).order_by(NCRModel.id.desc()).all()
+    return list_ncr
 @router.post('/create_ncr',response_model=NCRBaseGet,tags=['NCR_API'])
 async def create_ncr(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                      ncr:NCRBase,comp_addresses:list[CompAddressBase],accusess:list[AccusedBase],
@@ -934,6 +938,57 @@ async def del_ncr(current_user:Annotated[UserBase,Depends(get_current_active_use
         db.commit()
         return Response(content=f'id-{ncr_id} has been deleted successfully',status_code=status.HTTP_200_OK)
     raise HTTPException(detail=f'id-{ncr_id} does not exist',status_code=status.HTTP_404_NOT_FOUND)
+#-----------------------------fir_api-------------------------------------------------------------
+@router.get('/get_fir',response_model=list[FirBaseGet],tags=['FIR_API'])
+async def get_fir(current_user:Annotated[UserBase,Depends(get_current_active_user)],db:Session=Depends(getdb)):
+    list_fir=db.query(FIRModel).order_by(FIRModel.id.desc()).all()
+    return list_fir
+@router.post('/create_fir',response_model=FirBaseGet,tags=['FIR_API'])
+async def create_fir(current_user:Annotated[UserBase,Depends(get_current_user)],
+                     fir_item:FirBase,fir_acts:list[Fir_ActBase],db:Session=Depends(getdb)):
+    fir_db=FIRModel(**fir_item.model_dump())
+    db.add(fir_db)
+    db.commit()
+    if fir_db.id:
+        for fir_act in fir_acts:
+            act_db=FirSectionActModel(Fir_id=fir_db.id,Fir_Act=fir_act.Fir_Act,Fir_Section=fir_act.Fir_Section)
+            db.add(act_db)
+        db.commit()    
+    db.refresh(fir_db)
+    return fir_db
+@router.patch('/update_fir/fir_id',response_model=FirBase,tags=['FIR_API'])
+async def update_fir(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                     fir_id:int,fir_item:FirBase,fir_acts:list[Fir_ActBase],
+                     db:Session=Depends(getdb)):
+    fir_exist=db.query(FIRModel).filter(FIRModel.id==fir_id).first()  
+    if fir_exist:
+        for field,value in fir_item.model_dump(exclude={"Fir_No"},exclude_unset=True).items():
+            setattr(fir_exist,field,value)
+        db.commit()
+        fir_act_exist=db.query(FirSectionActModel).filter(FirSectionActModel.Fir_id==fir_id).all()
+        if fir_act_exist:
+                for fir_act in fir_act_exist:
+                    db.delete(fir_act)
+                    db.commit()
+        for  fir_act in fir_acts:    
+              fir_act_db=FirSectionActModel(Fir_id=fir_id,Fir_Act=fir_act.Fir_Act,Fir_Section=fir_act.Fir_Section)
+              db.add(fir_act_db)
+        db.commit()
+        return fir_exist 
+    raise HTTPException(detail=f'id-{fir_id} does not exist',status_code=status.HTTP_400_BAD_REQUEST) 
+@router.delete('/dlt_fir/{fir_id}',tags=['FIR_API'])
+async def dlt_fir(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                  fir_id:int,db:Session=Depends(getdb)):
+                 fir_exist=db.query(FIRModel).filter(FIRModel.id==fir_id).first()
+                 if fir_exist:
+                     db.delete(fir_exist)
+                     db.commit()
+                     return Response(content=f'id-{fir_id} has been deleted successfully',status_code=status.HTTP_200_OK) 
+                 raise HTTPException(detail=f"id-{fir_id} does not exist",status_code=status.HTTP_400_BAD_REQUEST)            
+
+      
+
+
     
 
     
