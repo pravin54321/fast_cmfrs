@@ -452,7 +452,7 @@ class Fir_ActBase(BaseModel):
     Fir_Section:str        
 class Fir_ActBaseGet(BaseModel):
     id:int
-    Fir_Act:int
+    kalam:CrimeKalamGet=None
     Fir_Section:str        
 class FirBaseGet(BaseModel):
     id:int
@@ -474,6 +474,25 @@ class FirBaseGet(BaseModel):
     Occurrence_Address:str
     out_side_ps:PoliceStation_only
     fir_act:list[Fir_ActBaseGet] 
+#------------chargesheet_shema-------------
+class ChargeSheet_ActBase(BaseModel):
+    ChargeSheet_Act:int
+    ChargeSheet_Section:str     
+class ChargeSheetBase(BaseModel):
+    P_Station:int
+    Year:conint(ge=1900,le=2100)
+    Fir_No:str
+    Fir_Date:date  
+    ChargeSheet_Date:date
+    Type_FinalReport:str
+    If_FIR_Unoccured:str      
+    If_ChargeSheet:str
+    Name_IO:str
+    IO_Rank:int
+    Name_Complainant:str
+    Father_Name:str
+    Detail_Properties:str
+            
 
 
 

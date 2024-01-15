@@ -986,7 +986,21 @@ async def dlt_fir(current_user:Annotated[UserBase,Depends(get_current_active_use
                      return Response(content=f'id-{fir_id} has been deleted successfully',status_code=status.HTTP_200_OK) 
                  raise HTTPException(detail=f"id-{fir_id} does not exist",status_code=status.HTTP_400_BAD_REQUEST)            
 
-      
+#------------charge_sheet__form---------------------
+@router.post('/create_chargesheet',response_model=ChargeSheetBase,tags=['ChargeSheet_Api'])
+async def create_chargesheet(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                             charge_sheet:ChargeSheetBase,chargesheet_act:list[ChargeSheet_ActBase],db:Session=Depends(getdb)):
+    chargesheet_item=ChargeSheetModel(**charge_sheet.model_dump())
+    db.add(chargesheet_item)
+    db.commit()
+    if chargesheet_item.id:
+        for sheet_act in  chargesheet_act:
+            chargesheet_act_db=ChargeSheet_ActModel(ChargeSheet_id=chargesheet_item.id,ChargeSheet_Act=sheet_act.ChargeSheet_Act,
+                                                    ChargeSheet_Section=sheet_act.ChargeSheet_Section)
+            db.add(chargesheet_act_db)
+        db.commit()     
+    db.refresh(chargesheet_item) 
+    return chargesheet_item     
 
 
     

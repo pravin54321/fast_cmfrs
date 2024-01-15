@@ -33,7 +33,19 @@ def fir_uid():
         prev_fir=1
     today_date=datetime.date.today().strftime('%y%m%d')
     fir_no=f"FIR-{today_date}-{str(prev_fir).zfill(5)}"
-    return fir_no    
+    return fir_no   
+#--------------charge_sheet_number------------------------
+def chargesheet_uid():
+    db=SessionLocal()
+    prev_chargesheet=db.query(ChargeSheetModel).order_by(ChargeSheetModel.id.desc()).first()
+    if prev_chargesheet:
+        prev_chargesheet=prev_chargesheet.ChargeSheet_No
+        prev_chargesheet=int(prev_chargesheet.split("-")[-1])+1
+    else:
+        prev_chargesheet=1
+    today_date=datetime.date.today().strftime('%y%m%d') 
+    chargesheet_no=f"CS-{today_date}-{str(prev_chargesheet).zfill(5)}"
+    return chargesheet_no       
 
 class PersonModel(Base):
     __tablename__="person"
@@ -268,6 +280,7 @@ class CrimeKalamModel(Base):
     create_date=Column(DateTime,default=get_current_time)
     update_date=Column(DateTime,default=get_current_time,onupdate=func.now())
     ncr_act=relationship('NCR_ACTModel',back_populates='kalam')
+    fir_act=relationship('FirSectionActModel',back_populates='kalam')
 
 #---------designation_model------------------
 class DesignationModel(Base):
@@ -417,6 +430,36 @@ class FirSectionActModel(Base):
     create_date=Column(DateTime,default=get_current_time)
     update_date=Column(DateTime,default=get_current_time,onupdate=func.now())
     fir=relationship('FIRModel',back_populates='fir_act')
+    kalam=relationship('CrimeKalamModel',back_populates='fir_act')
+#--------------------model chargesheet---------------------------
+class ChargeSheetModel(Base):
+    __tablename__='charge_Sheet'
+    id=Column(Integer,primary_key=True,index=True,autoincrement=True)
+    P_Station=Column(Integer,ForeignKey('policestation.id'))
+    Year=Column(Integer)
+    Fir_No=Column(String(200))
+    Fir_Date=Column(Date) 
+    ChargeSheet_No=Column(String(200),default=chargesheet_uid) 
+    ChargeSheet_Date=Column(Date)
+    Type_FinalReport=Column(String(200))
+    If_FIR_Unoccured=Column(String(200))      
+    If_ChargeSheet=Column(String(200))
+    Name_IO=Column(String(200))
+    IO_Rank=Column(Integer,ForeignKey('designation.id'))
+    Name_Complainant=Column(String(200))
+    Father_Name=Column(String(200))
+    Detail_Properties=Column(Text)
+    create_date=Column(DateTime,default=get_current_time)
+    update_date=Column(DateTime,default=get_current_time,onupdate=func.now())
+class ChargeSheet_ActModel(Base):
+    __tablename__='chargesheet_act'
+    id=Column(Integer,primary_key=True,autoincrement=True)
+    ChargeSheet_id=Column(Integer,ForeignKey('charge_Sheet.id'))
+    ChargeSheet_Act=Column(Integer,ForeignKey('kalam.id'))
+    ChargeSheet_Section=Column(Text) 
+    create_date=Column(DateTime,default=get_current_time)
+    update_date=Column(DateTime,default=get_current_time,onupdate=func.now())   
+
 
 
 
