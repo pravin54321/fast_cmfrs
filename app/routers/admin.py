@@ -987,7 +987,11 @@ async def dlt_fir(current_user:Annotated[UserBase,Depends(get_current_active_use
                  raise HTTPException(detail=f"id-{fir_id} does not exist",status_code=status.HTTP_400_BAD_REQUEST)            
 
 #------------charge_sheet__form---------------------
-@router.post('/create_chargesheet',response_model=ChargeSheetBase,tags=['ChargeSheet_Api'])
+@router.get('/get_chargesheet',response_model=list[ChargeSheetBaseGet],tags=['ChargeSheet_Api'])
+async def get_chargesheet(curent_user:Annotated[UserBase,Depends(get_current_active_user)],db:Session=Depends(getdb)):
+    list_chargesheet=db.query(ChargeSheetModel).order_by(ChargeSheetModel.id.desc())
+    return list_chargesheet
+@router.post('/create_chargesheet',response_model=ChargeSheetBaseGet,tags=['ChargeSheet_Api'])
 async def create_chargesheet(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                              charge_sheet:ChargeSheetBase,chargesheet_act:list[ChargeSheet_ActBase],db:Session=Depends(getdb)):
     chargesheet_item=ChargeSheetModel(**charge_sheet.model_dump())
@@ -1002,6 +1006,39 @@ async def create_chargesheet(current_user:Annotated[UserBase,Depends(get_current
     db.refresh(chargesheet_item) 
     return chargesheet_item     
 
+@router.patch('/update_chargesheet/{charge_sheet_id}',response_model=ChargeSheetBase,tags=['ChargeSheet_Api'])
+async def update_chargesheet(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                             charge_sheet_id:int,charge_sheet:ChargeSheetBase,chargesheet_act:list[ChargeSheet_ActBase],
+                             db:Session=Depends(getdb)):
+    charegsheet_exist=db.query(ChargeSheetModel).filter(ChargeSheetModel.id==charge_sheet_id).first()
+    if charegsheet_exist:
+        for field,value in charge_sheet.model_dump(exclude={"ChargeSheet_No"},exclude_unset=True).items():
+            setattr(charegsheet_exist,field,value)
+        db.commit()
+        chargesheet_act_exist=db.query(ChargeSheet_ActModel).filter(ChargeSheet_ActModel.ChargeSheet_id==charge_sheet_id).all()
+        if chargesheet_act_exist:
+            for sheet_act in chargesheet_act_exist:
+                db.delete(sheet_act)
+            db.commit()
+            for act in chargesheet_act:
+                act_db=ChargeSheet_ActModel(ChargeSheet_id=charegsheet_exist.id,ChargeSheet_Act=act.ChargeSheet_Act,ChargeSheet_Section=act.ChargeSheet_Section)
+                db.add(act_db)
+            db.commit() 
+        return charegsheet_exist     
+@router.delete('/dlt_chargesheet/{sheet_id}',tags=['ChargeSheet_Api'])
+async def dlt_chargesheet(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                          sheet_id:int,db:Session=Depends(getdb)):
+         charge_sheet_exist=db.query(ChargeSheetModel).filter(ChargeSheetModel.id==sheet_id).first()
+         if charge_sheet_exist:
+             db.delete(charge_sheet_exist)
+             db.commit()
+             return Response(content=f'id-{sheet_id} has been deleted successfully',status_code=status.HTTP_200_OK) 
+         raise HTTPException(detail=f'{sheet_id} does not exist',status_code=status.HTTP_400_BAD_REQUEST)     
+
+
+
+       
+            
 
     
 

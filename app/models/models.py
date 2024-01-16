@@ -200,6 +200,7 @@ class PoliceStationModel(Base):
     ncr=relationship('NCRModel',back_populates='police_station',cascade='delete,all')
     fir=relationship('FIRModel',back_populates='police_station',foreign_keys='FIRModel.P_Station')
     fir_outside=relationship('FIRModel',back_populates='out_side_ps',foreign_keys='FIRModel.outside_ps')
+    charge_sheet=relationship('ChargeSheetModel',back_populates='police_station')
    
 class PostModel(Base):
     __tablename__='post'
@@ -281,6 +282,7 @@ class CrimeKalamModel(Base):
     update_date=Column(DateTime,default=get_current_time,onupdate=func.now())
     ncr_act=relationship('NCR_ACTModel',back_populates='kalam')
     fir_act=relationship('FirSectionActModel',back_populates='kalam')
+    charge_sheet_act=relationship('ChargeSheet_ActModel',back_populates='kalam')
 
 #---------designation_model------------------
 class DesignationModel(Base):
@@ -451,6 +453,8 @@ class ChargeSheetModel(Base):
     Detail_Properties=Column(Text)
     create_date=Column(DateTime,default=get_current_time)
     update_date=Column(DateTime,default=get_current_time,onupdate=func.now())
+    charge_sheet_act=relationship('ChargeSheet_ActModel',back_populates='charge_sheet',cascade='delete,all')
+    police_station=relationship(PoliceStationModel,back_populates='charge_sheet')
 class ChargeSheet_ActModel(Base):
     __tablename__='chargesheet_act'
     id=Column(Integer,primary_key=True,autoincrement=True)
@@ -458,7 +462,40 @@ class ChargeSheet_ActModel(Base):
     ChargeSheet_Act=Column(Integer,ForeignKey('kalam.id'))
     ChargeSheet_Section=Column(Text) 
     create_date=Column(DateTime,default=get_current_time)
-    update_date=Column(DateTime,default=get_current_time,onupdate=func.now())   
+    update_date=Column(DateTime,default=get_current_time,onupdate=func.now())
+    charge_sheet=relationship(ChargeSheetModel,back_populates='charge_sheet_act')
+    kalam=relationship(CrimeKalamModel,back_populates='charge_sheet_act')   
+#_____________________Enquiry_form_________________________
+class EnquiryFormModel(Base):
+    __tablename__='enquiry_form'
+    id=Column(Integer,primary_key=True,autoincrement=True,index=True)
+    Police_Station_id=Column(Integer,ForeignKey('policestation.id'))
+    Accused_Name=Column(String(200))
+    Nick_Name=Column(String(200))
+    Father_or_Wife_Name=Column(String(200))
+    Age=Column(String(200))
+    Mob_Number=Column(String(200))
+    Height=Column(String(50))
+    Body_Complexion=Column(String(100))
+    Body_Type=Column(String(200))
+    Eyes_Colur=Column(String(100))
+    Hair_Colur=Column(String(100))
+    Langues_id=Column(Integer,ForeignKey('langues.id'))
+    Identification_Mark=Column(Text)
+    Subcast_id=Column(Integer,ForeignKey('subcast.id'))
+    Occupation_id=Column(Integer,ForeignKey('occupation.id'))
+    Address=Column(Text)
+    Residence_Address=Column(Text)
+    Birth_Place=Column(Text)
+    Father_Alive=Column(String(50))
+    Father_Name=Column(String(200))
+    Father_Address=Column(Text)
+    Father_Occupation_id=Column(Integer,ForeignKey('occupation.id'))
+    Father_Property=Column(String(50))
+    Fater_Property_detail=Column(Text)
+
+
+
 
 
 

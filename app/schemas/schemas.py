@@ -477,7 +477,13 @@ class FirBaseGet(BaseModel):
 #------------chargesheet_shema-------------
 class ChargeSheet_ActBase(BaseModel):
     ChargeSheet_Act:int
-    ChargeSheet_Section:str     
+    ChargeSheet_Section:str 
+class ChargeSheet_ActBaseGet(BaseModel):
+    id:int
+    kalam:CrimeKalamGet
+    ChargeSheet_Section:str 
+    create_date:datetime
+    update_date:datetime            
 class ChargeSheetBase(BaseModel):
     P_Station:int
     Year:conint(ge=1900,le=2100)
@@ -492,6 +498,25 @@ class ChargeSheetBase(BaseModel):
     Name_Complainant:str
     Father_Name:str
     Detail_Properties:str
+class ChargeSheetBaseGet(BaseModel):
+    id:int
+    police_station:PoliceStation_only
+    Year:conint(ge=1900,le=2100)
+    Fir_No:str
+    Fir_Date:date  
+    ChargeSheet_Date:date
+    Type_FinalReport:str
+    If_FIR_Unoccured:str      
+    If_ChargeSheet:str
+    Name_IO:str
+    IO_Rank:int
+    Name_Complainant:str
+    Father_Name:str
+    Detail_Properties:str
+    create_date:datetime
+    update_date:datetime
+    charge_sheet_act:list[ChargeSheet_ActBaseGet]
+                
             
 
 
