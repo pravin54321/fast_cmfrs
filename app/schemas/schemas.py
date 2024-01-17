@@ -516,6 +516,88 @@ class ChargeSheetBaseGet(BaseModel):
     create_date:datetime
     update_date:datetime
     charge_sheet_act:list[ChargeSheet_ActBaseGet]
+
+#Enquiry_Namuna_Form
+class EnquiryNamunaBase(BaseModel):
+    Police_Station_id:int
+    Accused_Name:str
+    Nick_Name:str
+    Father_or_Wife_Name:str
+    Age:int
+    Mob_Number:str
+    Height:str
+    Body_Complexion:str
+    Body_Type:str
+    Eyes_Colur:str
+    Hair_Colur:str
+    Langues_id:int
+    Identification_Mark:str
+    Subcast_id:int
+    Occupation_id:int
+    Address:str
+    Residence_Address:str
+    Birth_Place:str
+    Is_Father_Alive:str
+    Father_Name:str
+    Father_Address:str
+    Father_Occupation_id:int
+    Is_Father_Property:str
+    Fater_Property_detail:str
+    Is_Moter_Alive:str
+    Mother_Details:str
+    Brother_or_Sister:str
+    Brother_Sister_Details:str
+    Relative_or_Friends:str
+    Relative_Friends_Details:str
+    Is_Own_Property:str
+    Own_Property_Details:str
+    Is_Education:str
+    Education_Details:str
+    Is_Married:str
+    Wife_or_Husband_Details:str
+    How_long_Current_Address:str
+    Who_Knows_You:str
+    Know_Other_Than_Relative:str
+    Proffession_Before_Coming:str
+    Arrested_Before:str
+    Is_Sentence_before:str
+    Sentence_Details:str
+    is_CommitedCrime_Arrested_anyone:str
+    Details_Anyone:str
+    Stolen_Goodes_Sized_From:str
+    PO_Details_Accused:str
+    Stay_Other_Place:str
+    PO_Emp:str
+    Is_commited_Crime_Before:str
+    Reason_Commited_Crime:str
+    Started_Crime:str
+    Gang_or_Group:str
+    Crime_to_Other_Gang:str
+    Where_Crime_Commited:str
+    DoYouKnow_OtherCriminal:str
+    HowMuch_MonyStolen:str
+    Where_Go_Before_Crime:str
+    Where_Stop_Ofter_Crime:str
+    Whose_sold_Stolen_Assets:str
+    Robbery_Other_Distric:str
+    Patner_in_Villege:str
+    How_Learn_Commiting_Crime:str
+    Which_Village_Gang_Activate:str
+    Gang_Main_Adda:str
+    Which_Town_Visited_Often:str
+    Know_Robbery_Next:str
+    Gang_any_Addiction:str
+    Why_left_PrevGang:str
+    How_Steal_NewVillage:str
+    Clicked_Photes_Where:str
+    When_Police_ShowUp:str
+    Which_langues_use_Crime:int
+    Steal_Everyday:str
+    is_Drink_Alchol:str
+    Entertainment_Media:str
+    Where_Sleep_Night:str
+    Where_Take_Shelter:str 
+    Image_Path:str=None      
                 
             
 

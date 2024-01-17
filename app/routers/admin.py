@@ -1033,8 +1033,24 @@ async def dlt_chargesheet(current_user:Annotated[UserBase,Depends(get_current_ac
              db.delete(charge_sheet_exist)
              db.commit()
              return Response(content=f'id-{sheet_id} has been deleted successfully',status_code=status.HTTP_200_OK) 
-         raise HTTPException(detail=f'{sheet_id} does not exist',status_code=status.HTTP_400_BAD_REQUEST)     
-
+         raise HTTPException(detail=f'{sheet_id} does not exist',status_code=status.HTTP_400_BAD_REQUEST) 
+#_____________________inquiry_form_____________________________
+@router.post('/create_inquiry_namuna',tags=['Enquiry_Api'])
+async def create_inquiry_form(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                              file:UploadFile=File(...),
+                              db:Session=Depends(getdb)):
+    file_path=await imagestore(file,'namuna_form')
+    print(f"file_pathe-s-----{file_path}")
+    # print(enquiry_form)
+    return None
+#     Enquiry_form_item=EnquiryFormModel(**enquiry_form.model_dump())
+#     db.add(Enquiry_form_item) 
+# enquiry_form:EnquiryNamunaBase=Body(...),
+#     db.commit()
+#     db.refresh(Enquiry_form_item)
+#     return Enquiry_form_item
+# file_path=await imagestore(evidence,'complaint')
+#     evidence_db=ComEvidenceModel(File_Path=f'Static/Images/complaint/{file_path}',File_Type=file_type,Complaint_id=complaint_id)
 
 
        

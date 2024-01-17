@@ -1,4 +1,4 @@
-from fastapi import FastAPI,Depends,HTTPException,UploadFile,File,Form,Query,status,Response
+from fastapi import FastAPI,Depends,HTTPException,UploadFile,File,Form,Query,status,Response,Body
 from .schemas.schemas import *
 from .models.models import *
 from sqlalchemy.orm import Session
