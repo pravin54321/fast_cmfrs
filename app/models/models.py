@@ -547,7 +547,46 @@ class EnquiryFormModel(Base):
     Entertainment_Media=Column(Text)
     Where_Sleep_Night=Column(String(200))
     Where_Take_Shelter=Column(Text)
-    Image_Path=Column(String)
+    Image_Path=Column(String(200))
+    police_station=relationship("PoliceStationModel",backref='policestation')
+    subcast=relationship("SubcastModel",backref='subcast')
+    accuse_langues=relationship(LanguesModel,foreign_keys=[Langues_id],backref='accuse_langues')
+    crime_langues=relationship(LanguesModel,foreign_keys=[Which_langues_use_Crime],backref='crime_langues')
+    accused_occupation=relationship(OccupationModel,foreign_keys=[Occupation_id],backref='accused_occupation')
+    father_occupation=relationship(OccupationModel,foreign_keys=[Father_Occupation_id],backref='father_occupation')
+#--------------------Accused_name----------------------------------------------
+class YellowCardModel(Base):
+    id=Column(Integer,primary_key=True,autoincrement=True,unique=True)
+    Accused_Name=Column(String(200)) 
+    Accused_Age=Column(Integer)
+    PS_id=Column(Integer,ForeignKey("policestation.id"))
+    Accused_Bplace=Column(Text)
+    Accused_Height=Column(String(200))
+    Accused_Bcomplexion=Column(String(200))
+    Accused_Btype=Column(String(200))
+    Accuse_Ecolur=Column(String(200))
+    Accused_Hcolur=Column(String(200))
+    Occupation_id=Column(Integer,ForeignKey('Occupation.id'))
+    Accused_Imark=Column(Text)
+    Scast_id=Column(Integer,ForeignKey('subcast.id'))
+    Accused_Education=Column(String(200))
+    Pstation_Rnumber=Column(String(200))
+    CRD_Number=Column(String(200))
+    Accused_Address=Column(Text)
+    Accused_ImgPath=Column(String(200))
+    Caddress_Saddress=Column(Text)
+    Moment_Oinfo=Column(Text)
+    Pofficer_who_Iaccused=Column(Text)
+    Relativ_Friends=Column(Text)
+    Accused_Fdetails=Column(Text)
+    Wife_Details=Column(Text)
+    Apartner_MOBnumber=Column(Text)
+    Pcrime_Pstation=Column()#prove crime
+
+
+
+
+
 
 
 

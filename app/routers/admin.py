@@ -1035,22 +1035,54 @@ async def dlt_chargesheet(current_user:Annotated[UserBase,Depends(get_current_ac
              return Response(content=f'id-{sheet_id} has been deleted successfully',status_code=status.HTTP_200_OK) 
          raise HTTPException(detail=f'{sheet_id} does not exist',status_code=status.HTTP_400_BAD_REQUEST) 
 #_____________________inquiry_form_____________________________
-@router.post('/create_inquiry_namuna',tags=['Enquiry_Api'])
+@router.get('/get_enqform',response_model=list[EnquiryNamunaBaseGet],tags=['Enquiry_Api'])
+async def enqform(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                                         db:Session=Depends(getdb)):
+    list_enqform=db.query(EnquiryFormModel).order_by(EnquiryFormModel.id.desc()).all()
+    return list_enqform
+@router.post('/create_inquiry_namuna',response_model=EnquiryNamunaBaseGet,tags=['Enquiry_Api'])
 async def create_inquiry_form(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                               file:UploadFile=File(...),
+                              enquiry_form:EnquiryNamunaBase=Body(...),
                               db:Session=Depends(getdb)):
+   
     file_path=await imagestore(file,'namuna_form')
-    print(f"file_pathe-s-----{file_path}")
-    # print(enquiry_form)
-    return None
-#     Enquiry_form_item=EnquiryFormModel(**enquiry_form.model_dump())
-#     db.add(Enquiry_form_item) 
-# enquiry_form:EnquiryNamunaBase=Body(...),
-#     db.commit()
-#     db.refresh(Enquiry_form_item)
-#     return Enquiry_form_item
-# file_path=await imagestore(evidence,'complaint')
-#     evidence_db=ComEvidenceModel(File_Path=f'Static/Images/complaint/{file_path}',File_Type=file_type,Complaint_id=complaint_id)
+    setattr(enquiry_form,'Image_Path',file_path)
+    Enquiry_form_item=EnquiryFormModel(**enquiry_form.model_dump())
+    db.add(Enquiry_form_item) 
+    db.commit()
+    db.refresh(Enquiry_form_item)
+    return Enquiry_form_item
+@router.patch('/update_enqform/{enqform_id}',response_model=EnquiryNamunaBase,tags=['Enquiry_Api'])
+async def update_enqform(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                         enqform_id:int,enq_form:EnquiryNamunaBaseGet,db:Session=Depends(getdb)):
+    enqform_exist=db.query(EnquiryFormModel).filter(EnquiryFormModel.id==enqform_id).first()
+    if enqform_exist:
+        for field,value in enq_form.model_dump(exclude={'Image_Path'},exclude_unset=True).items():
+             setattr(enqform_exist,field,value) 
+        db.commit()
+        db.refresh(enqform_exist)
+        return enqform_exist
+    raise HTTPException(detail=f'id-{enqform_id} does not exist',status_code=status.HTTP_400_BAD_REQUEST)
+@router.delete('/dlt_enqform/{enqform_id}',tags=['Enquiry_Api']) 
+async def del_enqform(curremt_user:Annotated[UserBase,Depends(get_current_active_user)],
+                      enqform_id:int,db:Session=Depends(getdb)):
+    enqform_exist=db.query(EnquiryFormModel).filter(EnquiryFormModel.id==enqform_id).first()
+    if enqform_exist:
+        db.delete(enqform_exist)
+        db.commit()
+        return Response(content=f"id-{enqform_id} has  been deleted successfully",status_code=status.HTTP_200_OK)
+    raise HTTPException(detail=f"id-{enqform_id} does not exist",status_code=status.HTTP_400_BAD_REQUEST) 
+@router.put('/update_image/{enqform_id}',tags=['Enquiry_Api'])
+async def update_img(current_user:Annotated[UserBase,Depends(get_current_active_user)],enqform_id:int,
+                     file:UploadFile=File(...),
+                     db:Session=Depends(getdb)):
+    file_path=await imagestore(file,'namuna_form')
+    enqform_exist=db.query(EnquiryFormModel).filter(EnquiryFormModel.id==enqform_id).update({'Image_Path':file_path})
+    db.commit()
+    if enqform_exist is 1:
+      return Response(content="image has been change successfully",status_code=status.HTTP_200_OK)
+    raise HTTPException(detail=f"id-{enqform_id} does not exist",status_code=status.HTTP_400_BAD_REQUEST)
 
 
        
