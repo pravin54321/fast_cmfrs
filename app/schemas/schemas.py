@@ -678,7 +678,38 @@ class EnquiryNamunaBaseGet(BaseModel):
     Entertainment_Media:str
     Where_Sleep_Night:str
     Where_Take_Shelter:str 
-    Image_Path:str=None                   
+    Image_Path:str=None  
+class Yellow_CardBase(BaseModel):
+    Accused_Name:str 
+    Accused_Age:int
+    PS_id:int
+    Accused_Bplace:str
+    Accused_Height:str
+    Accused_Bcomplexion:str
+    Accused_Btype:str
+    Accuse_Ecolur:str
+    Accused_Hcolur:str
+    Occupation_id:int
+    Accused_Imark:str
+    Scast_id:int
+    Accused_Education:str
+    Pstation_Rnumber:str
+    CRD_Number:str
+    Accused_Address:str
+    Accused_ImgPath:str
+    Caddress_Saddress:str
+    Moment_Oinfo:str
+    Pofficer_who_Iaccused:str
+    Relativ_Friends:str
+    Accused_Fdetails:str
+    Wife_Details:str
+    Apartner_MOBnumber:str
+    Pcrime_Pstation:int
+    Crime_Number:str
+    Crime_Date:datetime
+    Pcrime_Sentence:str
+    Pcrime_Date:date
+                     
             
 
 

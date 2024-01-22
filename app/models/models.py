@@ -556,6 +556,7 @@ class EnquiryFormModel(Base):
     father_occupation=relationship(OccupationModel,foreign_keys=[Father_Occupation_id],backref='father_occupation')
 #--------------------Accused_name----------------------------------------------
 class YellowCardModel(Base):
+    __tablename__='yellow_card'
     id=Column(Integer,primary_key=True,autoincrement=True,unique=True)
     Accused_Name=Column(String(200)) 
     Accused_Age=Column(Integer)
@@ -581,7 +582,12 @@ class YellowCardModel(Base):
     Accused_Fdetails=Column(Text)
     Wife_Details=Column(Text)
     Apartner_MOBnumber=Column(Text)
-    Pcrime_Pstation=Column()#prove crime
+    Pcrime_Pstation=Column(Integer,ForeignKey('policestation.id'),comment='previous crime under which policestation')#prove crime
+    Crime_Number=Column(String(200))
+    Crime_Date=Column(DateTime)
+    Pcrime_Sentence=Column(String(200),comment='previous crime punishment')
+    Pcrime_Date=Column(DateTime,comment='privious crime sentence date')
+
 
 
 

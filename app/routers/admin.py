@@ -1083,7 +1083,49 @@ async def update_img(current_user:Annotated[UserBase,Depends(get_current_active_
     if enqform_exist is 1:
       return Response(content="image has been change successfully",status_code=status.HTTP_200_OK)
     raise HTTPException(detail=f"id-{enqform_id} does not exist",status_code=status.HTTP_400_BAD_REQUEST)
+#_______________yellow_card____________________
+@router.get('/get_ycard',response_model=list[Yellow_CardBase],tags=['Yellow_Card_Api'])
+async def get_ycard(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                    db:Session=Depends(getdb)):
+    list_yellowcard=db.query(YellowCardModel).order_by(YellowCardModel.id.desc()).all()
+    return list_yellowcard
+@router.post('/create_yellow_card',response_model=Yellow_CardBase,tags=['Yellow_Card_Api'])
+async def create_yellowcard(current_user:Annotated[UserBase,Depends(get_current_user)],
+                            yellow_card:Yellow_CardBase,db:Session=Depends(getdb)):
+    yellow_card_item=YellowCardModel(**yellow_card.model_dump())
+    db.add(yellow_card_item)
+    db.commit()
+    db.refresh(yellow_card_item)
+    return yellow_card_item
+@router.patch('/update_yellow_card/{ycard_id}',response_model=Yellow_CardBase,tags=['Yellow_Card_Api'])
+async def update_ycard(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                       ycard_id:int,yellow_card:Yellow_CardBase,db:Session=Depends(getdb)):
+    yellow_card_exist=db.query(YellowCardModel).filter(YellowCardModel.id==ycard_id).first()
+    if yellow_card_exist:
+        for field,value in yellow_card.model_dump(exclude={'Accused_ImgPath'},exclude_unset=True).items():
+            setattr(yellow_card_exist,field,value)
+        db.commit()
+        db.refresh(yellow_card_exist)
+        return yellow_card_exist 
+@router.delete('/del_ycard/{ycard_id}',tags=['Yellow_Card_Api']) 
+async def del_ycard(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                    ycard_id:int,db:Session=Depends(getdb)):
+      ycard_exist=db.query(YellowCardModel).filter(YellowCardModel.id==ycard_id).first()
+      if ycard_exist:
+          db.delete(ycard_exist)
+          db.commit()
+          return Response(content=f"id-{ycard_id} has been deleted successfully",status_code=status.HTTP_200_OK)
+      raise HTTPException(detail=f"id-{ycard_id} does not exist",status_code=status.HTTP_400_BAD_REQUEST)   
 
+
+
+#  enqform_exist=db.query(EnquiryFormModel).filter(EnquiryFormModel.id==enqform_id).first()
+#     if enqform_exist:
+#         for field,value in enq_form.model_dump(exclude={'Image_Path'},exclude_unset=True).items():
+#              setattr(enqform_exist,field,value) 
+#         db.commit()
+#         db.refresh(enqform_exist)
+#         return enqform_exist
 
        
             
