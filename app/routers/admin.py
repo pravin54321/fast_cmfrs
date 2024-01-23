@@ -1091,7 +1091,9 @@ async def get_ycard(current_user:Annotated[UserBase,Depends(get_current_active_u
     return list_yellowcard
 @router.post('/create_yellow_card',response_model=Yellow_CardBase,tags=['Yellow_Card_Api'])
 async def create_yellowcard(current_user:Annotated[UserBase,Depends(get_current_user)],
-                            yellow_card:Yellow_CardBase,db:Session=Depends(getdb)):
+                           yellow_card:Yellow_CardBase=Body(...),file:UploadFile=File(...),db:Session=Depends(getdb)):
+    file_path=await imagestore(file,'yellow_card')
+    setattr(yellow_card,'Accused_ImgPath',file_path)
     yellow_card_item=YellowCardModel(**yellow_card.model_dump())
     db.add(yellow_card_item)
     db.commit()
@@ -1117,15 +1119,14 @@ async def del_ycard(current_user:Annotated[UserBase,Depends(get_current_active_u
           return Response(content=f"id-{ycard_id} has been deleted successfully",status_code=status.HTTP_200_OK)
       raise HTTPException(detail=f"id-{ycard_id} does not exist",status_code=status.HTTP_400_BAD_REQUEST)   
 
-
-
-#  enqform_exist=db.query(EnquiryFormModel).filter(EnquiryFormModel.id==enqform_id).first()
-#     if enqform_exist:
-#         for field,value in enq_form.model_dump(exclude={'Image_Path'},exclude_unset=True).items():
-#              setattr(enqform_exist,field,value) 
-#         db.commit()
-#         db.refresh(enqform_exist)
-#         return enqform_exist
+@router.patch('/upd_ycard_img/{ycard_id}',response_model=Yellow_CardBase,tags=['Yellow_Card_Api'])
+async def upd_ycard_img(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                        ycard_id:int,file:UploadFile=File(),db:Session=Depends(getdb)):
+    file_path=await imagestore(file,'yellow_card')
+    ycard_exist=db.query(YellowCardModel).filter(YellowCardModel.id==ycard_id).update({'Accused_ImgPath':file_path})
+    if ycard_exist is 1:
+        return Response(content='image has been update successfully',status_code=status.HTTP_200_OK)
+    raise HTTPException(detail=f"id-{ycard_id} does not exist",status_code=status.HTTP_400_BAD_REQUEST)
 
        
             
