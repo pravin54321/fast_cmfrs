@@ -12,9 +12,6 @@ class image(ImageBase):
     id:int
     class Config:
         orm_mode:True
-
-    
-
 #person_base
 class PersonBase(BaseModel):
     Name: str
@@ -53,16 +50,64 @@ class imagedata(ImageBase):
         orm_mode =True
 
 #--------------------user_schema--------------------------
+class PoliceStation_only(BaseModel):
+    id:int
+    PoliceStation:str
+    create_date:datetime=None
+    update_date:datetime=None
+    class config:
+        orm_mode=True
+class DesignationGet(BaseModel):
+    id:int
+    Designation:str
+    create_date:datetime=None
+    update_date:datetime=None 
+class District_only(BaseModel):
+    id:int
+    Distric:str
+    create_date:datetime
+    update_date:datetime           
+        
 class TokenData(BaseModel):
     username : Union[str,None] = None
-
 class UserBase(BaseModel):
+    # Pstation_id:int=None
     UserName:str
     UserEmail: EmailStr
+    Mobile_Number:str=None
+    User_Designation:int=None
+    Posting_Distric:int=None
+    Role:int=1
     disabled: Union[bool, None] = None
 class hash_password(UserBase):    
-    UserPassword: str    
-
+    UserPassword: str   
+class UserBaseGet(BaseModel):
+    id:int
+    UserName:str
+    UserEmail: EmailStr
+    Mobile_Number:str=None
+    designation:DesignationGet
+    district:District_only
+    Role:int=1
+    disabled: Union[bool, None] = None    
+class Pstation_loginBase(BaseModel):
+    Pstation_id:int
+    UserName:str
+    UserEmail: EmailStr
+    Mobile_Number:str
+    User_Designation:int
+    Role:int=0
+    disabled: Union[bool, None] = None
+    UserPassword:str
+class Pstation_loginBaseGet(BaseModel):
+    id:int
+    police_station:PoliceStation_only
+    UserName:str
+    UserEmail: EmailStr
+    Mobile_Number:str
+    designation:DesignationGet
+    Role:int=0
+    disabled: Union[bool, None] = None
 #-----------------group_img----------------------
 class GroupImg(BaseModel):
     id:int
@@ -192,13 +237,6 @@ class PoliceStationGet(BaseModel):
     taluka:TalukaGet
     class config:
         orm_mode=True
-class PoliceStation_only(BaseModel):
-    id:int
-    PoliceStation:str
-    create_date:datetime=None
-    update_date:datetime=None
-    class config:
-        orm_mode=True
 
 class TalukaPolicestation(BaseModel):
     id:int
@@ -302,11 +340,7 @@ class CrimeKalamGet(BaseModel):
 #-------------designation_schema-----------
 class DesignationBase(BaseModel):
     Designation:str
-class DesignationGet(BaseModel):
-    id:int
-    Designation:str
-    create_date:datetime=None
-    update_date:datetime=None
+
 
 #--------policestation_logine---------
 class PoliceLogineBase(BaseModel):

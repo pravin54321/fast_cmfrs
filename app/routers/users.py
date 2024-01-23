@@ -10,14 +10,14 @@ home_dir='C:/Cluematrix/FaceRecogniationNewProject/'
 
 #--------------------------Authuntication---------------------------------
 #-----------------signup-----------------------------
-@router.post("/signup",response_model=hash_password,tags=['Authentication'])
+@router.post("/signup",response_model=UserBaseGet,tags=['Authentication'])
 async def user_creation(user:hash_password,db:Session=Depends(getdb)):
     email_exist = db.query(UserModel).filter(UserModel.UserEmail==user.UserEmail).first()
     if email_exist:
          raise HTTPException(detail='Email id already exist',status_code=status.HTTP_400_BAD_REQUEST)
-   
     password = get_password_hash(user.UserPassword)
-    user=UserModel(UserName=user.UserName,UserEmail=user.UserEmail,UserPassword=password)
+    setattr(user,'UserPassword',password)
+    user=UserModel(**user.model_dump())
     db.add(user)
     db.commit()
     db.refresh(user)

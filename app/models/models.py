@@ -69,10 +69,18 @@ class PersonImgModel(Base):
 class UserModel(Base):
     __tablename__='user'
     id = Column(Integer,primary_key=True,index=True)
+    Pstation_id=Column(Integer,ForeignKey('policestation.id'))
     UserName = Column(String(50),nullable=False)
     UserEmail = Column(String(200),nullable=False, unique=True)
+    Mobile_Number=Column(String(100))
+    User_Designation=Column(Integer,ForeignKey('designation.id'))
+    Posting_Distric=Column(Integer,ForeignKey('distric.id'))
     UserPassword = Column(String(200))
+    Role=Column(Integer,comment='0 for policestation,1 for sp/admin') 
     disabled =  Column(Boolean,default=True)
+    police_station=relationship('PoliceStationModel',backref='Pstation_id')
+    designation=relationship('DesignationModel',backref='User_Designation')
+    district=relationship('DistricModel',backref='Posting_Distric')
    
 
 class GroupImageModel(Base):
