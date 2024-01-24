@@ -343,29 +343,29 @@ class DesignationBase(BaseModel):
 
 
 #--------policestation_logine---------
-class PoliceLogineBase(BaseModel):
-    PoliceStation_id:int
-    User_Name:str
-    Mob_Number:str
-    Email:EmailStr|None=None
-    Designation_id:int
-    Password:str
-class PoliceLogine_01(BaseModel):
-    PoliceStation_id:int
-    User_Name:str
-    Mob_Number:str
-    Email:EmailStr|None=None
-    Designation_id:int
+# class PoliceLogineBase(BaseModel):
+#     PoliceStation_id:int
+#     User_Name:str
+#     Mob_Number:str
+#     Email:EmailStr|None=None
+#     Designation_id:int
+#     Password:str
+# class PoliceLogine_01(BaseModel):
+#     PoliceStation_id:int
+#     User_Name:str
+#     Mob_Number:str
+#     Email:EmailStr|None=None
+#     Designation_id:int
    
-class PoliceLoginGet(BaseModel):
-    id:int
-    policestation:PoliceStationGet
-    User_Name:str
-    Mob_Number:str
-    Email:EmailStr|None=None
-    designation:DesignationGet  
-    class config:
-        orm_mode=True
+# class PoliceLoginGet(BaseModel):
+#     id:int
+#     policestation:PoliceStationGet
+#     User_Name:str
+#     Mob_Number:str
+#     Email:EmailStr|None=None
+#     designation:DesignationGet  
+#     class config:
+#         orm_mode=True
 
 #-------------complaint_schema---------------
 class ComplaintBase(BaseModel):

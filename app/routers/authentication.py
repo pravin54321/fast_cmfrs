@@ -13,9 +13,9 @@ def verify_password(plain_password,hashed_password):
     return pwd_context.verify(plain_password,hashed_password)
 def get_password_hash(password):
     return pwd_context.hash(password)
-def get_user(UserName:str):
+def get_user(UserEmail:str):
     db = SessionLocal()
-    user_data = db.query(UserModel).filter(UserModel.UserName==UserName).first()
+    user_data = db.query(UserModel).filter(UserModel.UserEmail==UserEmail).first()
     if user_data is not None:
         user_dict = {
             "UserName": user_data.UserName,
@@ -27,8 +27,8 @@ def get_user(UserName:str):
         return hash_password(**user_dict)
     else:
         return None
-def authuntication(UserName:str,password:str):
-    user = get_user(UserName)
+def authuntication(UserEmail:str,password:str):
+    user = get_user(UserEmail)
     if not user:
         return False
     verify_pwd=verify_password(password,user.UserPassword)
@@ -49,24 +49,27 @@ async def get_current_user(token:Annotated[str,Depends(oauth_scheme)]):
     credentials_exception = HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                                           detail="could not validate credentials",
                                           headers={"WWW-Authenticate": "Bearer"})
+    db = SessionLocal()
     try:
         payloadm = jwt.decode(token,SECRET_KEY,algorithms=[ALGORITHM])
         username:str = payloadm.get("sub")
-        if username is None:
+        user_item=db.query(UserModel).filter(UserModel.UserName==username).first()
+        if user_item is None:
             raise credentials_exception
-        token_data = TokenData(username=username)
+        token_data = TokenData(username=user_item.UserEmail)
     except JWTError:
         raise credentials_exception
-    user = get_user(UserName = token_data.username)
+    user = get_user(UserEmail=user_item.UserEmail)
     if user is None:
         raise credentials_exception
     return user    
 async def get_current_active_user(current_user:Annotated[UserBase,Depends(get_current_user)]):
-    if current_user is current_user.disabled:
-        raise HTTPException(status=status.HTTP_400_BAD_REQUEST,
-                            detail="Inactive user"
-                            )
-    return current_user
+    if current_user.disabled:
+         return current_user
+    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                        detail="Inactive user"
+                        )
+   
 
 
 #_________________unique_id_for complaint_______________

@@ -38,6 +38,24 @@ def logine_for_acess_token(form_data : Annotated[OAuth2PasswordRequestForm, Depe
     data={"sub": user.UserName}, expires_delta=access_token_expires
     )
     return {"user":user.UserName,"email":user.UserEmail,"access_token": access_token, "token_type": "bearer"}
+#-----------------user_activate_deactivate----------------------------
+@router.post('/dactivate_user/{user_id}',tags=['Authentication'])
+async def dactivate(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                    user_id:int,db:Session=Depends(getdb)):
+     user_exist=db.query(UserModel).filter(UserModel.id==user_id).update({'disabled':0})
+     db.commit()
+     if user_exist is 1:
+          return Response(content=f"user deactivate successfully",status_code=status.HTTP_200_OK)
+     raise HTTPException(detail=f"id-{user_id} does not exist",status_code=status.HTTP_400_BAD_REQUEST)
+@router.put('/activate_user/{user_id}',tags=['Authentication'])
+async def activate(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                   user_id:int,db:Session=Depends(getdb)):
+     user_exist=db.query(UserModel).filter(UserModel.id==user_id).update({'disabled':1})
+     db.commit()
+     if user_exist is 1:
+          return Response(content=f'user acivate successfully',status_code=status.HTTP_200_OK)
+     raise HTTPException(detail=f'id-{user_id} does not exist',status_code=status.HTTP_400_BAD_REQUEST)
+          
 
 #------------------------person_information-----------------------------
 @router.post('/person/',tags=['Person'])
