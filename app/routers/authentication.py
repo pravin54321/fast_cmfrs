@@ -13,11 +13,12 @@ def verify_password(plain_password,hashed_password):
     return pwd_context.verify(plain_password,hashed_password)
 def get_password_hash(password):
     return pwd_context.hash(password)
+db = SessionLocal()
 def get_user(UserEmail:str):
-    db = SessionLocal()
     user_data = db.query(UserModel).filter(UserModel.UserEmail==UserEmail).first()
     if user_data is not None:
         user_dict = {
+            "id":user_data.id,
             "UserName": user_data.UserName,
             "UserEmail": user_data.UserEmail,
             "UserPassword": user_data.UserPassword,
@@ -29,6 +30,7 @@ def get_user(UserEmail:str):
         return None
 def authuntication(UserEmail:str,password:str):
     user = get_user(UserEmail)
+    print(user)
     if not user:
         return False
     verify_pwd=verify_password(password,user.UserPassword)
@@ -70,23 +72,6 @@ async def get_current_active_user(current_user:Annotated[UserBase,Depends(get_cu
                         detail="Inactive user"
                         )
    
-
-
-#_________________unique_id_for complaint_______________
-def complaint_uid():
-    import datetime
-    db=SessionLocal()
-    prev_complaint=db.query(ComplaintModel).order_by(ComplaintModel.id.desc()).first()
-    if prev_complaint:
-        prev_complaint=prev_complaint.Complaint_uid
-        prev_complaint=int(prev_complaint.split("-")[-1]) + 1
-    else:
-        prev_complaint=1    
-    today_date=datetime.date.today().strftime('%Y%m%d')
-    complaint_id = f"COM-{today_date}-{str(prev_complaint).zfill(5)}"
-    return complaint_id
-
-    
 #_____________image_store_for_complaint---------------------
 from .algo  import StoreImage 
 async def imagestore(file,subdir):

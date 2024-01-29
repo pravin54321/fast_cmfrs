@@ -748,35 +748,25 @@ async def del_stationlog(current_user:Annotated[UserBase,Depends(get_current_act
     raise HTTPException(detail=f'id-{station_id} does not exist',status_code=status.HTTP_404_NOT_FOUND)
 #--------complaint_api---------------------------
 @router.post('/create_complaint',response_model=ComplaintGet,tags=["Complaint_Api"])
-async def create_comlaint(current_user:Annotated[UserBase,Depends(get_current_active_user)],
-                         complaint:ComplaintBase=Depends(),evidence: UploadFile = File(None),db:Session=Depends(getdb)):
-    complaint_item=ComplaintModel(
-        Complainant_Name=complaint.Complainant_Name,
-        Complaint_uid=complaint_uid(),
-        Mob_Number=complaint.Mob_Number,
-        Email=complaint.Email,
-        Address=complaint.Address,
-        Pin_Code=complaint.Pin_Code,
-        Station_id=complaint.Station_id,
-        Auth_Person=complaint.Auth_Person,
-        Designation_id=complaint.Designation_id, 
-        Complaint_Against=complaint.Complaint_Against,
-        Complaint_Desc=complaint.Complaint_Desc
-    )
+async def create_complaint(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                         complaint:ComplaintBase=Depends(),evidence:list[UploadFile] = File(None),db:Session=Depends(getdb)):
+    user_id=[current_user.id if current_user.id else None]
+    complaint.user_id=user_id[0]
+    complaint_item=ComplaintModel(**complaint.model_dump())
     db.add(complaint_item)
     db.commit()
     if evidence:
-        file_type=evidence.content_type
-        file_path=await imagestore(evidence,'complaint')
-        comevidence_db=ComEvidenceModel(File_Path=f'Static/Images/complaint/{file_path}',File_Type=file_type,Complaint_id=complaint_item.id)
-        db.add(comevidence_db)
-        db.commit()
-        db.refresh(complaint_item)
+            for file in evidence:
+                file_type=file.content_type
+                file_path=await imagestore(file,'complaint')
+                comevidence_db=ComEvidenceModel(File_Path=f'Static/Images/complaint/{file_path}',File_Type=file_type,Complaint_id=complaint_item.id)
+                db.add(comevidence_db)
+            db.commit()
     return complaint_item
 @router.get('/get_complaint',response_model=list[ComplaintGet],tags=['Complaint_Api'])
 async def get_complaint(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                         db:Session=Depends(getdb)):
-    list_complaint=db.query(ComplaintModel).order_by(ComplaintModel.id.desc()).all()
+    list_complaint=db.query(ComplaintModel).filter(ComplaintModel.user_id==current_user.id).order_by(ComplaintModel.id.desc()).all()
     return list_complaint
 @router.patch('/update_complaint/{complaint_id}',response_model=ComplaintGet,tags=['Complaint_Api'])
 async def update_complaint(current_user:Annotated[UserBase,Depends(getdb)],
@@ -841,13 +831,15 @@ async def del_evidence(current_user:Annotated[UserBase,Depends(get_current_activ
     raise HTTPException(detail=f'id-{evidence_id} does not exist',status_code=status.HTTP_404_NOT_FOUND)
 #--------------------------Ncr-------------------------------
 @router.get('/get_ncr',response_model=list[NCRBaseGet],tags=['NCR_API'])
-async def get_ncr(cirrent_user=Annotated[UserBase,Depends(get_current_active_user)],db:Session=Depends(getdb)):
-    list_ncr=db.query(NCRModel).order_by(NCRModel.id.desc()).all()
+async def get_ncr(current_user:Annotated[UserBase,Depends(get_current_active_user)],db:Session=Depends(getdb)):
+    list_ncr=db.query(NCRModel).filter(NCRModel.user_id==current_user.id).order_by(NCRModel.id.desc()).all()
     return list_ncr
 @router.post('/create_ncr',response_model=NCRBaseGet,tags=['NCR_API'])
 async def create_ncr(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                      ncr:NCRBase,comp_addresses:list[CompAddressBase],accusess:list[AccusedBase],
                      ncr_acts:list[NCR_ACTBase],db:Session=Depends((getdb))):
+    user_id=[current_user.id if current_user.id else None]
+    ncr.user_id=user_id[0]
     ncr_item=NCRModel(**ncr.model_dump())
     db.add(ncr_item)
     db.commit()
@@ -932,11 +924,13 @@ async def del_ncr(current_user:Annotated[UserBase,Depends(get_current_active_use
 #-----------------------------fir_api-------------------------------------------------------------
 @router.get('/get_fir',response_model=list[FirBaseGet],tags=['FIR_API'])
 async def get_fir(current_user:Annotated[UserBase,Depends(get_current_active_user)],db:Session=Depends(getdb)):
-    list_fir=db.query(FIRModel).order_by(FIRModel.id.desc()).all()
+    list_fir=db.query(FIRModel).filter(FIRModel.user_id==current_user.id).order_by(FIRModel.id.desc()).all()
     return list_fir
 @router.post('/create_fir',response_model=FirBaseGet,tags=['FIR_API'])
 async def create_fir(current_user:Annotated[UserBase,Depends(get_current_user)],
                      fir_item:FirBase,fir_acts:list[Fir_ActBase],db:Session=Depends(getdb)):
+    user_id=[current_user.id if current_user.id else None]
+    fir_item.user_id=user_id[0]
     fir_db=FIRModel(**fir_item.model_dump())
     db.add(fir_db)
     db.commit()
@@ -979,12 +973,14 @@ async def dlt_fir(current_user:Annotated[UserBase,Depends(get_current_active_use
 
 #------------charge_sheet__form---------------------
 @router.get('/get_chargesheet',response_model=list[ChargeSheetBaseGet],tags=['ChargeSheet_Api'])
-async def get_chargesheet(curent_user:Annotated[UserBase,Depends(get_current_active_user)],db:Session=Depends(getdb)):
-    list_chargesheet=db.query(ChargeSheetModel).order_by(ChargeSheetModel.id.desc())
+async def get_chargesheet(current_user:Annotated[UserBase,Depends(get_current_active_user)],db:Session=Depends(getdb)):
+    list_chargesheet=db.query(ChargeSheetModel).filter(ChargeSheetModel.user_id==current_user.id).order_by(ChargeSheetModel.id.desc())
     return list_chargesheet
 @router.post('/create_chargesheet',response_model=ChargeSheetBaseGet,tags=['ChargeSheet_Api'])
 async def create_chargesheet(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                              charge_sheet:ChargeSheetBase,chargesheet_act:list[ChargeSheet_ActBase],db:Session=Depends(getdb)):
+    user_id=[current_user.id if current_user.id else None]
+    charge_sheet.user_id=user_id[0]
     chargesheet_item=ChargeSheetModel(**charge_sheet.model_dump())
     db.add(chargesheet_item)
     db.commit()

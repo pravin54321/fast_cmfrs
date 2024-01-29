@@ -11,6 +11,18 @@ target_metadata = Base.metadata
 def get_current_time():
     from datetime import datetime
     return datetime.now(pytz.timezone('Asia/Kolkata'))
+def complaint_uid():
+    import datetime
+    db=SessionLocal()
+    prev_complaint=db.query(ComplaintModel).order_by(ComplaintModel.id.desc()).first()
+    if prev_complaint:
+        prev_complaint=prev_complaint.Complaint_uid
+        prev_complaint=int(prev_complaint.split("-")[-1]) + 1
+    else:
+        prev_complaint=1    
+    today_date=datetime.date.today().strftime('%Y%m%d')
+    complaint_id = f"COM-{today_date}-{str(prev_complaint).zfill(5)}"
+    return complaint_id
 
 def ncr_uid():
     db=SessionLocal()
@@ -320,7 +332,7 @@ class PoliceStationLogineModel(Base):
 class ComplaintModel(Base):
     __tablename__='complaint'
     id=Column(Integer,primary_key=True,autoincrement=True,index=True)
-    Complaint_uid=Column(String(200),nullable=False)
+    Complaint_uid=Column(String(200),default=complaint_uid)
     Complainant_Name=Column(String(200),nullable=False)
     Mob_Number=Column(String(50),nullable=False)
     Email=Column(String(200))  
@@ -331,6 +343,7 @@ class ComplaintModel(Base):
     Designation_id=Column(Integer,ForeignKey('designation.id'),nullable=False)
     Complaint_Against=Column(String(200))
     Complaint_Desc=Column(Text)
+    user_id=Column(Integer,comment='current user id save')
     create_date=Column(DateTime,default=get_current_time)
     update_date=Column(DateTime,default=get_current_time,onupdate=func.now())
     evidence=relationship('ComEvidenceModel',back_populates='complaint',cascade='all,delete')
@@ -359,6 +372,7 @@ class NCRModel(Base):
     Place_Occurrence=Column(Text)
     Name_Complainant=Column(String(200))
     NCR_uid=Column(String(200),default=ncr_uid)
+    user_id=Column(Integer,comment='user id logine')
     create_date=Column(DateTime,default=get_current_time)
     update_date=Column(DateTime,default=get_current_time,onupdate=func.now())
     compl_address=relationship('Complainat_AddressModel',back_populates='ncr',cascade='delete,all')
@@ -426,6 +440,7 @@ class FIRModel(Base):
     Dir_distance_From_Ps=Column(Text)
     Occurrence_Address=Column(Text)
     outside_ps=Column(Integer,ForeignKey('policestation.id'))
+    user_id=Column(Integer,comment="logine user id")
     create_date=Column(DateTime,default=get_current_time)
     update_date=Column(DateTime,default=get_current_time,onupdate=func.now())
     fir_act=relationship('FirSectionActModel',back_populates='fir',cascade='delete,all')
@@ -459,6 +474,7 @@ class ChargeSheetModel(Base):
     Name_Complainant=Column(String(200))
     Father_Name=Column(String(200))
     Detail_Properties=Column(Text)
+    user_id=Column(Integer,comment='current logine user')
     create_date=Column(DateTime,default=get_current_time)
     update_date=Column(DateTime,default=get_current_time,onupdate=func.now())
     charge_sheet_act=relationship('ChargeSheet_ActModel',back_populates='charge_sheet',cascade='delete,all')

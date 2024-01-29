@@ -2,7 +2,7 @@ import fileinput
 from pydantic import BaseModel,EmailStr,Field,conint
 from fastapi import Form, UploadFile,File
 from datetime import date,time
-from typing import Union
+from typing import Optional, Union
 from datetime import datetime
 class ImageBase(BaseModel):
     Person_id : int
@@ -79,7 +79,8 @@ class UserBase(BaseModel):
     Posting_Distric:int=None
     Role:int=1
     disabled: Union[bool, None] = None
-class hash_password(UserBase):    
+class hash_password(UserBase): 
+    id:int   
     UserPassword: str   
 class UserBaseGet(BaseModel):
     id:int
@@ -368,6 +369,8 @@ class DesignationBase(BaseModel):
 #         orm_mode=True
 
 #-------------complaint_schema---------------
+
+
 class ComplaintBase(BaseModel):
    Complainant_Name:str=Form(...)
    Mob_Number:str=Form(...)  
@@ -379,6 +382,8 @@ class ComplaintBase(BaseModel):
    Designation_id:int=Form(...)   
    Complaint_Against:str=Form(...)
    Complaint_Desc:str=Form(...)
+   user_id:Optional[int]=Form(None)
+  
 class ComplaintBase_01(BaseModel):
    Complainant_Name:str
    Complaint_uid:str
@@ -418,7 +423,8 @@ class NCRBase(BaseModel):
     GD_Date:datetime
     Occurrence_Date:datetime
     Place_Occurrence:str
-    Name_Complainant:str  
+    Name_Complainant:str 
+    user_id:int=None 
     
 class CompAddressBase(BaseModel):
     Address_Type:str
@@ -481,6 +487,7 @@ class FirBase(BaseModel):
     Dir_distance_From_Ps:str
     Occurrence_Address:str
     outside_ps:int
+    user_id:int=None
 class Fir_ActBase(BaseModel):
     Fir_Act:int
     Fir_Section:str        
@@ -532,6 +539,7 @@ class ChargeSheetBase(BaseModel):
     Name_Complainant:str
     Father_Name:str
     Detail_Properties:str
+    user_id:int=None
 class ChargeSheetBaseGet(BaseModel):
     id:int
     police_station:PoliceStation_only
