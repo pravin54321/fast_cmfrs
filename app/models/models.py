@@ -572,6 +572,9 @@ class EnquiryFormModel(Base):
     Where_Sleep_Night=Column(String(200))
     Where_Take_Shelter=Column(Text)
     Image_Path=Column(String(200))
+    user_id=Column(Integer)
+    create_date=Column(DateTime,default=get_current_time)
+    update_date=Column(DateTime,default=get_current_time,onupdate=func.now()) 
     police_station=relationship("PoliceStationModel",backref='policestation')
     subcast=relationship("SubcastModel",backref='subcast')
     accuse_langues=relationship(LanguesModel,foreign_keys=[Langues_id],backref='accuse_langues')
@@ -611,6 +614,13 @@ class YellowCardModel(Base):
     Crime_Date=Column(DateTime)
     Pcrime_Sentence=Column(String(200),comment='previous crime punishment')
     Pcrime_Date=Column(DateTime,comment='privious crime sentence date')
+    user_id=Column(Integer)
+    create_date=Column(DateTime,default=get_current_time)
+    update_date=Column(DateTime,default=get_current_time,onupdate=func.now())
+    police_station=relationship(PoliceStationModel,foreign_keys=[PS_id],backref='police_station')
+    prv_pstation=relationship(PoliceStationModel,foreign_keys=[Pcrime_Pstation],backref='prv_pstation')
+    occupation=relationship(OccupationModel,backref='occupation')
+    ycard_subcast=relationship(SubcastModel,backref='ycard_subcast')
 
 
 

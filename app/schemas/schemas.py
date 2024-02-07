@@ -639,7 +639,8 @@ class EnquiryNamunaBase(BaseModel):
     Entertainment_Media:str
     Where_Sleep_Night:str
     Where_Take_Shelter:str 
-    Image_Path:str=None    
+    Image_Path:str=None   
+    user_id:int=None 
 class EnquiryNamunaBaseGet(BaseModel):
     id:int
     police_station:PoliceStation_only
@@ -722,18 +723,49 @@ class EnquiryNamunaBaseGet(BaseModel):
     Where_Take_Shelter:str 
     Image_Path:str=None  
 class Yellow_CardBase(BaseModel):
+    Accused_Name:str=Form(...) 
+    Accused_Age:int=Form(...)
+    PS_id:int=Form(...)
+    Accused_Bplace:str=Form(...)
+    Accused_Height:str=Form(...)
+    Accused_Bcomplexion:str=Form(...)
+    Accused_Btype:str=Form(...)
+    Accuse_Ecolur:str=Form(...)
+    Accused_Hcolur:str=Form(...)
+    Occupation_id:int=Form(...)
+    Accused_Imark:str=Form(...)
+    Scast_id:int=Form(...)
+    Accused_Education:str=Form(...)
+    Pstation_Rnumber:str=Form(...)
+    CRD_Number:str=Form(...)
+    Accused_Address:str=Form(...)
+    Accused_ImgPath:Optional[str]=Form(None)
+    Caddress_Saddress:str=Form(...)
+    Moment_Oinfo:str=Form(...)
+    Pofficer_who_Iaccused:str=Form(...)
+    Relativ_Friends:str=Form(...)
+    Accused_Fdetails:str=Form(...)
+    Wife_Details:str=Form(...)
+    Apartner_MOBnumber:str=Form(...)
+    Pcrime_Pstation:int=Form(...)
+    Crime_Number:str=Form(...)
+    Crime_Date:datetime
+    Pcrime_Sentence:str
+    Pcrime_Date:date
+    user_id:Optional[int]=Form(None)
+class Yellow_CardBaseGet(BaseModel):
     Accused_Name:str 
     Accused_Age:int
-    PS_id:int
+    police_station:PoliceStation_only
     Accused_Bplace:str
     Accused_Height:str
     Accused_Bcomplexion:str
     Accused_Btype:str
     Accuse_Ecolur:str
     Accused_Hcolur:str
-    Occupation_id:int
+    occupation:OccupationGet
     Accused_Imark:str
-    Scast_id:int
+    ycard_subcast:SubcastGet
     Accused_Education:str
     Pstation_Rnumber:str
     CRD_Number:str
@@ -746,11 +778,12 @@ class Yellow_CardBase(BaseModel):
     Accused_Fdetails:str
     Wife_Details:str
     Apartner_MOBnumber:str
-    Pcrime_Pstation:int
+    prv_pstation:PoliceStation_only
     Crime_Number:str
     Crime_Date:datetime
     Pcrime_Sentence:str
     Pcrime_Date:date
+      
                      
             
 

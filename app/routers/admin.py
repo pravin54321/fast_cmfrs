@@ -1025,7 +1025,7 @@ async def dlt_chargesheet(current_user:Annotated[UserBase,Depends(get_current_ac
 @router.get('/get_enqform',response_model=list[EnquiryNamunaBaseGet],tags=['Enquiry_Api'])
 async def enqform(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                                          db:Session=Depends(getdb)):
-    list_enqform=db.query(EnquiryFormModel).order_by(EnquiryFormModel.id.desc()).all()
+    list_enqform=db.query(EnquiryFormModel).filter(EnquiryFormModel.user_id==current_user.id).order_by(EnquiryFormModel.id.desc()).all()
     return list_enqform
 @router.post('/create_inquiry_namuna',response_model=EnquiryNamunaBaseGet,tags=['Enquiry_Api'])
 async def create_inquiry_form(current_user:Annotated[UserBase,Depends(get_current_active_user)],
@@ -1035,6 +1035,8 @@ async def create_inquiry_form(current_user:Annotated[UserBase,Depends(get_curren
    
     file_path=await imagestore(file,'namuna_form')
     setattr(enquiry_form,'Image_Path',file_path)
+    user_id=[current_user.id if current_user.id else None]
+    EnquiryNamunaBase.user_id=user_id[0]
     Enquiry_form_item=EnquiryFormModel(**enquiry_form.model_dump())
     db.add(Enquiry_form_item) 
     db.commit()
@@ -1071,16 +1073,18 @@ async def update_img(current_user:Annotated[UserBase,Depends(get_current_active_
       return Response(content="image has been change successfully",status_code=status.HTTP_200_OK)
     raise HTTPException(detail=f"id-{enqform_id} does not exist",status_code=status.HTTP_400_BAD_REQUEST)
 #_______________yellow_card____________________
-@router.get('/get_ycard',response_model=list[Yellow_CardBase],tags=['Yellow_Card_Api'])
+@router.get('/get_ycard',response_model=list[Yellow_CardBaseGet],tags=['Yellow_Card_Api'])
 async def get_ycard(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                     db:Session=Depends(getdb)):
-    list_yellowcard=db.query(YellowCardModel).order_by(YellowCardModel.id.desc()).all()
+    list_yellowcard=db.query(YellowCardModel).filter(YellowCardModel.user_id==current_user.id).order_by(YellowCardModel.id.desc()).all()
     return list_yellowcard
 @router.post('/create_yellow_card',response_model=Yellow_CardBase,tags=['Yellow_Card_Api'])
 async def create_yellowcard(current_user:Annotated[UserBase,Depends(get_current_user)],
-                           yellow_card:Yellow_CardBase=Body(...),file:UploadFile=File(...),db:Session=Depends(getdb)):
+                           yellow_card:Yellow_CardBase=Depends(),file:UploadFile=File(...),db:Session=Depends(getdb)):
     file_path=await imagestore(file,'yellow_card')
     setattr(yellow_card,'Accused_ImgPath',file_path)
+    user_id=current_user.id
+    yellow_card.user_id=user_id
     yellow_card_item=YellowCardModel(**yellow_card.model_dump())
     db.add(yellow_card_item)
     db.commit()
