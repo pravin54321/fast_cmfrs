@@ -374,7 +374,7 @@ class DesignationBase(BaseModel):
 class ComplaintBase(BaseModel):
    Complainant_Name:str=Form(...)
    Mob_Number:str=Form(...)  
-   Email:EmailStr|None=Form(None)
+   Email:Optional[EmailStr]=Form(None)
    Address:str=Form(...)
    Pin_Code:int=Form(...)
    Station_id:int=Form(...)
