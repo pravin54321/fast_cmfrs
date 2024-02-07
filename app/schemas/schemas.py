@@ -7,7 +7,6 @@ from datetime import datetime
 class ImageBase(BaseModel):
     Person_id : int
     file_path:str
-  
 class image(ImageBase):
     id:int
     class Config:
@@ -21,14 +20,11 @@ class PersonBase(BaseModel):
     Gender:str
     Address:str
     Status:str
-  
-    # # Imagess:UploadFile = File(...)
 class PersonImage(PersonBase):
     id:int
     Image: list[image] = []
     class Config:
         orm_mode = True
-
 #______person_result_with__distance_______________
 class PersonBase2(BaseModel):
     id:int
@@ -41,14 +37,12 @@ class PersonBase2(BaseModel):
     Status:str
     class config:
         orm_mode = True
-             
 class imagedata(ImageBase):
     id:int
     distance :float | None = None
     Person:PersonBase2
     class config:
         orm_mode =True
-
 #--------------------user_schema--------------------------
 class PoliceStation_only(BaseModel):
     id:int
@@ -71,16 +65,16 @@ class District_only(BaseModel):
 class TokenData(BaseModel):
     username : Union[str,None] = None
 class UserBase(BaseModel):
-    # Pstation_id:int=None
     UserName:str
     UserEmail: EmailStr
     Mobile_Number:str=None
     User_Designation:int=None
     Posting_Distric:int=None
+    UserPassword: str   
     Role:int=1
     disabled: Union[bool, None] = None
 class hash_password(UserBase): 
-    id:int   
+    id:int
     UserPassword: str   
 class UserBaseGet(BaseModel):
     id:int
@@ -100,6 +94,23 @@ class Pstation_loginBase(BaseModel):
     Role:int=0
     disabled: Union[bool, None] = None
     UserPassword:str
+#____________________admin_creation_signup_________________
+class Admin_Base(BaseModel):
+    UserName:str
+    UserEmail:EmailStr
+    Mobile_Number:str
+    Pstation_id:int
+    User_Designation:int
+    UserPassword:str
+    Role:int=2
+    disabled:Union[bool,None]=None   
+class Admin_BaseGet(BaseModel):
+    id:int
+    UserName:str
+    UserEmail: EmailStr
+    Mobile_Number:str
+    police_station:PoliceStation_only
+    designation:DesignationGet
 class Pstation_loginBaseGet(BaseModel):
     id:int
     police_station:PoliceStation_only
@@ -343,30 +354,6 @@ class DesignationBase(BaseModel):
     Designation:str
 
 
-#--------policestation_logine---------
-# class PoliceLogineBase(BaseModel):
-#     PoliceStation_id:int
-#     User_Name:str
-#     Mob_Number:str
-#     Email:EmailStr|None=None
-#     Designation_id:int
-#     Password:str
-# class PoliceLogine_01(BaseModel):
-#     PoliceStation_id:int
-#     User_Name:str
-#     Mob_Number:str
-#     Email:EmailStr|None=None
-#     Designation_id:int
-   
-# class PoliceLoginGet(BaseModel):
-#     id:int
-#     policestation:PoliceStationGet
-#     User_Name:str
-#     Mob_Number:str
-#     Email:EmailStr|None=None
-#     designation:DesignationGet  
-#     class config:
-#         orm_mode=True
 
 #-------------complaint_schema---------------
 
@@ -561,86 +548,86 @@ class ChargeSheetBaseGet(BaseModel):
 
 #Enquiry_Namuna_Form
 class EnquiryNamunaBase(BaseModel):
-    Police_Station_id:int
-    Accused_Name:str
-    Nick_Name:str
-    Father_or_Wife_Name:str
-    Age:int
-    Mob_Number:str
-    Height:str
-    Body_Complexion:str
-    Body_Type:str
-    Eyes_Colur:str
-    Hair_Colur:str
-    Langues_id:int
-    Identification_Mark:str
-    Subcast_id:int
-    Occupation_id:int
-    Address:str
-    Residence_Address:str
-    Birth_Place:str
-    Is_Father_Alive:str
-    Father_Name:str
-    Father_Address:str
-    Father_Occupation_id:int
-    Is_Father_Property:str
-    Fater_Property_detail:str
-    Is_Moter_Alive:str
-    Mother_Details:str
-    Brother_or_Sister:str
-    Brother_Sister_Details:str
-    Relative_or_Friends:str
-    Relative_Friends_Details:str
-    Is_Own_Property:str
-    Own_Property_Details:str
-    Is_Education:str
-    Education_Details:str
-    Is_Married:str
-    Wife_or_Husband_Details:str
-    How_long_Current_Address:str
-    Who_Knows_You:str
-    Know_Other_Than_Relative:str
-    Proffession_Before_Coming:str
-    Arrested_Before:str
-    Is_Sentence_before:str
-    Sentence_Details:str
-    is_CommitedCrime_Arrested_anyone:str
-    Details_Anyone:str
-    Stolen_Goodes_Sized_From:str
-    PO_Details_Accused:str
-    Stay_Other_Place:str
-    PO_Emp:str
-    Is_commited_Crime_Before:str
-    Reason_Commited_Crime:str
-    Started_Crime:str
-    Gang_or_Group:str
-    Crime_to_Other_Gang:str
-    Where_Crime_Commited:str
-    DoYouKnow_OtherCriminal:str
-    HowMuch_MonyStolen:str
-    Where_Go_Before_Crime:str
-    Where_Stop_Ofter_Crime:str
-    Whose_sold_Stolen_Assets:str
-    Robbery_Other_Distric:str
-    Patner_in_Villege:str
-    How_Learn_Commiting_Crime:str
-    Which_Village_Gang_Activate:str
-    Gang_Main_Adda:str
-    Which_Town_Visited_Often:str
-    Know_Robbery_Next:str
-    Gang_any_Addiction:str
-    Why_left_PrevGang:str
-    How_Steal_NewVillage:str
-    Clicked_Photes_Where:str
-    When_Police_ShowUp:str
-    Which_langues_use_Crime:int
-    Steal_Everyday:str
-    is_Drink_Alchol:str
-    Entertainment_Media:str
-    Where_Sleep_Night:str
-    Where_Take_Shelter:str 
-    Image_Path:str=None   
-    user_id:int=None 
+    Police_Station_id:int=Form(...)
+    Accused_Name:str=Form(...)
+    Nick_Name:str=Form(...)
+    Father_or_Wife_Name:str=Form(...)
+    Age:int=Form(...)
+    Mob_Number:str=Form(...)
+    Height:str=Form(...)
+    Body_Complexion:str=Form(...)
+    Body_Type:str=Form(...)
+    Eyes_Colur:str=Form()
+    Hair_Colur:str=Form(...)
+    Langues_id:int=Form(...)
+    Identification_Mark:str=Form(...)
+    Subcast_id:int=Form(...)
+    Occupation_id:int=Form(...)
+    Address:str=Form(...)
+    Residence_Address:str=Form(...)
+    Birth_Place:str=Form(...)
+    Is_Father_Alive:str=Form(...)
+    Father_Name:str=Form(...)
+    Father_Address:str=Form(...)
+    Father_Occupation_id:int=Form(...)
+    Is_Father_Property:str=Form(...)
+    Fater_Property_detail:str=Form(...)
+    Is_Mother_Alive:str=Form(...)
+    Mother_Details:str=Form(...)
+    Brother_or_Sister:str=Form(...)
+    Brother_Sister_Details:str=Form(...)
+    Relative_or_Friends:str=Form(...)
+    Relative_Friends_Details:str=Form(...)
+    Is_Own_Property:str=Form(...)
+    Own_Property_Details:str=Form(...)
+    Is_Education:str=Form(...)
+    Education_Details:str=Form(...)
+    Is_Married:str=Form(...)
+    Wife_or_Husband_Details:str=Form(...)
+    How_long_Current_Address:str=Form(...)
+    Who_Knows_You:str=Form(...)
+    Know_Other_Than_Relative:str=Form(...)
+    Proffession_Before_Coming:str=Form(...)
+    Arrested_Before:str=Form(...)
+    Is_Sentence_before:str=Form(...)
+    Sentence_Details:str=Form(...)
+    is_CommitedCrime_Arrested_anyone:str=Form(...)
+    Details_Anyone:str=Form(...)
+    Stolen_Goodes_Sized_From:str=Form(...)
+    PO_Details_Accused:str=Form(...)
+    Stay_Other_Place:str=Form(...)
+    PO_Emp:str=Form(...)
+    Is_commited_Crime_Before:str=Form(...)
+    Reason_Commited_Crime:str=Form(...)
+    Started_Crime:str=Form(...)
+    Gang_or_Group:str=Form(...)
+    Crime_to_Other_Gang:str=Form(...)
+    Where_Crime_Commited:str=Form(...)
+    DoYouKnow_OtherCriminal:str=Form()
+    HowMuch_MonyStolen:str=Form(...)
+    Where_Go_Before_Crime:str=Form(...)
+    Where_Stop_Ofter_Crime:str=Form(...)
+    Whose_sold_Stolen_Assets:str=Form(...)
+    Robbery_Other_Distric:str=Form(...)
+    Patner_in_Villege:str=Form(...)
+    How_Learn_Commiting_Crime:str=Form(...)
+    Which_Village_Gang_Activate:str=Form(...)
+    Gang_Main_Adda:str=Form(...)
+    Which_Town_Visited_Often:str=Form(...)
+    Know_Robbery_Next:str=Form(...)
+    Gang_any_Addiction:str=Form(...)
+    Why_left_PrevGang:str=Form(...)
+    How_Steal_NewVillage:str=Form(...)
+    Clicked_Photes_Where:str=Form(...)
+    When_Police_ShowUp:str=Form(...)
+    Which_langues_use_Crime:int=Form(...)
+    Steal_Everyday:str=Form(...)
+    is_Drink_Alchol:str=Form(...)
+    Entertainment_Media:str=Form(...)
+    Where_Sleep_Night:str=Form(...)
+    Where_Take_Shelter:str=Form(...) 
+    Image_Path:Optional[str]=Form(None)   
+    user_id:Optional[int]=Form(None) 
 class EnquiryNamunaBaseGet(BaseModel):
     id:int
     police_station:PoliceStation_only
@@ -667,7 +654,7 @@ class EnquiryNamunaBaseGet(BaseModel):
     father_occupation:OccupationGet
     Is_Father_Property:str
     Fater_Property_detail:str
-    Is_Moter_Alive:str
+    Is_Mother_Alive:str
     Mother_Details:str
     Brother_or_Sister:str
     Brother_Sister_Details:str

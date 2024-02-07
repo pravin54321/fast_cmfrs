@@ -10,8 +10,8 @@ home_dir='C:/Cluematrix/FaceRecogniationNewProject/'
 
 #--------------------------Authuntication---------------------------------
 #-----------------signup-----------------------------
-@router.post("/signup",response_model=UserBaseGet,tags=['Authentication'])
-async def user_creation(user:hash_password,db:Session=Depends(getdb)):
+@router.post("/sp_log",response_model=UserBaseGet,tags=['Authentication'])
+async def user_creation(current_user:Annotated[UserBase,Depends(get_current_active_user)],user:UserBase,db:Session=Depends(getdb)):
     email_exist = db.query(UserModel).filter(UserModel.UserEmail==user.UserEmail).first()
     if email_exist:
          raise HTTPException(detail='Email id already exist',status_code=status.HTTP_400_BAD_REQUEST)
@@ -22,6 +22,18 @@ async def user_creation(user:hash_password,db:Session=Depends(getdb)):
     db.commit()
     db.refresh(user)
     return user
+@router.post("/signup",response_model=Admin_BaseGet,tags=['Authentication'])
+async def admin_created(admin:Admin_Base,db:Session=Depends(getdb)):
+     email_exist=db.query(UserModel).filter(UserModel.UserEmail==admin.UserEmail).first()
+     if email_exist:
+          raise HTTPException(detail='Email already exist',status_code=status.HTTP_400_BAD_REQUEST)
+     password=get_password_hash(admin.UserPassword)
+     setattr(admin,'UserPassword',password)
+     admin=UserModel(**admin.model_dump()) 
+     db.add(admin)
+     db.commit()
+     db.refresh(admin)
+     return admin   
     
 #------------------logine--------------------------
 @router.post('/login',tags=['Authentication'])

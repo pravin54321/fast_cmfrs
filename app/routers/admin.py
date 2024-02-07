@@ -1029,8 +1029,8 @@ async def enqform(current_user:Annotated[UserBase,Depends(get_current_active_use
     return list_enqform
 @router.post('/create_inquiry_namuna',response_model=EnquiryNamunaBaseGet,tags=['Enquiry_Api'])
 async def create_inquiry_form(current_user:Annotated[UserBase,Depends(get_current_active_user)],
-                              file:UploadFile=File(...),
-                              enquiry_form:EnquiryNamunaBase=Body(...),
+                              file:UploadFile=File(None),
+                              enquiry_form:EnquiryNamunaBase=Depends(),
                               db:Session=Depends(getdb)):
    
     file_path=await imagestore(file,'namuna_form')
@@ -1080,7 +1080,7 @@ async def get_ycard(current_user:Annotated[UserBase,Depends(get_current_active_u
     return list_yellowcard
 @router.post('/create_yellow_card',response_model=Yellow_CardBase,tags=['Yellow_Card_Api'])
 async def create_yellowcard(current_user:Annotated[UserBase,Depends(get_current_user)],
-                           yellow_card:Yellow_CardBase=Depends(),file:UploadFile=File(...),db:Session=Depends(getdb)):
+                           yellow_card:Yellow_CardBase=Depends(),file:UploadFile=File(None),db:Session=Depends(getdb)):
     file_path=await imagestore(file,'yellow_card')
     setattr(yellow_card,'Accused_ImgPath',file_path)
     user_id=current_user.id
