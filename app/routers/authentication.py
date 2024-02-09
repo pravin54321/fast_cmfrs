@@ -13,23 +13,32 @@ def verify_password(plain_password,hashed_password):
     return pwd_context.verify(plain_password,hashed_password)
 def get_password_hash(password):
     return pwd_context.hash(password)
-db = SessionLocal()
+
 def get_user(UserEmail:str):
+    db = SessionLocal()
     user_data = db.query(UserModel).filter(UserModel.UserEmail==UserEmail).first()
     if user_data is not None:
         user_dict = {
             "id":user_data.id,
             "UserName": user_data.UserName,
             "UserEmail": user_data.UserEmail,
+            "Mobile_Number":user_data.Mobile_Number,
             "UserPassword": user_data.UserPassword,
             "disabled":user_data.disabled,
-          
-        }
+            "Designation_id":user_data.User_Designation,
+            "User_Designation":user_data.designation.Designation if user_data.User_Designation is not None else None,
+            "district_id":user_data.Posting_Distric,
+            "Posting_Distric":user_data.district.Distric if user_data.Posting_Distric is not None else None,
+            "pstation_id":user_data.Pstation_id,
+            "police_station":user_data.police_station.PoliceStation if user_data.Pstation_id  is not None else None,
+            "Role":user_data.Role
+          }
         return hash_password(**user_dict)
     else:
         return None
 def authuntication(UserEmail:str,password:str):
     user = get_user(UserEmail)
+    print(UserEmail)
     print(user)
     if not user:
         return False
@@ -54,14 +63,13 @@ async def get_current_user(token:Annotated[str,Depends(oauth_scheme)]):
     db = SessionLocal()
     try:
         payloadm = jwt.decode(token,SECRET_KEY,algorithms=[ALGORITHM])
-        username:str = payloadm.get("sub")
-        user_item=db.query(UserModel).filter(UserModel.UserName==username).first()
-        if user_item is None:
+        user_email:str = payloadm.get("sub")
+        if user_email is None:
             raise credentials_exception
-        token_data = TokenData(username=user_item.UserEmail)
+        token_data = TokenData(username=user_email)
     except JWTError:
         raise credentials_exception
-    user = get_user(UserEmail=user_item.UserEmail)
+    user = get_user(UserEmail=user_email)
     if user is None:
         raise credentials_exception
     return user    

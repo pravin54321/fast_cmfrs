@@ -749,13 +749,15 @@ async def del_stationlog(current_user:Annotated[UserBase,Depends(get_current_act
 #--------complaint_api---------------------------
 @router.post('/create_complaint',response_model=ComplaintGet,tags=["Complaint_Api"])
 async def create_complaint(current_user:Annotated[UserBase,Depends(get_current_active_user)],
-                         complaint:ComplaintBase=Depends(),evidence:list[UploadFile] = File(None),db:Session=Depends(getdb)):
+                        complaint:ComplaintBase=Depends(),evidence:List[Any]=File(None),db:Session=Depends(getdb)):
     user_id=[current_user.id if current_user.id else None]
     complaint.user_id=user_id[0]
     complaint_item=ComplaintModel(**complaint.model_dump())
     db.add(complaint_item)
     db.commit()
-    if evidence:
+    if evidence[0] == '':
+        print('image_is empty')
+    else:
             for file in evidence:
                 file_type=file.content_type
                 file_path=await imagestore(file,'complaint')
@@ -1118,9 +1120,6 @@ async def upd_ycard_img(current_user:Annotated[UserBase,Depends(get_current_acti
     if ycard_exist is 1:
         return Response(content='image has been update successfully',status_code=status.HTTP_200_OK)
     raise HTTPException(detail=f"id-{ycard_id} does not exist",status_code=status.HTTP_400_BAD_REQUEST)
-
-       
-            
 
     
 

@@ -73,9 +73,21 @@ class UserBase(BaseModel):
     UserPassword: str   
     Role:int=1
     disabled: Union[bool, None] = None
-class hash_password(UserBase): 
+class hash_password(BaseModel): 
     id:int
-    UserPassword: str   
+    UserName:str
+    UserEmail: EmailStr
+    Mobile_Number:str=None
+    Designation_id:int=None
+    User_Designation:str=None
+    UserPassword:str
+    pstation_id:Optional[int]=None
+    police_station:Optional[str]=None
+    district_id:Optional[int]=None
+    Posting_Distric:Optional[str]=None
+    Role:Optional[int]=None
+    disabled: Union[bool, None] = None   
+   
 class UserBaseGet(BaseModel):
     id:int
     UserName:str
@@ -771,6 +783,8 @@ class Yellow_CardBaseGet(BaseModel):
     Pcrime_Sentence:str
     Pcrime_Date:date
       
+#-------------------evidence---------------
+        
                      
             
 
