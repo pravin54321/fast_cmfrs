@@ -4,7 +4,7 @@ import pytest
 
 @pytest.fixture(scope='module')
 def auth_headers():
-    auth_token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJwcmF2aW4iLCJleHAiOjE3MDQyNzUxMTV9.W1UXG7icTR_OAn3IjKT51O53r4egia_E7SHYUewihmI"
+    auth_token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbjJAZ21haWwuY29tIiwiZXhwIjoxNzA3NzE4Mzk4fQ.OOXoh9oevQJ0NDPjbS7AADwqYrFJ6YG5ce7OALTCjwI"
     return{
          "Authorization": f"Bearer {auth_token}",
         "Content-Type": "application/json"
@@ -78,5 +78,29 @@ def test_delstation_login(auth_headers):
     response=client.delete('/del_stationlog/1',headers=auth_headers)
     print("response body",response.text)
     assert response.status_code==200
+def test_create_post(auth_headers):
+    payload={
+  "Post": "post_04",
+  "State_id": 5,
+  "Region_id": 4,
+  "Distric_id": 4,
+  "HeadOffice_id": 4,
+  "Subdivision_id": 4,
+  "Taluka_id": 4,
+  "PoliceStation_id": 4
+  }
+    response=client.post('/create_post',json=payload,headers=auth_headers)
+    print("response_text",response.text)
+    assert response.status_code==200 
+def test_dlt_state(auth_headers):
+    response=client.delete('/delete_state/5',headers=auth_headers)
+    print("=========",response.text)
+    assert response.status_code==200
+        
+   
+
+    
+
+
 
 

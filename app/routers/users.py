@@ -49,35 +49,35 @@ def logine_for_acess_token(form_data : Annotated[OAuth2PasswordRequestForm, Depe
     access_token = create_access_token(
     data={"sub": user.UserEmail}, expires_delta=access_token_expires
     )
-    if user.Role is 0:
+    if user.Role == 0:
          return{"user":user.UserName,
                 "useremail":user.UserEmail,
                 "mobile_number":user.Mobile_Number,
                 "designation":{"id":user.Designation_id,"designation":user.User_Designation},
                 "police_station":{"id":user.pstation_id,"police_station":user.police_station,
-                "access_token": access_token, "token_type": "bearer"}
+                "access_token": access_token,"token_type": "bearer"}
                 }
-    elif user.Role is 1:
+    elif user.Role == 1:
          return{"user":user.UserName,
                 "useremail":user.UserEmail,
                 "mobile_number":user.Mobile_Number,
                 "designation":{"id":user.Designation_id,"designation":user.User_Designation},
                 "posting_distric":{"id":user.Posting_Distric,"police_station":user.Posting_Distric},
-                 "access_token": access_token, "token_type": "bearer"
+                 "access_token": access_token,"token_type": "bearer"
                 }
-    elif user.Role is 2:
+    elif user.Role == 2:
           return{"user":user.UserName,
                 "useremail":user.UserEmail,
                 "mobile_number":user.Mobile_Number,
                 "designation":{"id":user.Designation_id,"designation":user.User_Designation},
                 "police_station":{"id":user.pstation_id,"police_station":user.police_station},
-                "access_token": access_token, "token_type": "bearer"
-                }
+                "access_token": access_token,"token_type": "bearer"
+                }   
          
     
     
     
-    return {"user":user.UserName,"access_token": access_token, "token_type": "bearer"}
+  
 #-----------------user_activate_deactivate----------------------------
 @router.post('/dactivate_user/{user_id}',tags=['Authentication'])
 async def dactivate(current_user:Annotated[UserBase,Depends(get_current_active_user)],

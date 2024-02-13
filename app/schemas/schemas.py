@@ -77,14 +77,14 @@ class hash_password(BaseModel):
     id:int
     UserName:str
     UserEmail: EmailStr
-    Mobile_Number:str=None
-    Designation_id:int=None
+    Mobile_Number:Optional[str]=None
+    Designation_id:Optional[int]=None
     User_Designation:str=None
     UserPassword:str
     pstation_id:Optional[int]=None
-    police_station:Optional[str]=None
-    district_id:Optional[int]=None
-    Posting_Distric:Optional[str]=None
+    police_station:Union[str,None]=None
+    district_id:Union[int,None]=None
+    Posting_Distric:Union[str,None]=None
     Role:Optional[int]=None
     disabled: Union[bool, None] = None   
    
@@ -368,21 +368,42 @@ class DesignationBase(BaseModel):
 
 
 #-------------complaint_schema---------------
-
-
 class ComplaintBase(BaseModel):
    Complainant_Name:str=Form(...)
    Mob_Number:str=Form(...)  
-   Email:Optional[EmailStr]=Form(None)
+   Email:Optional[EmailStr]=Form(None)                         
    Address:str=Form(...)
    Pin_Code:int=Form(...)
+   Adhar_Number:Optional[str]=Form(None)
    Station_id:int=Form(...)
    Auth_Person:str=Form(...)
-   Designation_id:int=Form(...)   
-   Complaint_Against:str=Form(...)
+   Designation_id:int=Form(...)
+   Place_Occurance:str=Form(...)
+   Dfrom_Pstation:str=Form(...)
+   Relation_Victim:str=Form(...)
+   Station_id:int=Form(...)
+   Auth_Person:int=Form(...)
+   Designation_id:int=Form(...)
+   Mode_Complaint:int=Form(...)
+   Dutty_Officer:str=Form(...)
+   Preliminary_enq_Officer:str=Form(...)
+   Investing_Officer:str=Form(...)
+   Complainant_Imgpath:str=Form() 
    Complaint_Desc:str=Form(...)
    user_id:Optional[int]=Form(None)
-  
+class ComAccused_Base(BaseModel):
+    complaint_id:int=Form(...)
+    Accused_Name:str=Form(...)
+    Accused_Age:int=Form(...)  
+    Accused_Address:str=Form(...)
+    relation:str=Form(...)
+    Remark:str=Form(...)
+    Accused_Imgpath:str=Form(...)
+class ComAccused_BaseGet(ComAccused_Base):
+    id:int
+    create_date:datetime=None
+    update_date:datetime=None
+        
 class ComplaintBase_01(BaseModel):
    Complainant_Name:str
    Complaint_uid:str
@@ -783,7 +804,15 @@ class Yellow_CardBaseGet(BaseModel):
     Pcrime_Sentence:str
     Pcrime_Date:date
       
-#-------------------evidence---------------
+#-------------------information_mode_model---------------
+class Infomode_Base(BaseModel):
+    Info_Mode:str
+class infomode_BaseGet(Infomode_Base):
+    id:int
+    create_date:datetime=None
+    update_date:datetime=None     
+    
+    
         
                      
             

@@ -700,6 +700,33 @@ async def del_designation(current_user:Annotated[UserBase,Depends(get_current_ac
         db.commit()
         return Response(content=f'id-{designation_id} has been deleted successfully',status_code=status.HTTP_200_OK)
     raise HTTPException(detail=f'id {designation_id} deos not exist',status_code=status.HTTP_404_NOT_FOUND)
+#-------------------------info_mode-----------------------------
+@router.post('/info_mode',response_model=infomode_BaseGet,tags=['Master_InfoMode'])
+async def create_infomode(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                          info_mode:Infomode_Base,db:Session=Depends(getdb)):
+    infomode_exist=db.query(Infomode_Model).filter(Infomode_Model.Info_Mode==info_mode.Info_Mode).first()
+    if infomode_exist:
+        raise HTTPException(detail=f'{info_mode.Info_Mode} is already exist',status_code=status.HTTP_400_BAD_REQUEST)
+    infomode_item=Infomode_Model(**info_mode.model_dump())
+    db.add(infomode_item)
+    db.commit()
+    db.refresh(infomode_item)
+    return infomode_item
+@router.get('/get_infomode',response_model=list[infomode_BaseGet],tags=['Master_InfoMode'])
+async def get_infomode(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                       db:Session=Depends(getdb)):
+    list_infomode=db.query(Infomode_Model).order_by(Infomode_Model.id.desc()).all()
+    return list_infomode
+@router.delete('/del_infomode/{info_id}',tags=['Master_InfoMode'])
+async def del_infomode(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                       info_id:int,db:Session=Depends(getdb)):
+    infomode_exist=db.query(Infomode_Model).filter(Infomode_Model.id==info_id).exists()
+    if infomode_exist:
+        db.delete(infomode_exist)
+        db.commit()
+        return Response(content=f"infomode has been deleted successfully",status_code=status.HTTP_200_OK)
+    raise HTTPException(detail=f"{info_id} does not exist",status_code=status.HTTP_400_BAD_REQUEST)
+
 #_________create_policestation_logine________
 @router.post('/policestation_login',response_model=Pstation_loginBase,tags=["Policestation_Logine"])
 async def policestation_logine(current_user:Annotated[UserBase,Depends(get_current_active_user)],
@@ -755,6 +782,7 @@ async def create_complaint(current_user:Annotated[UserBase,Depends(get_current_a
     complaint_item=ComplaintModel(**complaint.model_dump())
     db.add(complaint_item)
     db.commit()
+
     if evidence[0] == '':
         print('image_is empty')
     else:

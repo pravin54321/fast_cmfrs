@@ -303,7 +303,6 @@ class CrimeKalamModel(Base):
     ncr_act=relationship('NCR_ACTModel',back_populates='kalam')
     fir_act=relationship('FirSectionActModel',back_populates='kalam')
     charge_sheet_act=relationship('ChargeSheet_ActModel',back_populates='kalam')
-
 #---------designation_model------------------
 class DesignationModel(Base):
     __tablename__='designation'
@@ -312,7 +311,13 @@ class DesignationModel(Base):
     create_date=Column(DateTime,default=get_current_time)
     update_date=Column(DateTime,default=get_current_time,onupdate=func.now()) 
     policestation_login=relationship('PoliceStationLogineModel',back_populates='designation')
-    complaint=relationship('ComplaintModel',back_populates='designation')      
+    complaint=relationship('ComplaintModel',back_populates='designation')   
+class Infomode_Model(Base):
+    __tablename__='infomode'
+    id=Column(Integer,primary_key=True,index=True,autoincrement=True)
+    Info_Mode=Column(String(256))
+    create_date=Column(DateTime,default=get_current_time)
+    update_date=Column(DateTime,default=get_current_time,onupdate=func.now())       
 
 class PoliceStationLogineModel(Base):
     __tablename__='station_login'
@@ -338,10 +343,18 @@ class ComplaintModel(Base):
     Email=Column(String(200))  
     Address=Column(Text)
     Pin_Code=Column(Integer)
+    Adhar_Number=Column(String(12))
+    Place_Occurance=Column(Text)
+    Dfrom_Pstation=Column(String(256),comment="distance from police station")
+    Relation_Victim=Column(String(256),comment='relation with complainant and victime')
     Station_id=Column(Integer,ForeignKey('policestation.id'),nullable=False)
     Auth_Person=Column(String(200),nullable=False)
     Designation_id=Column(Integer,ForeignKey('designation.id'),nullable=False)
-    Complaint_Against=Column(String(200))
+    Mode_Complaint=Column(Integer,ForeignKey('infomode.id'),comment="foreigne key of complaint mode")
+    Dutty_Officer=Column(String(256))
+    Preliminary_enq_Officer=Column(String(256))
+    Investing_Officer=Column(String(256))
+    Complainant_Imgpath=Column(String(256))
     Complaint_Desc=Column(Text)
     user_id=Column(Integer,comment='current user id save')
     create_date=Column(DateTime,default=get_current_time)
@@ -349,7 +362,42 @@ class ComplaintModel(Base):
     evidence=relationship('ComEvidenceModel',back_populates='complaint',cascade='all,delete')
     policestation=relationship('PoliceStationModel',back_populates='complaint')
     designation=relationship('DesignationModel',back_populates='complaint')
-
+class Cvictime_Model(Base):#complaint victime model
+    __tablename__='complaint_victime'
+    id =Column(Integer,primary_key=True,unique=True,autoincrement=True,index=True)
+    complaint_id=Column(Integer,ForeignKey('complaint.id'))
+    Victime_Name=Column(String(256))
+    Victime_Age=Column(Integer)
+    Victime_Address=Column(Text)
+    Relation=Column(String(256),comment='relation with complainant and victime')
+    Remark=Column(Text)
+    Victime_Imgpath=Column(String(256))
+    crete_date=Column(DateTime,default=get_current_time)
+    update_date=Column(DateTime,default=get_current_time,onupdate=func.now())
+class Cwitness_Model(Base):#complaint witness
+    __tablename__='complaint_witness'
+    id=Column(Integer,primary_key=True,autoincrement=True,index=True,unique=True)
+    complaint_id=Column(Integer,ForeignKey('complaint.id'))
+    Witness_Name=Column(String(256))
+    Witnes_age=Column(Integer)
+    Witness_Address=Column(Text)
+    Relation=Column(String(256),comment='relation with victime')
+    Witness_Imgpath=Column(String(256))
+    Remark=Column(Text)
+    create_date=Column(DateTime,default=get_current_time)
+    update_time=Column(DateTime,default=get_current_time,onupdate=func.now)
+class Caccused_Model(Base):#complaint accused
+    __tablename__='comlaint_accused'
+    id=Column(Integer,primary_key=True,unique=True,autoincrement=True)
+    complaint_id=Column(Integer,ForeignKey('complaint.id'))
+    Accused_Name=Column(String(256))
+    Accused_Age=Column(Integer)  
+    Accused_Address=Column(Text)
+    relation=Column(String(256),comment='relation with victime')
+    Remark=Column(Text)
+    Accused_Imgpath=Column(String(256))#accused image path
+    create_date=Column(DateTime,default=get_current_time)
+    update_date=Column(DateTime,default=get_current_time,onupdate=func.now())
 class ComEvidenceModel(Base):
     __tablename__='comevidence'
     id=Column(Integer,primary_key=True,autoincrement=True,index=True)
@@ -359,6 +407,7 @@ class ComEvidenceModel(Base):
     create_date=Column(DateTime,default=get_current_time)
     update_date=Column(DateTime,default=get_current_time,onupdate=func.now())
     complaint=relationship('ComplaintModel',back_populates='evidence')
+
 #------------Ncr_Table---------------------------------------------
 
 class NCRModel(Base):

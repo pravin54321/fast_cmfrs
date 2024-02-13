@@ -16,7 +16,9 @@ def get_password_hash(password):
 
 def get_user(UserEmail:str):
     db = SessionLocal()
+    print("user_email--------->",UserEmail)
     user_data = db.query(UserModel).filter(UserModel.UserEmail==UserEmail).first()
+    print("user_present",user_data)
     if user_data is not None:
         user_dict = {
             "id":user_data.id,
@@ -75,6 +77,7 @@ async def get_current_user(token:Annotated[str,Depends(oauth_scheme)]):
     return user    
 async def get_current_active_user(current_user:Annotated[UserBase,Depends(get_current_user)]):
     if current_user.disabled:
+         print("========",current_user)
          return current_user
     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                         detail="Inactive user"
