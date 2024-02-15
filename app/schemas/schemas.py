@@ -366,31 +366,23 @@ class DesignationBase(BaseModel):
     Designation:str
 
 
-
+#---------crime_type-----------------------
+class CrimeType_Base(BaseModel):
+    Crime_Type:str
+    Description:str 
+class CrimeType_Get(CrimeType_Base):
+    id:int
+    create_date:datetime
+    update_date:datetime  
+#--------------information_mode------------
+class Infomode_Base(BaseModel):
+    Info_Mode:str
+class infomode_BaseGet(Infomode_Base):
+    id:int
+    create_date:datetime=None
+    update_date:datetime=None              
 #-------------complaint_schema---------------
-class ComplaintBase(BaseModel):
-   Complainant_Name:str=Form(...)
-   Mob_Number:str=Form(...)  
-   Email:Optional[EmailStr]=Form(None)                         
-   Address:str=Form(...)
-   Pin_Code:int=Form(...)
-   Adhar_Number:Optional[str]=Form(None)
-   Station_id:int=Form(...)
-   Auth_Person:str=Form(...)
-   Designation_id:int=Form(...)
-   Place_Occurance:str=Form(...)
-   Dfrom_Pstation:str=Form(...)
-   Relation_Victim:str=Form(...)
-   Station_id:int=Form(...)
-   Auth_Person:int=Form(...)
-   Designation_id:int=Form(...)
-   Mode_Complaint:int=Form(...)
-   Dutty_Officer:str=Form(...)
-   Preliminary_enq_Officer:str=Form(...)
-   Investing_Officer:str=Form(...)
-   Complainant_Imgpath:str=Form() 
-   Complaint_Desc:str=Form(...)
-   user_id:Optional[int]=Form(None)
+
 class ComAccused_Base(BaseModel):
     complaint_id:int=Form(...)
     Accused_Name:str=Form(...)
@@ -403,7 +395,53 @@ class ComAccused_BaseGet(ComAccused_Base):
     id:int
     create_date:datetime=None
     update_date:datetime=None
-        
+class ComWitness_Base(BaseModel):
+    complaint_id:int=Form(...)
+    Witness_Name:str=Form(...)
+    Witnes_age:int=Form(...)
+    Witness_Address:str=Form(...)
+    Relation:str=Form(...)
+    Witness_Imgpath:str=Form(...)
+    Remark:str 
+class ComWitness_BaseGet(ComWitness_Base):
+    id:int
+    create_date:datetime
+    update_date:datetime 
+class ComVictime_Base(BaseModel):
+    complaint_id:int=Form(...)
+    Victime_Name:str=Form(...)
+    Victime_Age:int=Form(...)
+    Victime_Address:str=Form(...)
+    Relation:str=Form(...)
+    Remark:str=Form(...)
+    Victime_Imgpath:str=Form(...) 
+class ComVictime_BaseGet(ComVictime_Base):
+    id:int
+    create_date:datetime=None
+    update_date:datetime=None 
+
+class ComplaintBase(BaseModel):
+   Complainant_Name:str
+   Mob_Number:str  
+   Email:EmailStr                       
+   Address:str
+   Pin_Code:int
+   Adhar_Number:str
+   Station_id:int
+   Auth_Person:str
+   Date:datetime
+   Designation_id:int
+   Place_Occurance:str
+   Dfrom_Pstation:str
+   Relation_Victim:str
+   Mode_Complaint_id:int
+   Crime_type_id:int
+   Dutty_Officer:str
+   Preliminary_enq_Officer:str
+   Investing_Officer:str
+   Complainant_Imgpath:Optional[str]=None
+   Complaint_Desc:str
+   user_id:Optional[int]=None    
 class ComplaintBase_01(BaseModel):
    Complainant_Name:str
    Complaint_uid:str
@@ -421,20 +459,30 @@ class ComEvidenceBase(BaseModel):
     Complaint_id:int
     File_Path:str
     File_Type:str       
-
 class ComplaintGet(BaseModel):
    id:int
+   Complaint_uid:str
    Complainant_Name:str
    Mob_Number:str  
    Email:EmailStr|None=None
    Address:str
    Pin_Code:int
+   Date:datetime
    policestation:PoliceStation_only
    Auth_Person:str
    designation:DesignationGet   
-   Complaint_Against:str
+   Place_Occurance:str
+   Dfrom_Pstation:str
+   Relation_Victim:str
+   mode_complaint:infomode_BaseGet
+   crime_type:CrimeType_Get
+   Dutty_Officer:str
+   Preliminary_enq_Officer:str
+   Investing_Officer:str
+   Complainant_Imgpath:Optional[str]=None
    Complaint_Desc:str
-   evidence:list[ComEvidenceBase]=None 
+   create_date:datetime
+   update_date:datetime   
 #---------NCR_SCHEMA------------------
 class NCRBase(BaseModel):
     P_Station:int
@@ -805,13 +853,12 @@ class Yellow_CardBaseGet(BaseModel):
     Pcrime_Date:date
       
 #-------------------information_mode_model---------------
-class Infomode_Base(BaseModel):
-    Info_Mode:str
-class infomode_BaseGet(Infomode_Base):
-    id:int
-    create_date:datetime=None
-    update_date:datetime=None     
-    
+
+from dataclasses import dataclass        
+@dataclass
+class SimpleModel:
+    no:list=Form(...)
+    nm: str=Form(...)
     
         
                      

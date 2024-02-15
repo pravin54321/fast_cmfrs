@@ -317,7 +317,14 @@ class Infomode_Model(Base):
     id=Column(Integer,primary_key=True,index=True,autoincrement=True)
     Info_Mode=Column(String(256))
     create_date=Column(DateTime,default=get_current_time)
-    update_date=Column(DateTime,default=get_current_time,onupdate=func.now())       
+    update_date=Column(DateTime,default=get_current_time,onupdate=func.now())  
+class CrimeMethod_Model(Base):
+    __tablename__="crime_method"
+    id=Column(Integer,primary_key=True,autoincrement=True,index=True)
+    Crime_Type=Column(String(256))
+    Description=Column(Text)
+    create_date=Column(DateTime,default=get_current_time)
+    update_date=Column(DateTime,default=get_current_time,onupdate=func.now())         
 
 class PoliceStationLogineModel(Base):
     __tablename__='station_login'
@@ -344,13 +351,15 @@ class ComplaintModel(Base):
     Address=Column(Text)
     Pin_Code=Column(Integer)
     Adhar_Number=Column(String(12))
+    Date=Column(DateTime)
     Place_Occurance=Column(Text)
     Dfrom_Pstation=Column(String(256),comment="distance from police station")
     Relation_Victim=Column(String(256),comment='relation with complainant and victime')
     Station_id=Column(Integer,ForeignKey('policestation.id'),nullable=False)
     Auth_Person=Column(String(200),nullable=False)
     Designation_id=Column(Integer,ForeignKey('designation.id'),nullable=False)
-    Mode_Complaint=Column(Integer,ForeignKey('infomode.id'),comment="foreigne key of complaint mode")
+    Mode_Complaint_id=Column(Integer,ForeignKey('infomode.id'),comment="foreigne key of complaint mode")
+    Crime_type_id=Column(Integer,ForeignKey("crime_method.id"))
     Dutty_Officer=Column(String(256))
     Preliminary_enq_Officer=Column(String(256))
     Investing_Officer=Column(String(256))
@@ -362,6 +371,9 @@ class ComplaintModel(Base):
     evidence=relationship('ComEvidenceModel',back_populates='complaint',cascade='all,delete')
     policestation=relationship('PoliceStationModel',back_populates='complaint')
     designation=relationship('DesignationModel',back_populates='complaint')
+    mode_complaint=relationship('Infomode_Model',backref='mode_complaint')
+    crime_type=relationship('CrimeMethod_Model',backref='crime_type')
+
 class Cvictime_Model(Base):#complaint victime model
     __tablename__='complaint_victime'
     id =Column(Integer,primary_key=True,unique=True,autoincrement=True,index=True)

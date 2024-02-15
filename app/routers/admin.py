@@ -717,15 +717,70 @@ async def get_infomode(current_user:Annotated[UserBase,Depends(get_current_activ
                        db:Session=Depends(getdb)):
     list_infomode=db.query(Infomode_Model).order_by(Infomode_Model.id.desc()).all()
     return list_infomode
-@router.delete('/del_infomode/{info_id}',tags=['Master_InfoMode'])
-async def del_infomode(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+@router.put('/update_infomode/{infomode_id}',response_model=infomode_BaseGet,tags=['Master_InfoMode'])
+async def update_infomode(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                          infomode_id:int,info_mode:Infomode_Base,db:Session=Depends(getdb)):
+    infomode_duplicate=db.query(Infomode_Model).filter(Infomode_Model.Info_Mode==info_mode.Info_Mode,Infomode_Model.id!=infomode_id).first()
+    if infomode_duplicate:
+        raise HTTPException(detail=f"{info_mode.Info_Mode} already exist",status_code=status.HTTP_400_BAD_REQUEST)
+    infomode_exist=db.query(Infomode_Model).filter(Infomode_Model.id==infomode_id).first()
+    if infomode_exist:
+        infomode_exist.Info_Mode=info_mode.Info_Mode
+        db.commit()
+        db.refresh(infomode_exist)
+        return infomode_exist
+    raise HTTPException(detail=f'{infomode_id} does not exist',status_code=status.HTTP_400_BAD_REQUEST)
+@router.delete('/dlt_infomode/{info_id}',tags=['Master_InfoMode'])
+async def dlt_infomode(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                        info_id:int,db:Session=Depends(getdb)):
-    infomode_exist=db.query(Infomode_Model).filter(Infomode_Model.id==info_id).exists()
+    infomode_exist=db.query(Infomode_Model).filter(Infomode_Model.id==info_id).first()
+    print(infomode_exist)
     if infomode_exist:
         db.delete(infomode_exist)
         db.commit()
         return Response(content=f"infomode has been deleted successfully",status_code=status.HTTP_200_OK)
     raise HTTPException(detail=f"{info_id} does not exist",status_code=status.HTTP_400_BAD_REQUEST)
+#---------------crime_type__________________________
+@router.get('/get_crimetype',response_model=list[CrimeType_Get],tags=['Master_CrimeType'])
+async def get_crimetype(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                        db:Session=Depends(getdb)):
+    list_crimetype=db.query(CrimeMethod_Model).order_by(CrimeMethod_Model.id.desc()).all()
+    return list_crimetype
+@router.post('/create_crimetype',response_model=CrimeType_Get,tags=['Master_CrimeType'])
+async def create_crimetype(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                           crime_type:CrimeType_Base,db:Session=Depends(getdb)):
+    crime_exist=db.query(CrimeMethod_Model).filter(CrimeMethod_Model.Crime_Type==crime_type.Crime_Type).first()
+    if crime_exist:
+        raise HTTPException(detail=f"{crime_type.Crime_Type} already exist",status_code=status.HTTP_400_BAD_REQUEST)
+    crimetype_db=CrimeMethod_Model(**crime_type.model_dump())
+    db.add(crimetype_db)
+    db.commit()
+    db.refresh(crimetype_db)
+    return crimetype_db
+@router.put('/update_crimetype/{crimetype_id}',response_model=CrimeType_Get,tags=['Master_CrimeType'])
+async def  update_crimetype(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                            crimetype_id:int,crime_type:CrimeType_Base,db:Session=Depends(getdb)):
+    duplicate_item=db.query(CrimeMethod_Model).filter(CrimeMethod_Model.Crime_Type==crime_type.Crime_Type,CrimeMethod_Model.id!=crimetype_id).first()
+    if duplicate_item:
+        raise HTTPException(detail=f"{crime_type.Crime_Type} already exist",status_code=status.HTTP_400_BAD_REQUEST)
+    crimetype_item=db.query(CrimeMethod_Model).filter(CrimeMethod_Model.id==crimetype_id).first()
+    if crimetype_item is None:
+        raise HTTPException(detail=f"id -{crimetype_id} item not fount",status_code=status.HTTP_400_BAD_REQUEST)
+    for field,item in crime_type.model_dump(exclude_unset=True).items():
+        setattr(crimetype_item,field,item)
+    db.commit()
+    db.refresh(crimetype_item)    
+    return crimetype_item
+@router.delete('/dlt_crimetype/{crimety_id}',tags=['Master_CrimeType'])
+async def dlt_crimety(
+                      crimety_id:int,db:Session=Depends(getdb)):
+    db_item=db.query(CrimeMethod_Model).filter(CrimeMethod_Model.id==crimety_id).first()
+    if db_item is None:
+        raise HTTPException(detail=f"id-{crimety_id} item does not exist",status_code=status.HTTP_400_BAD_REQUEST)
+    db.delete(db_item)
+    db.commit()
+    return Response(content=f"crime_type has been updated successfully",status_code=status.HTTP_200_OK)
+    
 
 #_________create_policestation_logine________
 @router.post('/policestation_login',response_model=Pstation_loginBase,tags=["Policestation_Logine"])
@@ -776,22 +831,16 @@ async def del_stationlog(current_user:Annotated[UserBase,Depends(get_current_act
 #--------complaint_api---------------------------
 @router.post('/create_complaint',response_model=ComplaintGet,tags=["Complaint_Api"])
 async def create_complaint(current_user:Annotated[UserBase,Depends(get_current_active_user)],
-                        complaint:ComplaintBase=Depends(),evidence:List[Any]=File(None),db:Session=Depends(getdb)):
+                        complaint:ComplaintBase=Depends(),img_file:UploadFile=File(None),
+                        db:Session=Depends(getdb)):
+    if img_file:
+        file_path=await imagestore(img_file,'complaint/complainant_img')
+        setattr(complaint,'Complainant_Imgpath',file_path)
     user_id=[current_user.id if current_user.id else None]
     complaint.user_id=user_id[0]
     complaint_item=ComplaintModel(**complaint.model_dump())
     db.add(complaint_item)
     db.commit()
-
-    if evidence[0] == '':
-        print('image_is empty')
-    else:
-            for file in evidence:
-                file_type=file.content_type
-                file_path=await imagestore(file,'complaint')
-                comevidence_db=ComEvidenceModel(File_Path=f'Static/Images/complaint/{file_path}',File_Type=file_type,Complaint_id=complaint_item.id)
-                db.add(comevidence_db)
-            db.commit()
     return complaint_item
 @router.get('/get_complaint',response_model=list[ComplaintGet],tags=['Complaint_Api'])
 async def get_complaint(current_user:Annotated[UserBase,Depends(get_current_active_user)],
@@ -1148,6 +1197,10 @@ async def upd_ycard_img(current_user:Annotated[UserBase,Depends(get_current_acti
     if ycard_exist is 1:
         return Response(content='image has been update successfully',status_code=status.HTTP_200_OK)
     raise HTTPException(detail=f"id-{ycard_id} does not exist",status_code=status.HTTP_400_BAD_REQUEST)
+@router.post('/test_form')
+async def test_form(test:SimpleModel=Depends(),file:UploadFile=File):
+    print(test)
+    return None
 
     
 

@@ -4,7 +4,7 @@ import pytest
 
 @pytest.fixture(scope='module')
 def auth_headers():
-    auth_token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbjJAZ21haWwuY29tIiwiZXhwIjoxNzA3NzE4Mzk4fQ.OOXoh9oevQJ0NDPjbS7AADwqYrFJ6YG5ce7OALTCjwI"
+    auth_token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbjJAZ21haWwuY29tIiwiZXhwIjoxNzA3OTg0MTU5fQ.rpXaPY7X017jZ-g32BpZTVMhDi7cDwAH2dQD35zbkxY"
     return{
          "Authorization": f"Bearer {auth_token}",
         "Content-Type": "application/json"
@@ -96,9 +96,88 @@ def test_dlt_state(auth_headers):
     response=client.delete('/delete_state/5',headers=auth_headers)
     print("=========",response.text)
     assert response.status_code==200
-        
-   
 
+def test_create_infomode(auth_headers):
+        payload={
+            "Info_Mode":"Infomode_01"
+        }
+        response=client.post('/info_mode',json=payload,headers=auth_headers)
+        assert response.status_code == 200   
+def test_update_infomode(auth_headers):
+    payload={
+        'Info_Mode':"new_infomod"
+    } 
+    response=client.put('/update_infomode/1',json=payload,headers=auth_headers)  
+    print("response_infomode",response.text)   
+    assert response.status_code==200    
+def test_dlt_infomode(auth_headers):
+    response=client.delete('/dlt_infomode/1',headers=auth_headers)
+    print("delete_text",response.text)
+    assert  response.status_code==200    
+
+def test_complaint(auth_headers):
+    payload={ 
+   "Complainant_Name":"complaint_01",
+   "Mob_Number":"9404300883" , 
+   "Email":"mendhe.pravin123@gmail.com",                       
+   "Address":"nagpur",
+   "Pin_Code":12345,
+   "Adhar_Number":"1234567890",
+   "Station_id":5,
+   "Auth_Person":"pravin_jadhav",
+   "Designation_id":3,
+   "Place_Occurance":"nagpur",
+   "Dfrom_Pstation":"5 km from ps",
+   "Relation_Victim":"mother",
+   "Mode_Complaint":2,
+   "Dutty_Officer":"jadhav",
+   "Preliminary_enq_Officer":"pre_jadhav",
+   "Investing_Officer":"investigation",
+   "Complainant_Imgpath":"image_path" ,
+   "Complaint_Desc":"no_desc",
+   "user_id":0,
+   } 
+    response=client.post('/create_complaint',json=payload,headers=auth_headers)  
+    print("------------",response.text)  
+    assert response.status_code==200
+import requests    
+def test_form():
+    # Create form data
+    form_data = {
+        "name": "John",
+        "last_name": "Doe"
+    }
+
+    # Send a POST request with form data
+    response = client.post('/test_form', json=form_data)
+
+    # Ensure the response status code is 200 OK
+    assert response.status_code == 200
+
+    # Return the response
+    return response
+
+def test_crime_method(auth_headers):
+    payload={
+         "Crime_Type":"crime_type_007",
+         "Description":"crime_description"
+    }
+    response=client.post('/create_crimetype',json=payload,headers=auth_headers)
+    print(response.json)
+    print('=====',response.text)
+    assert response.status_code==200
+def test_update_type(auth_headers):
+    payload={
+        "Crime_Type":"crime_type_04",
+         "Description":"crime_description"
+    }   
+    response=client.put('update_crimetype/4',json=payload)
+    print("print==>",response.text)
+    assert response.status_code==200 
+def test_crime_dlt():
+    response=client.delete('/dlt_crimetype/10') 
+    print('=========',response.text)
+    assert response.status_code==200   
     
 
 
