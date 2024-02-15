@@ -869,7 +869,19 @@ async def del_complaint(current_user:Annotated[UserBase,Depends(get_current_acti
         db.delete(complaint_exist)
         db.commit()
         return Response(content=f'id-{complaint_id} has been deleted successfully',status_code=status.HTTP_200_OK)  
-    raise HTTPException(detail=f"id-{complaint_id} does not exist",status_code=status.HTTP_404_NOT_FOUND)    
+    raise HTTPException(detail=f"id-{complaint_id} does not exist",status_code=status.HTTP_404_NOT_FOUND)  
+#_________________________complaint_accused_______________________________  
+@router.post('/create_comaccused',response_model=ComAccused_BaseGet,tags=['Complaint_Api'])
+async def  create_comaccused(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                             com_accused:ComAccused_Base,image:UploadFile=File(None),db:Session=Depends(getdb)):
+    if image:
+        file_path=await imagestore(image,'complaint/Accused_img')
+        setattr(com_accused,'Accused_Imgpath',f"Static/Images/complaint/Accused_img/{file_path}")
+    com_accused=ComAccused_Model(**com_accused.model_dump)
+    db.add(com_accused)
+    db.commit()
+    db.refresh(com_accused) 
+    return com_accused   
 #----------------------------evidence_api------------------------
 @router.post("/evidence_create",response_model=ComplaintGet,tags=['Evidence_Api'])
 async def evidence_cretae(current_user:Annotated[UserBase,Depends(get_current_active_user)],

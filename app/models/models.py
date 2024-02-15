@@ -398,11 +398,12 @@ class Cwitness_Model(Base):#complaint witness
     Remark=Column(Text)
     create_date=Column(DateTime,default=get_current_time)
     update_time=Column(DateTime,default=get_current_time,onupdate=func.now)
-class Caccused_Model(Base):#complaint accused
-    __tablename__='comlaint_accused'
+class ComAccused_Model(Base):#complaint accused
+    __tablename__='complaint_accused'
     id=Column(Integer,primary_key=True,unique=True,autoincrement=True)
     complaint_id=Column(Integer,ForeignKey('complaint.id'))
     Accused_Name=Column(String(256))
+    Aliase=Column(String(256),comment='aliase name')
     Accused_Age=Column(Integer)  
     Accused_Address=Column(Text)
     relation=Column(String(256),comment='relation with victime')

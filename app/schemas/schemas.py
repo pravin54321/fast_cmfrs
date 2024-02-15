@@ -382,15 +382,15 @@ class infomode_BaseGet(Infomode_Base):
     create_date:datetime=None
     update_date:datetime=None              
 #-------------complaint_schema---------------
-
 class ComAccused_Base(BaseModel):
-    complaint_id:int=Form(...)
-    Accused_Name:str=Form(...)
-    Accused_Age:int=Form(...)  
-    Accused_Address:str=Form(...)
-    relation:str=Form(...)
-    Remark:str=Form(...)
-    Accused_Imgpath:str=Form(...)
+    complaint_id:int
+    Accused_Name:str
+    Aliase:str
+    Accused_Age:int  
+    Accused_Address:str
+    relation:str
+    Remark:str
+    Accused_Imgpath:Optional[str]=None
 class ComAccused_BaseGet(ComAccused_Base):
     id:int
     create_date:datetime=None
