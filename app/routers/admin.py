@@ -870,18 +870,49 @@ async def del_complaint(current_user:Annotated[UserBase,Depends(get_current_acti
         db.commit()
         return Response(content=f'id-{complaint_id} has been deleted successfully',status_code=status.HTTP_200_OK)  
     raise HTTPException(detail=f"id-{complaint_id} does not exist",status_code=status.HTTP_404_NOT_FOUND)  
-#_________________________complaint_accused_______________________________  
+#_________________________complaint_accused_______________________________
+@router.get("/get_comaccused",response_model=ComAccused_BaseGet,tags=["Complaint_Api"]) 
+async def get_comaccused(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                         db:Session=Depends(getdb)):
+    list_comaccused=db.query(ComAccused_Model).order_by(ComAccused_Model.id.desc()).all()
+    return(list_comaccused) 
 @router.post('/create_comaccused',response_model=ComAccused_BaseGet,tags=['Complaint_Api'])
-async def  create_comaccused(current_user:Annotated[UserBase,Depends(get_current_active_user)],
-                             com_accused:ComAccused_Base,image:UploadFile=File(None),db:Session=Depends(getdb)):
+async def  create_comaccused(
+                             com_accused:ComAccused_Base=Body(),image:UploadFile=File(None),db:Session=Depends(getdb)):
     if image:
         file_path=await imagestore(image,'complaint/Accused_img')
         setattr(com_accused,'Accused_Imgpath',f"Static/Images/complaint/Accused_img/{file_path}")
-    com_accused=ComAccused_Model(**com_accused.model_dump)
+    com_accused=ComAccused_Model(**com_accused.model_dump())
     db.add(com_accused)
     db.commit()
     db.refresh(com_accused) 
-    return com_accused   
+    return com_accused 
+@router.put('/update_comaccused/{comaccused_id}',response_model=ComAccused_BaseGet,tags=['Complaint_Api']) 
+async def update_cimaccused(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                            comaccused_id:int,com_accused:ComAccused_Base,db:Session=Depends(getdb)):
+    comaccused_item=db.query(ComAccused_Model).filter(ComAccused_Model.id==comaccused_id).first()
+    if comaccused_item:
+        com_accused_duplicate=db.query(ComAccused_Model).filter(ComAccused_Model.Accused_Name==com_accused.Accused_Name,
+                                                                ComAccused_Model.complaint_id==comaccused_item.complaint_id,
+                                                                ComAccused_Model.id!=comaccused_id).first()
+        if com_accused_duplicate:
+            raise HTTPException(detail=f'{com_accused.Accused_Name} already exist',status_code=status.HTTP_400_BAD_REQUEST)
+        for field,item in com_accused.model_dump(exclude_unset=True).items():
+            setattr(comaccused_item,field,item)
+        db.commit()
+        db.refresh(comaccused_item)   
+        return comaccused_item 
+    raise HTTPException(detail=f"{comaccused_id} does not exist",status_code=status.HTTP_400_BAD_REQUEST)
+@router.delete('/dlt_com_accused/{com_accused_id}',tags=['Master_Complaint'])
+async def dlt_com_accused(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                         com_accused_id:int,db:Session=Depends(getdb)):
+    com_accused_item=db.query(ComAccused_Model).filter(ComAccused_Model.id==com_accused_id).first()
+    if com_accused_item:
+        db.delete(com_accused_item)
+        db.commit()
+        return Response(content=f"com_accused_item has been deleted successfully",status_code=status.HTTP_200_OK)
+    raise HTTPException(detail=f"{com_accused_id} does not exist",status_code=status.HTTP_200_OK)
+    
 #----------------------------evidence_api------------------------
 @router.post("/evidence_create",response_model=ComplaintGet,tags=['Evidence_Api'])
 async def evidence_cretae(current_user:Annotated[UserBase,Depends(get_current_active_user)],
@@ -1210,11 +1241,12 @@ async def upd_ycard_img(current_user:Annotated[UserBase,Depends(get_current_acti
         return Response(content='image has been update successfully',status_code=status.HTTP_200_OK)
     raise HTTPException(detail=f"id-{ycard_id} does not exist",status_code=status.HTTP_400_BAD_REQUEST)
 @router.post('/test_form')
-async def test_form(test:SimpleModel=Depends(),file:UploadFile=File):
-    print(test)
-    return None
-
-    
+def submit(user_review:Rate=Body(), image:list[Any] = None):
+        for i in user_review.id1:
+            print(i.name)
+            print(image)
+        return {"JSON Payload ": user_review, "Image": image.filename}
+   
 
     
 

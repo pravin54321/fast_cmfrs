@@ -1,9 +1,10 @@
 import fileinput
-from pydantic import BaseModel,EmailStr,Field,conint
+from pydantic import BaseModel,EmailStr,Field,conint,model_validator
 from fastapi import Form, UploadFile,File
 from datetime import date,time
 from typing import Optional, Union
 from datetime import datetime
+import json
 class ImageBase(BaseModel):
     Person_id : int
     file_path:str
@@ -391,6 +392,13 @@ class ComAccused_Base(BaseModel):
     relation:str
     Remark:str
     Accused_Imgpath:Optional[str]=None
+    @model_validator(mode='before')
+    @classmethod
+    def validate_to_json(cls, value):
+        if isinstance(value, str):
+            return cls(**json.loads(value))
+        return value    
+                     
 class ComAccused_BaseGet(ComAccused_Base):
     id:int
     create_date:datetime=None
@@ -854,13 +862,29 @@ class Yellow_CardBaseGet(BaseModel):
       
 #-------------------information_mode_model---------------
 
-from dataclasses import dataclass        
-@dataclass
-class SimpleModel:
-    no:list=Form(...)
-    nm: str=Form(...)
-    
-        
+
+class AnyForm(BaseModel):
+    any_param: str
+    any_other_param: int = 1
+
+    @classmethod
+    def as_form(
+        cls,
+        any_param: str = Form(...),
+        any_other_param: int = Form(1)
+    ):
+        return cls(any_param=any_param, any_other_param=any_other_param)
+class test_01(BaseModel):
+    name:str
+    age:int   
+class Rate(BaseModel):
+    id1: list[test_01]
+    @model_validator(mode='before')
+    @classmethod
+    def validate_to_json(cls, value):
+        if isinstance(value, str):
+            return cls(**json.loads(value))
+        return value    
                      
             
 

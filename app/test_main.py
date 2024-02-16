@@ -178,6 +178,12 @@ def test_crime_dlt():
     response=client.delete('/dlt_crimetype/10') 
     print('=========',response.text)
     assert response.status_code==200   
+def test_com_accused():
+    data={'com_accused': '{"complaint_id": 1, "Accused_Name": "pravin mendhe", "Aliase": "dada", "Accused_Age": 12, "Accused_Address": "nagpur", "relation":"mother", "Remark": "pravin", "Accused_Imgpath": "imgpath"}'}
+    response=client.post('/create_comaccused',data=data)
+    print("com_accused_test",response.text)
+    assert response.status_code==200
+      
     
 
 
