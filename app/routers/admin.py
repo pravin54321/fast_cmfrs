@@ -871,12 +871,12 @@ async def del_complaint(current_user:Annotated[UserBase,Depends(get_current_acti
         return Response(content=f'id-{complaint_id} has been deleted successfully',status_code=status.HTTP_200_OK)  
     raise HTTPException(detail=f"id-{complaint_id} does not exist",status_code=status.HTTP_404_NOT_FOUND)  
 #_________________________complaint_accused_______________________________
-@router.get("/get_comaccused",response_model=ComAccused_BaseGet,tags=["Complaint_Api"]) 
+@router.get("/get_comaccused",response_model=list[ComAccused_BaseGet],tags=["Complaint_Accused"]) 
 async def get_comaccused(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                          db:Session=Depends(getdb)):
     list_comaccused=db.query(ComAccused_Model).order_by(ComAccused_Model.id.desc()).all()
     return(list_comaccused) 
-@router.post('/create_comaccused',response_model=ComAccused_BaseGet,tags=['Complaint_Api'])
+@router.post('/create_comaccused',response_model=ComAccused_BaseGet,tags=['Complaint_Accused'])
 async def  create_comaccused(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                              com_accused:ComAccused_Base=Body(),image:UploadFile=File(None),db:Session=Depends(getdb)):
     com_accused_duplicate=db.query(ComAccused_Model).filter(ComAccused_Model.Accused_Name==com_accused.Accused_Name,
@@ -891,7 +891,7 @@ async def  create_comaccused(current_user:Annotated[UserBase,Depends(get_current
     db.commit()
     db.refresh(com_accused) 
     return com_accused 
-@router.put('/update_comaccused/{comaccused_id}',response_model=ComAccused_BaseGet,tags=['Complaint_Api']) 
+@router.put('/update_comaccused/{comaccused_id}',response_model=ComAccused_BaseGet,tags=['Complaint_Accused']) 
 async def update_cimaccused(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                             comaccused_id:int,com_accused:ComAccused_Base,db:Session=Depends(getdb)):
     comaccused_item=db.query(ComAccused_Model).filter(ComAccused_Model.id==comaccused_id).first()
@@ -907,7 +907,7 @@ async def update_cimaccused(current_user:Annotated[UserBase,Depends(get_current_
         db.refresh(comaccused_item)   
         return comaccused_item 
     raise HTTPException(detail=f"{comaccused_id} does not exist",status_code=status.HTTP_400_BAD_REQUEST)
-@router.delete('/dlt_com_accused/{com_accused_id}',tags=['Master_Complaint'])
+@router.delete('/dlt_com_accused/{com_accused_id}',tags=["Complaint_Accused"])
 async def dlt_com_accused(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                          com_accused_id:int,db:Session=Depends(getdb)):
     com_accused_item=db.query(ComAccused_Model).filter(ComAccused_Model.id==com_accused_id).first()
@@ -916,6 +916,97 @@ async def dlt_com_accused(current_user:Annotated[UserBase,Depends(get_current_ac
         db.commit()
         return Response(content=f"com_accused_item has been deleted successfully",status_code=status.HTTP_200_OK)
     raise HTTPException(detail=f"{com_accused_id} does not exist",status_code=status.HTTP_200_OK)
+#----------------complaint_witness----------------------------
+@router.get('/get_com_witness',response_model=list[ComWitness_BaseGet],tags=["Complaint_Witness"])
+async def get_com_witness(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                          db:Session=Depends(getdb)):
+    list_com_witness=db.query(ComWitness_Model).order_by(ComWitness_Model.id.desc()).all()
+    return list_com_witness
+@router.post('/create_com_witness',response_model=ComWitness_BaseGet,tags=["Complaint_Witness"])
+async def create_com_witness(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                            com_witness:ComWitness_Base=Body(...),image:UploadFile=File(None),
+                            db:Session=Depends(getdb)):
+    duplicate_witness=db.query(ComWitness_Model).filter(ComWitness_Model.Witness_Name==com_witness.Witness_Name,
+                                                        ComWitness_Model.complaint_id==com_witness.complaint_id).first()
+    if duplicate_witness:
+        raise HTTPException(detail=f"{com_witness.Witness_Name} already present in this complaint",status_code=status.HTTP_400_BAD_REQUEST)
+    if image:
+        file_path=await imagestore(image,'complaint/Witness_img')
+        setattr(com_witness ,'Witness_Imgpath',f"Static/Images/complaint/Witness_img/{file_path}")
+    witness_db=ComWitness_Model(**com_witness.model_dump())
+    db.add(witness_db)
+    db.commit()
+    db.refresh(witness_db)
+    return witness_db
+@router.put('/update_com_witness/{witness_id}',response_model=ComWitness_BaseGet,tags=["Complaint_Witness"])
+async def update_com_witness(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                              witness_id:int,com_witness:ComWitness_Base,
+                            db:Session=Depends(getdb)):
+    dupllicate_witness=db.query(ComWitness_Model).filter(ComWitness_Model.Witness_Name==com_witness.Witness_Name,
+                                                         ComWitness_Model.complaint_id==com_witness.complaint_id,
+                                                         ComWitness_Model.id!=witness_id).first()
+    if dupllicate_witness:
+        raise HTTPException(detail=f"{com_witness} already present",status_code=status.HTTP_400_BAD_REQUEST)
+    witness_exist=db.query(ComWitness_Model).filter(ComWitness_Model.id==witness_id).first()
+    if witness_exist:
+        for field,item in com_witness.dict(exclude_unset=True).items():
+            setattr(witness_exist,field,item)
+            print(f"{field}====>{item}")
+        db.commit()
+        db.refresh(witness_exist) 
+        return witness_exist
+    raise HTTPException(detail=f"{witness_id} does not found",status_code=status.HTTP_400_BAD_REQUEST)
+@router.delete('/dlt_com_witness/{witness_id}',tags=["Complaint_Witness"])    
+async def del_com_complaint(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                            witness_id:int,db:Session=Depends(getdb)):
+    com_witness_exist=db.query(ComWitness_Model).filter(ComWitness_Model.id==witness_id).first()
+    if com_witness_exist:
+        db.delete(com_witness_exist)
+        db.commit()
+        return Response(content=f"com_witness has been deleted succesfully",status_code=status.HTTP_200_OK)
+    raise HTTPException(detail=f'{witness_id} does not exist',status_code=status.HTTP_400_BAD_REQUEST)   
+#--------------------------complaint_Victime_--------------------------------------------------
+@router.get('/get_victime',response_model=list[ComVictime_Model],tags=['Complaint_Victime'])
+async def get_com_victime(current_user:Annotated[UserBase,Depends(getdb)]):
+    list_victime=db.query(ComVictime_Model).order_by(ComVictime_Model.id.desc()).all()
+    return list_victime
+@router.post('/create_com_victime',response_model=ComVictime_BaseGet,tags=['Complaint_Victime'])
+async def create_com_victime(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                             com_victime:ComVictime_Base,db:Session=Depends(getdb)):
+    duplicate_victime=db.query(ComVictime_Model).filter(ComVictime_Model.Victime_Name==com_victime.Victime_Name,
+                                                        ComVictime_Model.Victime_Name==com_victime.Victime_Name).first()
+    if duplicate_victime:
+        raise HTTPException(detail=f"{com_victime.Victime_Name} already exist in this complaint",status_code=status.HTTP_400_BAD_REQUEST) 
+    victime_db=ComVictime_Model(**com_victime.model_dump())
+    db.add(victime_db)
+    db.commit()     
+    db.refresh(victime_db)
+    return victime_db
+@router.put('/updadte_com_victime/{victime_id}',response_model=ComVictime_BaseGet,tags=['Complaint_Victime'])
+async def update_com_victime(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                             victime_id:int,com_victime:ComVictime_Base,db:Session=Depends(getdb)):
+    duplicate_victime=db.query(ComVictime_Model).filter(ComVictime_Model.Victime_Name==com_victime.Victime_Name,
+                                                        ComVictime_Model.complaint_id==com_victime.complaint_id,
+                                                        ComVictime_Model.id!=victime_id).first()
+    if duplicate_victime:
+        raise HTTPException(detail=f"{com_victime.Victime_Name} already present in this complaint",status_code=status.HTTP_400_BAD_REQUEST)
+    victime_exist=db.query(ComVictime_Model).filter(com_victime.id==com_victime.id).first()
+    if victime_exist:
+                for field,item  in com_victime.model_dump(exclude_unset=True).items():
+                    setattr(victime_exist,field,item)
+                db.commit()
+                db.refresh(victime_exist)
+                return victime_exist
+    raise HTTPException(detail=f"{victime_id} does not found",status_code=status.HTTP_400_BAD_REQUEST)  
+@router.delete('del_com_victime/{victime_id}',tags=['Complaint_Victime'])
+async def del_com_victime(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                          victime_id:int,db:Session=Depends(getdb)):
+    victime_exist=db.query(ComVictime_Model).filter(ComVictime_Model.id==victime_id).first()
+    if victime_exist:
+        db.delete(victime_exist)
+        db.commit()
+        return Response(content=f"victime has been deleted successfully",status_code=status.HTTP_400_BAD_REQUEST)
+    raise HTTPException(detail=f"{victime_id} does not found",status_code=status.HTTP_400_BAD_REQUEST)
     
 #----------------------------evidence_api------------------------
 @router.post("/evidence_create",response_model=ComplaintGet,tags=['Evidence_Api'])

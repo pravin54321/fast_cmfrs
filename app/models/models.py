@@ -374,7 +374,7 @@ class ComplaintModel(Base):
     mode_complaint=relationship('Infomode_Model',backref='mode_complaint')
     crime_type=relationship('CrimeMethod_Model',backref='crime_type')
 
-class Cvictime_Model(Base):#complaint victime model
+class ComVictime_Model(Base):#complaint victime model
     __tablename__='complaint_victime'
     id =Column(Integer,primary_key=True,unique=True,autoincrement=True,index=True)
     complaint_id=Column(Integer,ForeignKey('complaint.id'))
@@ -386,7 +386,7 @@ class Cvictime_Model(Base):#complaint victime model
     Victime_Imgpath=Column(String(256))
     crete_date=Column(DateTime,default=get_current_time)
     update_date=Column(DateTime,default=get_current_time,onupdate=func.now())
-class Cwitness_Model(Base):#complaint witness
+class ComWitness_Model(Base):#complaint witness
     __tablename__='complaint_witness'
     id=Column(Integer,primary_key=True,autoincrement=True,index=True,unique=True)
     complaint_id=Column(Integer,ForeignKey('complaint.id'))
@@ -397,7 +397,7 @@ class Cwitness_Model(Base):#complaint witness
     Witness_Imgpath=Column(String(256))
     Remark=Column(Text)
     create_date=Column(DateTime,default=get_current_time)
-    update_time=Column(DateTime,default=get_current_time,onupdate=func.now)
+    update_date=Column(DateTime,default=get_current_time,onupdate=func.now)
 class ComAccused_Model(Base):#complaint accused
     __tablename__='complaint_accused'
     id=Column(Integer,primary_key=True,unique=True,autoincrement=True)

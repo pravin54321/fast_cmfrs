@@ -404,25 +404,37 @@ class ComAccused_BaseGet(ComAccused_Base):
     create_date:datetime=None
     update_date:datetime=None
 class ComWitness_Base(BaseModel):
-    complaint_id:int=Form(...)
-    Witness_Name:str=Form(...)
-    Witnes_age:int=Form(...)
-    Witness_Address:str=Form(...)
-    Relation:str=Form(...)
-    Witness_Imgpath:str=Form(...)
+    complaint_id:int
+    Witness_Name:str
+    Witnes_age:int
+    Witness_Address:str
+    Relation:str
+    Witness_Imgpath:Optional[str]=None
     Remark:str 
+    @model_validator(mode='before')
+    @classmethod
+    def validate_to_json(cls, value):
+        if isinstance(value, str):
+            return cls(**json.loads(value))
+        return value    
 class ComWitness_BaseGet(ComWitness_Base):
     id:int
     create_date:datetime
     update_date:datetime 
 class ComVictime_Base(BaseModel):
-    complaint_id:int=Form(...)
-    Victime_Name:str=Form(...)
-    Victime_Age:int=Form(...)
-    Victime_Address:str=Form(...)
-    Relation:str=Form(...)
-    Remark:str=Form(...)
-    Victime_Imgpath:str=Form(...) 
+    complaint_id:int
+    Victime_Name:str
+    Victime_Age:int
+    Victime_Address:str
+    Relation:str
+    Remark:str
+    Victime_Imgpath:Optional[str]=None
+    @model_validator(mode='before')
+    @classmethod
+    def validate_to_json(cls, value):
+        if isinstance(value, str):
+            return cls(**json.loads(value))
+        return value    
 class ComVictime_BaseGet(ComVictime_Base):
     id:int
     create_date:datetime=None

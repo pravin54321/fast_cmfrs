@@ -184,7 +184,23 @@ def test_com_accused():
     response=client.put('/update_comaccused/1',data=data)
     print("com_accused_test",response.text)
     assert response.status_code==200
-      
+def test_com_witness():
+    data={'com_witness':'{ "complaint_id": 2,"Witness_Name": "prabhas","Witnes_age": 35,"Witness_Address": "nagpur","Relation": "brother","Witness_Imgpath": "image_path","Remark": "no remark"}'}    
+    response=client.post('create_com_witness',data=data)
+    print("==========>",response.text)
+    assert response.status_code==200  
+def test_update_com_witness():
+    data= {
+   "complaint_id": 2,
+   "Witness_Name": "new_witness",
+   "Witnes_age": 34,
+   "Witness_Address": "nagpur",
+   "Relation": "mother",
+   "Witness_Imgpath": "image_path",
+   "Remark": "no remark"  
+  }  
+    response=client.put('/update_com_witness/1',json=data)
+    assert response.status_code==200
     
 
 
