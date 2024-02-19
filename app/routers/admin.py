@@ -877,8 +877,12 @@ async def get_comaccused(current_user:Annotated[UserBase,Depends(get_current_act
     list_comaccused=db.query(ComAccused_Model).order_by(ComAccused_Model.id.desc()).all()
     return(list_comaccused) 
 @router.post('/create_comaccused',response_model=ComAccused_BaseGet,tags=['Complaint_Api'])
-async def  create_comaccused(
+async def  create_comaccused(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                              com_accused:ComAccused_Base=Body(),image:UploadFile=File(None),db:Session=Depends(getdb)):
+    com_accused_duplicate=db.query(ComAccused_Model).filter(ComAccused_Model.Accused_Name==com_accused.Accused_Name,
+                                                            ComAccused_Model.complaint_id==com_accused.complaint_id).first()
+    if com_accused_duplicate:
+        raise HTTPException(detail=f"{com_accused.Accused_Name} alrady have been present this complaint",status_code=status.HTTP_400_BAD_REQUEST)
     if image:
         file_path=await imagestore(image,'complaint/Accused_img')
         setattr(com_accused,'Accused_Imgpath',f"Static/Images/complaint/Accused_img/{file_path}")

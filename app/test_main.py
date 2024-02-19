@@ -179,8 +179,9 @@ def test_crime_dlt():
     print('=========',response.text)
     assert response.status_code==200   
 def test_com_accused():
-    data={'com_accused': '{"complaint_id": 1, "Accused_Name": "pravin mendhe", "Aliase": "dada", "Accused_Age": 12, "Accused_Address": "nagpur", "relation":"mother", "Remark": "pravin", "Accused_Imgpath": "imgpath"}'}
-    response=client.post('/create_comaccused',data=data)
+    file = {'image': open("C:/Users/HP LAPTOP/Downloads/2024-01-0205_54_52_632114.png",'rb')}
+    data={'com_accused': '{"complaint_id": 2, "Accused_Name": "pravin mendhe", "Aliase": "dada", "Accused_Age": 12, "Accused_Address": "nagpur", "relation":"mother", "Remark": "pravin", "Accused_Imgpath":}'}
+    response=client.put('/update_comaccused/1',data=data)
     print("com_accused_test",response.text)
     assert response.status_code==200
       
