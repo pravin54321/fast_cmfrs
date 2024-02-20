@@ -966,7 +966,7 @@ async def del_com_complaint(current_user:Annotated[UserBase,Depends(get_current_
         return Response(content=f"com_witness has been deleted succesfully",status_code=status.HTTP_200_OK)
     raise HTTPException(detail=f'{witness_id} does not exist',status_code=status.HTTP_400_BAD_REQUEST)   
 #--------------------------complaint_Victime_--------------------------------------------------
-@router.get('/get_victime',response_model=list[ComVictime_Model],tags=['Complaint_Victime'])
+@router.get('/get_victime',response_model=list[ComVictime_BaseGet],tags=['Complaint_Victime'])
 async def get_com_victime(current_user:Annotated[UserBase,Depends(getdb)]):
     list_victime=db.query(ComVictime_Model).order_by(ComVictime_Model.id.desc()).all()
     return list_victime
@@ -990,7 +990,7 @@ async def update_com_victime(current_user:Annotated[UserBase,Depends(get_current
                                                         ComVictime_Model.id!=victime_id).first()
     if duplicate_victime:
         raise HTTPException(detail=f"{com_victime.Victime_Name} already present in this complaint",status_code=status.HTTP_400_BAD_REQUEST)
-    victime_exist=db.query(ComVictime_Model).filter(com_victime.id==com_victime.id).first()
+    victime_exist=db.query(ComVictime_Model).filter(ComVictime_Model.id==victime_id).first()
     if victime_exist:
                 for field,item  in com_victime.model_dump(exclude_unset=True).items():
                     setattr(victime_exist,field,item)

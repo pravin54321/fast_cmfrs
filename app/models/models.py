@@ -384,7 +384,7 @@ class ComVictime_Model(Base):#complaint victime model
     Relation=Column(String(256),comment='relation with complainant and victime')
     Remark=Column(Text)
     Victime_Imgpath=Column(String(256))
-    crete_date=Column(DateTime,default=get_current_time)
+    create_date=Column(DateTime,default=get_current_time)
     update_date=Column(DateTime,default=get_current_time,onupdate=func.now())
 class ComWitness_Model(Base):#complaint witness
     __tablename__='complaint_witness'
