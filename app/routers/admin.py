@@ -831,11 +831,11 @@ async def del_stationlog(current_user:Annotated[UserBase,Depends(get_current_act
 #--------complaint_api---------------------------
 @router.post('/create_complaint',response_model=ComplaintGet,tags=["Complaint_Api"])
 async def create_complaint(current_user:Annotated[UserBase,Depends(get_current_active_user)],
-                        complaint:ComplaintBase=Depends(),img_file:UploadFile=File(None),
+                        complaint:ComplaintBase=Body(...),img_file:UploadFile=File(None),
                         db:Session=Depends(getdb)):
     if img_file:
         file_path=await imagestore(img_file,'complaint/complainant_img')
-        setattr(complaint,'Complainant_Imgpath',file_path)
+        setattr(complaint,'Complainant_Imgpath',f"Static/Images/complaint/complainant_img/{file_path}")
     user_id=[current_user.id if current_user.id else None]
     complaint.user_id=user_id[0]
     complaint_item=ComplaintModel(**complaint.model_dump())

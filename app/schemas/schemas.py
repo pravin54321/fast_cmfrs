@@ -461,7 +461,13 @@ class ComplaintBase(BaseModel):
    Investing_Officer:str
    Complainant_Imgpath:Optional[str]=None
    Complaint_Desc:str
-   user_id:Optional[int]=None    
+   user_id:Optional[int]=None 
+   @model_validator(mode='before')
+   @classmethod
+   def validate_to_json(cls, value):
+        if isinstance(value, str):
+            return cls(**json.loads(value))
+        return value      
 class ComplaintBase_01(BaseModel):
    Complainant_Name:str
    Complaint_uid:str
