@@ -368,7 +368,7 @@ class ComplaintModel(Base):
     user_id=Column(Integer,comment='current user id save')
     create_date=Column(DateTime,default=get_current_time)
     update_date=Column(DateTime,default=get_current_time,onupdate=func.now())
-    evidence=relationship('ComEvidenceModel',back_populates='complaint',cascade='all,delete')
+    evidence=relationship('ComEvidenceModel',backref='evidence',cascade='all,delete-orphan')
     policestation=relationship('PoliceStationModel',back_populates='complaint')
     designation=relationship('DesignationModel',back_populates='complaint')
     mode_complaint=relationship('Infomode_Model',backref='mode_complaint')
@@ -419,7 +419,7 @@ class ComEvidenceModel(Base):
     File_Type=Column(String(200))    
     create_date=Column(DateTime,default=get_current_time)
     update_date=Column(DateTime,default=get_current_time,onupdate=func.now())
-    complaint=relationship('ComplaintModel',back_populates='evidence')
+   
 
 #------------Ncr_Table---------------------------------------------
 

@@ -1014,6 +1014,11 @@ async def del_com_victime(current_user:Annotated[UserBase,Depends(get_current_ac
     raise HTTPException(detail=f"id-{victime_id} does not found",status_code=status.HTTP_400_BAD_REQUEST)
     
 #----------------------------evidence_api------------------------
+@router.get('/get_evidence/{complaint_id}',response_model=list[ComEvidenceBase],tags=['Complaint_Evidence'])
+async def get_evidence(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                       complaint_id:int,db:Session=Depends(getdb)):
+    list_evidence=db.query(ComEvidenceModel).filter(ComEvidenceModel.Complaint_id==complaint_id).order_by(ComEvidenceModel.id.desc()).all()
+    return list_evidence 
 @router.post("/evidence_create",response_model=ComplaintGet,tags=['Complaint_Evidence'])
 async def evidence_cretae(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                           complaint_id:int=Form(...),
@@ -1032,14 +1037,15 @@ async def evidence_cretae(current_user:Annotated[UserBase,Depends(get_current_ac
     raise HTTPException(detail=f"complaint id {complaint_id} does not  exist",status_code=status.HTTP_400_BAD_REQUEST)
 @router.put('/update_evidence/{evidence_id}',tags=['Complaint_Evidence'])
 async def update_evidence(current_user:Annotated[UserBase,Depends(get_current_active_user)],
-                          evidence_id:int,complaint_id:int=Form(...),evidence:UploadFile=File(...),
+                          evidence_id:int,evidence:UploadFile=File(...),
                           db:Session=Depends(getdb)):
     evidence_exist=db.query(ComEvidenceModel).filter(ComEvidenceModel.id==evidence_id).first()
     if evidence_exist:
-        file_path=await imagestore(evidence,'complaint')
+        delete_image=await dlt_image(evidence_exist.File_Path)
+        file_path=await imagestore(evidence,'complaint/evidence_img')
         file_type=evidence.content_type
-        evidence_exist.Complaint_id=complaint_id
-        evidence_exist.File_Path=f'Static/Images/complaint/{file_path}'
+        evidence_exist.Complaint_id=evidence_exist.Complaint_id
+        evidence_exist.File_Path=f'Static/Images/complaint/evidence_img/{file_path}'
         evidence_exist.File_Type=file_type
         db.commit()
         db.refresh(evidence_exist)
@@ -1050,7 +1056,7 @@ async def del_evidence(current_user:Annotated[UserBase,Depends(get_current_activ
                        evidence_id:int,db:Session=Depends(getdb)):
     evidence_exist=db.query(ComEvidenceModel).filter(ComEvidenceModel.id==evidence_id).first()
     if evidence_exist:
-        dlt_image(evidence_exist.File_Path)
+        delete_img=await dlt_image(evidence_exist.File_Path)
         db.delete(evidence_exist)
         db.commit()
         return Response(content=f'id-{evidence_id} has been delete successfully',status_code=status.HTTP_200_OK)

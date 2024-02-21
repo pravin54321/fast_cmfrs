@@ -439,6 +439,13 @@ class ComVictime_BaseGet(ComVictime_Base):
     id:int
     create_date:datetime=None
     update_date:datetime=None 
+class ComEvidenceBase(BaseModel):
+    id:int
+    Complaint_id:int
+    File_Path:str
+    File_Type:str 
+class ComEvidenceGet(ComEvidenceBase):
+   id:int      
 
 class ComplaintBase(BaseModel):
    Complainant_Name:str
@@ -480,11 +487,6 @@ class ComplaintBase_01(BaseModel):
    Designation_id:int   
    Complaint_Against:str
    Complaint_Desc:str   
-class ComEvidenceBase(BaseModel):
-    id:int
-    Complaint_id:int
-    File_Path:str
-    File_Type:str       
 class ComplaintGet(BaseModel):
    id:int
    Complaint_uid:str
@@ -507,8 +509,10 @@ class ComplaintGet(BaseModel):
    Investing_Officer:str
    Complainant_Imgpath:Optional[str]=None
    Complaint_Desc:str
+   evidence:list[ComEvidenceGet]=None
    create_date:datetime
-   update_date:datetime   
+   update_date:datetime  
+
 #---------NCR_SCHEMA------------------
 class NCRBase(BaseModel):
     P_Station:int

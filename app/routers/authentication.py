@@ -96,7 +96,7 @@ async def imagestore(file,subdir):
                     print(f"Error while writing the file: {e}")
     return unique_filename                
 #________________delete_image_in folder___________
-def dlt_image(file_path):
+async def dlt_image(file_path):
     file_path=f"{dlt_img}/{file_path}"
     try:
         os.remove(file_path)
