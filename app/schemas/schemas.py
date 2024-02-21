@@ -510,6 +510,9 @@ class ComplaintGet(BaseModel):
    Complainant_Imgpath:Optional[str]=None
    Complaint_Desc:str
    evidence:list[ComEvidenceGet]=None
+   victime:list[ComVictime_BaseGet]=None
+   witness:list[ComWitness_BaseGet]=None
+   accused:list[ComAccused_BaseGet]=None
    create_date:datetime
    update_date:datetime  
 

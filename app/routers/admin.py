@@ -845,7 +845,10 @@ async def create_complaint(current_user:Annotated[UserBase,Depends(get_current_a
 @router.get('/get_complaint',response_model=list[ComplaintGet],tags=['Complaint_Api'])
 async def get_complaint(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                         db:Session=Depends(getdb)):
-    list_complaint=db.query(ComplaintModel).filter(ComplaintModel.user_id==current_user.id).order_by(ComplaintModel.id.desc()).all()
+    if current_user.Role == 0 or current_user.Role==2:
+           list_complaint=db.query(ComplaintModel).all()
+    elif current_user.Role==1:       
+           list_complaint=db.query(ComplaintModel).filter(ComplaintModel.user_id==current_user.id).order_by(ComplaintModel.id.desc()).all()
     return list_complaint
 @router.patch('/update_complaint/{complaint_id}',response_model=ComplaintGet,tags=['Complaint_Api'])
 async def update_complaint(current_user:Annotated[UserBase,Depends(getdb)],
@@ -863,9 +866,15 @@ async def update_complaint(current_user:Annotated[UserBase,Depends(getdb)],
 async def del_complaint(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                         complaint_id:int,db:Session=Depends(getdb)):
     complaint_exist=db.query(ComplaintModel).filter(ComplaintModel.id==complaint_id).first()
-    evidance_exist=db.query(ComEvidenceModel).filter(ComEvidenceModel.Complaint_id).all()
+    evidance_exist=db.query(ComEvidenceModel).filter(ComEvidenceModel.Complaint_id==complaint_id).all()
+    accused_exist=db.query(ComAccused_Model).filter(ComAccused_Model.complaint_id==complaint_id).all()
+    witness_exist=db.query(ComWitness_Model).filter(ComWitness_Model.complaint_id==complaint_id).all()
+    victime_exist=db.query(ComVictime_Model).filter(ComVictime_Model.complaint_id==complaint_id).all()
     if complaint_exist:
-        dlt_file=[dlt_image(evidence.File_Path) for evidence in evidance_exist]
+        dlt_evidence=[await dlt_image(evidence.File_Path) for evidence in evidance_exist] if evidance_exist else None
+        dlt_accused=[await dlt_image(accused.Accused_Imgpath) for accused in accused_exist] if accused_exist else None
+        dlt_witness=[await dlt_image(witness.Witness_Imgpath) for witness in witness_exist] if witness_exist else None
+        dlt_victime=[await dlt_image(victime.Victime_Imgpath) for victime in victime_exist] if victime_exist else None
         db.delete(complaint_exist)
         db.commit()
         return Response(content=f'id-{complaint_id} has been deleted successfully',status_code=status.HTTP_200_OK)  
