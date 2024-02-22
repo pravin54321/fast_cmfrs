@@ -853,7 +853,7 @@ async def get_complaint(current_user:Annotated[UserBase,Depends(get_current_acti
 @router.patch('/update_complaint/{complaint_id}',response_model=ComplaintGet,tags=['Complaint_Api'])
 async def update_complaint(current_user:Annotated[UserBase,Depends(getdb)],
                            complaint_id:int,
-                           complaint:ComplaintBase_01,db:Session=Depends(getdb)):
+                           complaint:ComplaintBase,db:Session=Depends(getdb)):
     complaint_exist=db.query(ComplaintModel).filter(ComplaintModel.id==complaint_id).first()
     if complaint_exist:
         for field,value in complaint.model_dump(exclude={'Complaint_uid'},exclude_unset=True).items():
@@ -1075,6 +1075,22 @@ async def del_evidence(current_user:Annotated[UserBase,Depends(get_current_activ
 async def get_ncr(current_user:Annotated[UserBase,Depends(get_current_active_user)],db:Session=Depends(getdb)):
     list_ncr=db.query(NCRModel).filter(NCRModel.user_id==current_user.id).order_by(NCRModel.id.desc()).all()
     return list_ncr
+@router.post('/create_ncr_from_complaint/{complaint_id}',tags=['NCR_API'])
+async def create_ncr_from_complaint(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                                    complaint_id:int,db:Session=Depends(getdb)):
+    complaint_exist=db.query(ComplaintModel).filter(ComplaintModel.id==complaint_id).first()
+    if complaint_exist:
+        ncr_db=NCRModel(police_station_id=complaint_exist.Station_id,Complaint_id=complaint_exist.id,
+                        info_recive=complaint_exist.Complaint_Date,Occurrence_Date_Time=complaint_exist.Occurance_date_time,
+                        Place_Occurrence=complaint_exist.Place_Occurance,Name_Complainant=complaint_exist.Complainant_Name,
+                        Complainant_Mob_Number=complaint_exist.Mob_Number,Complainant_Age=complaint_exist.Complainant_Age,
+                        Complainant_imgpath=complaint_exist.Complainant_Imgpath,Complainant_Description=complaint_exist.Complaint_Desc,
+                        complaint_or_Ncr=0,user_id=current_user.id)
+        db.add(ncr_db)
+        db.commit()
+        db.refresh(complaint_exist)
+        return ncr_db
+    
 @router.post('/create_ncr',response_model=NCRBaseGet,tags=['NCR_API'])
 async def create_ncr(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                      ncr:NCRBase,comp_addresses:list[CompAddressBase],accusess:list[AccusedBase],

@@ -450,14 +450,16 @@ class ComEvidenceGet(ComEvidenceBase):
 class ComplaintBase(BaseModel):
    Complainant_Name:str
    Mob_Number:str  
+   Complainant_Age:int
    Email:EmailStr                       
    Address:str
    Pin_Code:int
    Adhar_Number:str
    Station_id:int
    Auth_Person:str
-   Date:datetime
+   Complaint_Date:datetime
    Designation_id:int
+   Occurance_date_time:datetime
    Place_Occurance:str
    Dfrom_Pstation:str
    Relation_Victim:str
@@ -475,31 +477,34 @@ class ComplaintBase(BaseModel):
         if isinstance(value, str):
             return cls(**json.loads(value))
         return value      
-class ComplaintBase_01(BaseModel):
-   Complainant_Name:str
-   Complaint_uid:str
-   Mob_Number:str  
-   Email:EmailStr|None=None
-   Address:str
-   Pin_Code:int
-   Station_id:int
-   Auth_Person:str
-   Designation_id:int   
-   Complaint_Against:str
-   Complaint_Desc:str   
+# class ComplaintBase_01(BaseModel):
+#    Complainant_Name:str
+#    Complaint_uid:str
+#    Mob_Number:str  
+#    Email:EmailStr|None=None
+#    Address:str
+#    Pin_Code:int
+#    Station_id:int
+#    Auth_Person:str
+#    Designation_id:int   
+#    Complaint_Against:str
+#    Complaint_Desc:str   
 class ComplaintGet(BaseModel):
    id:int
    Complaint_uid:str
    Complainant_Name:str
+   Complainant_Age:int
    Mob_Number:str  
    Email:EmailStr|None=None
    Address:str
    Pin_Code:int
-   Date:datetime
+   Complaint_Date:datetime
+   Adhar_Number:str
    policestation:PoliceStation_only
    Auth_Person:str
    designation:DesignationGet   
    Place_Occurance:str
+   Occurance_date_time:datetime
    Dfrom_Pstation:str
    Relation_Victim:str
    mode_complaint:infomode_BaseGet
@@ -512,20 +517,28 @@ class ComplaintGet(BaseModel):
    evidence:list[ComEvidenceGet]=None
    victime:list[ComVictime_BaseGet]=None
    witness:list[ComWitness_BaseGet]=None
-   accused:list[ComAccused_BaseGet]=None
+   accuse:list[ComAccused_BaseGet]=None
    create_date:datetime
    update_date:datetime  
 
 #---------NCR_SCHEMA------------------
 class NCRBase(BaseModel):
-    P_Station:int
-    info_recive:datetime  
-    GD_No:int
-    GD_Date:datetime
-    Occurrence_Date:datetime
+    police_station_id:int
+    Complaint_id:int=None
+    info_recive:datetime
+    GD_No:str=None
+    GD_Date_Time:datetime=None
+    Occurrence_Date_Time:datetime
     Place_Occurrence:str
-    Name_Complainant:str 
-    user_id:int=None 
+    Occurance_from:time=None
+    Occurance_to:time=None
+    Name_Complainant:str
+    Complainant_Mob_Number:str
+    Complainant_Age:int
+    Complainant_imgpath:str
+    Complainant_Description:str
+    complaint_or_Ncr:int # from complaint set 0 or diret Ncr set 1
+    user_id:Optional[int]=None
 class CompAddressBase(BaseModel):# for ncr
     Address_Type:str
     Address:str 

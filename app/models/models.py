@@ -347,11 +347,13 @@ class ComplaintModel(Base):
     Complaint_uid=Column(String(200),default=complaint_uid)
     Complainant_Name=Column(String(200),nullable=False)
     Mob_Number=Column(String(50),nullable=False)
+    Complainant_Age=Column(Integer)
     Email=Column(String(200))  
     Address=Column(Text)
     Pin_Code=Column(Integer)
     Adhar_Number=Column(String(12))
-    Date=Column(DateTime)
+    Complaint_Date=Column(DateTime)
+    Occurance_date_time=Column(DateTime)
     Place_Occurance=Column(Text)
     Dfrom_Pstation=Column(String(256),comment="distance from police station")
     Relation_Victim=Column(String(256),comment='relation with complainant and victime')
@@ -425,24 +427,31 @@ class ComEvidenceModel(Base):
    
 
 #------------Ncr_Table---------------------------------------------
-
 class NCRModel(Base):
-    __tablename__='ncr'
+    __tablename__='ncr_model'
     id=Column(Integer,primary_key=True,autoincrement=True,index=True)  
-    P_Station=Column(Integer,ForeignKey('policestation.id'),nullable=False)
-    info_recive=Column(DateTime)  
-    GD_No=Column(Integer)
-    GD_Date=Column(DateTime)
-    Occurrence_Date=Column(DateTime)
+    police_station_id=Column(Integer,ForeignKey('policestation.id'),nullable=False)
+    Complaint_id=Column(Integer,ForeignKey('complaint.id'),nullable=True)
+    info_recive=Column(DateTime,comment='info recive date and time')  
+    GD_No=Column(String(200))
+    GD_Date_Time=Column(DateTime)
+    Occurrence_Date_Time=Column(DateTime)
     Place_Occurrence=Column(Text)
+    Occurance_from=Column(Time,comment='occurance time range')
+    Occurance_to=Column(Time,comment='occurance time range from to')
     Name_Complainant=Column(String(200))
+    Complainant_Mob_Number=Column(String(12))
+    Complainant_Age=Column(Integer)
     NCR_uid=Column(String(200),default=ncr_uid)
+    Complainant_imgpath=Column(String(200))
+    Complainant_Description=Column(Text)
+    complaint_or_Ncr=Column(Integer,comment='from complaint-0 & dir_ncr-1')
     user_id=Column(Integer,comment='user id logine')
     create_date=Column(DateTime,default=get_current_time)
     update_date=Column(DateTime,default=get_current_time,onupdate=func.now())
-    compl_address=relationship('Complainat_AddressModel',back_populates='ncr',cascade='delete,all')
-    accused=relationship('AccusedModel',back_populates='ncr',cascade='delete,all')
-    act=relationship('NCR_ACTModel',back_populates='ncr',cascade='delete,all')
+    # compl_address=relationship('Complainat_AddressModel',back_populates='ncr',cascade='delete,all')
+    # accused=relationship('AccusedModel',back_populates='ncr',cascade='delete,all')
+    # act=relationship('NCR_ACTModel',back_populates='ncr',cascade='delete,all')
     police_station=relationship('PoliceStationModel',back_populates='ncr')
 class Complainat_AddressModel(Base):
     __tablename__='com_address'
@@ -452,7 +461,7 @@ class Complainat_AddressModel(Base):
     Address=Column(Text)
     create_date=Column(DateTime,default=get_current_time)
     update_date=Column(DateTime,default=get_current_time,onupdate=func.now()) 
-    ncr=relationship('NCRModel',back_populates='compl_address')
+    # ncr=relationship('NCRModel',back_populates='compl_address')
 class AccusedModel(Base):# for ncr  accused model
     __tablename__='accused'
     id=Column(Integer,primary_key=True,index=True,autoincrement=True)
@@ -462,8 +471,8 @@ class AccusedModel(Base):# for ncr  accused model
     Age=Column(Integer)
     create_date=Column(DateTime,default=get_current_time)
     update_date=Column(DateTime,default=get_current_time,onupdate=func.now())
-    ncr=relationship('NCRModel',back_populates='accused')
-    accus_address=relationship('Accused_AddressModel',back_populates='accused',cascade='delete,all')
+    # ncr=relationship('NCRModel',back_populates='accused')
+    # accus_address=relationship('Accused_AddressModel',back_populates='accused',cascade='delete,all')
 class Accused_AddressModel(Base):# for NCR Accused address model
     __tablename__='accus_address'
     id=Column(Integer,primary_key=True,index=True,autoincrement=True)    
@@ -473,7 +482,7 @@ class Accused_AddressModel(Base):# for NCR Accused address model
     Address=Column(Text)
     create_date=Column(DateTime,default=get_current_time)
     update_time=Column(DateTime,default=get_current_time,onupdate=func.now())
-    accused=relationship('AccusedModel',back_populates='accus_address')  
+    # accused=relationship('AccusedModel',back_populates='accus_address')  
 class NCR_ACTModel(Base):# for NCR act_section
     __tablename__='ncr_act'
     id=Column(Integer,primary_key=True,unique=True,index=True)  
@@ -482,7 +491,7 @@ class NCR_ACTModel(Base):# for NCR act_section
     Section=Column(Text)  
     create_date=Column(DateTime,default=get_current_time)
     update_date=Column(DateTime,default=get_current_time,onupdate=func.now()) 
-    ncr=relationship(NCRModel,back_populates='act')
+    # ncr=relationship(NCRModel,back_populates='act')
     kalam=relationship('CrimeKalamModel',back_populates='ncr_act')
 class FIRModel(Base):
     __tablename__='fir'
