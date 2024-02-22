@@ -526,23 +526,22 @@ class NCRBase(BaseModel):
     Place_Occurrence:str
     Name_Complainant:str 
     user_id:int=None 
-    
-class CompAddressBase(BaseModel):
+class CompAddressBase(BaseModel):# for ncr
     Address_Type:str
     Address:str 
-class CompAddressBaseGet(BaseModel):
+class CompAddressBaseGet(BaseModel):# for ncr
     id:int
     Address_Type:str
     Address:str     
-class AccuAddressBase(BaseModel):
+class AccuAddressBase(BaseModel):# for ncr
     Address_Type:str
     Address:str      
-class AccusedBase(BaseModel):
+class AccusedBase(BaseModel):#for ncr
     Name:str
     Father_Name:str
     Age:int
     Addresses:list[AccuAddressBase]
-class AccusedBaseGet(BaseModel):
+class AccusedBaseGet(BaseModel):#ncr accused
     id:int
     Name:str
     Father_Name:str

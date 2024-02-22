@@ -845,9 +845,9 @@ async def create_complaint(current_user:Annotated[UserBase,Depends(get_current_a
 @router.get('/get_complaint',response_model=list[ComplaintGet],tags=['Complaint_Api'])
 async def get_complaint(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                         db:Session=Depends(getdb)):
-    if current_user.Role == 0 or current_user.Role==2:
+    if current_user.Role == 1 or current_user.Role==2:#0 for sp and 2 for admin
            list_complaint=db.query(ComplaintModel).all()
-    elif current_user.Role==1:       
+    elif current_user.Role==0:       
            list_complaint=db.query(ComplaintModel).filter(ComplaintModel.user_id==current_user.id).order_by(ComplaintModel.id.desc()).all()
     return list_complaint
 @router.patch('/update_complaint/{complaint_id}',response_model=ComplaintGet,tags=['Complaint_Api'])
