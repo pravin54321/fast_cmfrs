@@ -449,35 +449,34 @@ class NCRModel(Base):
     user_id=Column(Integer,comment='user id logine')
     create_date=Column(DateTime,default=get_current_time)
     update_date=Column(DateTime,default=get_current_time,onupdate=func.now())
-    # compl_address=relationship('Complainat_AddressModel',back_populates='ncr',cascade='delete,all')
-    # accused=relationship('AccusedModel',back_populates='ncr',cascade='delete,all')
-    # act=relationship('NCR_ACTModel',back_populates='ncr',cascade='delete,all')
+    complainant_address=relationship('Complainat_AddressModel',backref='complainant_address')   
+    accused=relationship('AccusedModel',backref='accused') 
     police_station=relationship('PoliceStationModel',back_populates='ncr')
 class Complainat_AddressModel(Base):
-    __tablename__='com_address'
+    __tablename__='ncr_com_address'
     id=Column(Integer,primary_key=True,autoincrement=True,index=True)
-    NCR_id=Column(Integer,ForeignKey('ncr.id'))  
+    NCR_id=Column(Integer,ForeignKey('ncr_model.id'))  
     Address_Type=Column(String(200))
     Address=Column(Text)
     create_date=Column(DateTime,default=get_current_time)
     update_date=Column(DateTime,default=get_current_time,onupdate=func.now()) 
     # ncr=relationship('NCRModel',back_populates='compl_address')
 class AccusedModel(Base):# for ncr  accused model
-    __tablename__='accused'
+    __tablename__='ncr_accused'
     id=Column(Integer,primary_key=True,index=True,autoincrement=True)
-    NCR_id=Column(Integer,ForeignKey('ncr.id'))
+    NCR_id=Column(Integer,ForeignKey('ncr_model.id'))
     Name=Column(String(200))
     Father_Name=Column(String(200))
     Age=Column(Integer)
+    image_path=Column(String(256))
     create_date=Column(DateTime,default=get_current_time)
     update_date=Column(DateTime,default=get_current_time,onupdate=func.now())
     # ncr=relationship('NCRModel',back_populates='accused')
-    # accus_address=relationship('Accused_AddressModel',back_populates='accused',cascade='delete,all')
+    accus_address=relationship('Accused_AddressModel',backref="accuse_address")
 class Accused_AddressModel(Base):# for NCR Accused address model
-    __tablename__='accus_address'
+    __tablename__='ncr_accused_address'
     id=Column(Integer,primary_key=True,index=True,autoincrement=True)    
-    Accused_id=Column(Integer,ForeignKey('accused.id')) 
-    NCR_id=Column(Integer,ForeignKey('ncr.id'))
+    Accused_id=Column(Integer,ForeignKey('ncr_accused.id')) 
     Address_Type=Column(String(200))
     Address=Column(Text)
     create_date=Column(DateTime,default=get_current_time)

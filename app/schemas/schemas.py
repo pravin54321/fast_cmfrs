@@ -540,14 +540,16 @@ class NCRBase(BaseModel):
     complaint_or_Ncr:int # from complaint set 0 or diret Ncr set 1
     user_id:Optional[int]=None
 class CompAddressBase(BaseModel):# for ncr
-    Address_Type:str
+    NCR_id:int
+    Address_Type:str=None
     Address:str 
 class CompAddressBaseGet(BaseModel):# for ncr
     id:int
     Address_Type:str
     Address:str     
 class AccuAddressBase(BaseModel):# for ncr
-    Address_Type:str
+    id:int
+    Address_Type:Optional[str]=None
     Address:str      
 class AccusedBase(BaseModel):#for ncr
     Name:str
@@ -557,7 +559,7 @@ class AccusedBase(BaseModel):#for ncr
 class AccusedBaseGet(BaseModel):#ncr accused
     id:int
     Name:str
-    Father_Name:str
+    Father_Name:Optional[str]=None
     Age:int
     accus_address:list[AccuAddressBase]
    
@@ -571,14 +573,22 @@ class NCR_ACTGet(BaseModel):
    
 class NCRBaseGet(BaseModel):
     id:int
+    NCR_uid:str
+    Complaint_id:Optional[int]=None
     police_station:PoliceStation_only
-    info_recive:datetime  
-    GD_No:int
-    GD_Date:datetime
-    Occurrence_Date:datetime
+    info_recive:datetime 
+    GD_No:Optional[str]=None
+    GD_Date_Time:Optional[datetime]=None
+    Occurrence_Date_Time:datetime=None
     Place_Occurrence:str
+    Occurance_from:Optional[time]=None
+    Occurance_to:Optional[time]=None
     Name_Complainant:str
-    compl_address:list[CompAddressBaseGet]=None  
+    Complainant_Mob_Number:str
+    Complainant_Age:int
+    Complainant_imgpath:str
+    Complainant_Description:str
+    complainant_addres:list[CompAddressBaseGet]=None  
     accused:list[AccusedBaseGet]=None
     act:list[NCR_ACTGet]=None  
 #--------------fir_schema--------------------
