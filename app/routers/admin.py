@@ -1116,11 +1116,9 @@ async def create_ncr_from_complaint(current_user:Annotated[UserBase,Depends(get_
                 db.commit()
             return ncr_db   
             
-        
 @router.post('/create_ncr',response_model=NCRBaseGet,tags=['NCR_API'])
 async def create_ncr(current_user:Annotated[UserBase,Depends(get_current_active_user)],
-                     ncr:NCRBase,comp_addresses:list[CompAddressBase],
-                     image:UploadFile=File(),db:Session=Depends((getdb))):
+                     ncr:NCRBase,address_schema:Com_address_Schema,image:UploadFile=File(),db:Session=Depends((getdb))):
     user_id=[current_user.id if current_user.id else None]
     ncr.user_id=user_id[0]
     file_path=await imagestore(image,'ncr/complainant_img')
@@ -1129,15 +1127,18 @@ async def create_ncr(current_user:Annotated[UserBase,Depends(get_current_active_
     db.add(ncr_item)
     db.commit()
     if ncr_item.id:
-        for comp_address in comp_addresses:
-            address_instance = Complainat_AddressModel(
-                Address_Type=comp_address.Address_Type,
-                Address=comp_address.Address,
-                NCR_id=ncr_item.id
-            )
-            db.add(address_instance)  # Add each instance individually
-            db.commit()
+        address_data=[{
+            "Address_Type": comp_address.Address_Type,
+            "Address": comp_address.Address,
+            "NCR_id": ncr_item.id
+        } for comp_address in address_schema.com_address
+        ]
+        address_instance=[Complainat_AddressModel(**data) for data in address_data]
+        print(address_instance)
+        db.add_all(address_instance)
+        db.commit()
         return ncr_item
+    return Response(content=f"warning:{ncr.Name_Complainant} address does not add",status_code=status.HTTP_200_OK)
 @router.patch('/update_ncr/{ncr_id}',response_model=NCRBaseGet,tags=['NCR_API'])
 def update_ncr(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                ncr_id:int,ncr_item:NCRBase,comp_addresses:list[CompAddressBase],accused_list:list[AccusedBase],
@@ -1191,6 +1192,39 @@ async def del_ncr(current_user:Annotated[UserBase,Depends(get_current_active_use
         db.commit()
         return Response(content=f'id-{ncr_id} has been deleted successfully',status_code=status.HTTP_200_OK)
     raise HTTPException(detail=f'id-{ncr_id} does not exist',status_code=status.HTTP_404_NOT_FOUND)
+#_____________ncr_accuse_________________________________________
+@router.post('/create_ncr_accused/{ncr_id}',response_model=NCRBaseGet,tags=['NCR_Accused'])
+async def create_ncr_accused(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                             ncr_id:int,
+                             accused_shema:AccusedBase,image:UploadFile=File(None),
+                             db:Session=Depends(getdb)):
+    ncr_exist=db.query(NCRModel).filter(NCRModel.id==ncr_id).first()
+    if ncr_exist:
+            image_path=await imagestore(image,'ncr/accused_img')
+            accused_data=AccusedModel(Name=accused_shema.Name,Father_Name=accused_shema.Father_Name,
+                                    Age=accused_shema.Age,image_path=f"Static/Images/ncr/complainant_img/{image_path}",
+                                    NCR_id=ncr_exist.id)
+            db.add(accused_data)
+            db.commit()
+            if accused_data.id:
+                accused_address=[{
+                    "Address_Type":address.Address_Type,
+                    "Address":address.Address,
+                    "Accused_id":accused_data.id
+                } for address in accused_shema.Addresses]
+                address_instance=[Accused_AddressModel(**data) for data in accused_address]
+                db.add_all(address_instance)
+                db.commit()
+                return ncr_exist
+            return Response(content=f"warning:{accused_shema.Name} address not add",status_code=status.HTTP_200_OK)
+    raise HTTPException(detail=f"id-{ncr_id} ncr_item does not exist",status_code=status.HTTP_400_BAD_REQUEST)
+@router.put('/update_ncr_accused/accused_id{accused_id}',response_model=NCRBaseGet,tags=['NCR_Accused'])
+async  def update_ncr_accused(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                              accused_id:int,accused_shema:AccusedBase,db:Session=Depends(getdb)):
+    accused_exist=db.query(AccusedModel).filter(AccusedModel.id==accused_id).filter()
+    if accused_exist:
+        for field,value 
+ 
 #-----------------------------fir_api-------------------------------------------------------------
 @router.get('/get_fir',response_model=list[FirBaseGet],tags=['FIR_API'])
 async def get_fir(current_user:Annotated[UserBase,Depends(get_current_active_user)],db:Session=Depends(getdb)):

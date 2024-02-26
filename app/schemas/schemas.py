@@ -477,18 +477,7 @@ class ComplaintBase(BaseModel):
         if isinstance(value, str):
             return cls(**json.loads(value))
         return value      
-# class ComplaintBase_01(BaseModel):
-#    Complainant_Name:str
-#    Complaint_uid:str
-#    Mob_Number:str  
-#    Email:EmailStr|None=None
-#    Address:str
-#    Pin_Code:int
-#    Station_id:int
-#    Auth_Person:str
-#    Designation_id:int   
-#    Complaint_Against:str
-#    Complaint_Desc:str   
+
 class ComplaintGet(BaseModel):
    id:int
    Complaint_uid:str
@@ -524,7 +513,7 @@ class ComplaintGet(BaseModel):
 #---------NCR_SCHEMA------------------
 class NCRBase(BaseModel):
     police_station_id:int
-    Complaint_id:int=None
+    Complaint_id:Optional[int]=None
     info_recive:datetime
     GD_No:str=None
     GD_Date_Time:datetime=None
@@ -539,16 +528,33 @@ class NCRBase(BaseModel):
     Complainant_Description:str
     complaint_or_Ncr:int # from complaint set 0 or diret Ncr set 1
     user_id:Optional[int]=None
+    @model_validator(mode='before')
+    @classmethod
+    def validate_to_json(cls, value):
+        if isinstance(value, str):
+            return cls(**json.loads(value))
+        return value
 class CompAddressBase(BaseModel):# for ncr
-    NCR_id:int
     Address_Type:str=None
     Address:str 
-class CompAddressBaseGet(BaseModel):# for ncr
-    id:int
-    Address_Type:str
-    Address:str     
+    @model_validator(mode='before')
+    @classmethod
+    def validate_to_json(cls, value):
+        if isinstance(value, str):
+            return cls(**json.loads(value))
+        return value
+class Com_address_Schema(BaseModel):
+    com_address:list[CompAddressBase]  
+    @model_validator(mode='before')
+    @classmethod
+    def validate_to_json(cls, value):
+        if isinstance(value, str):
+            return cls(**json.loads(value))
+        return value  
+class CompAddressBaseGet(CompAddressBase):# for ncr
+    id:int  
+    NCR_id:int     
 class AccuAddressBase(BaseModel):# for ncr
-    id:int
     Address_Type:Optional[str]=None
     Address:str      
 class AccusedBase(BaseModel):#for ncr
@@ -556,6 +562,12 @@ class AccusedBase(BaseModel):#for ncr
     Father_Name:str
     Age:int
     Addresses:list[AccuAddressBase]
+    @model_validator(mode='before')
+    @classmethod
+    def validate_to_json(cls, value):
+        if isinstance(value, str):
+            return cls(**json.loads(value))
+        return value  
 class AccusedBaseGet(BaseModel):#ncr accused
     id:int
     Name:str
@@ -588,9 +600,10 @@ class NCRBaseGet(BaseModel):
     Complainant_Age:int
     Complainant_imgpath:str
     Complainant_Description:str
-    complainant_addres:list[CompAddressBaseGet]=None  
+    complainant_address:list[CompAddressBaseGet]=None  
     accused:list[AccusedBaseGet]=None
     act:list[NCR_ACTGet]=None  
+
 #--------------fir_schema--------------------
 class FirBase(BaseModel):
     P_Station:int

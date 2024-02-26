@@ -452,7 +452,7 @@ class NCRModel(Base):
     complainant_address=relationship('Complainat_AddressModel',backref='complainant_address')   
     accused=relationship('AccusedModel',backref='accused') 
     police_station=relationship('PoliceStationModel',back_populates='ncr')
-class Complainat_AddressModel(Base):
+class Complainat_AddressModel(Base):#ncr_model
     __tablename__='ncr_com_address'
     id=Column(Integer,primary_key=True,autoincrement=True,index=True)
     NCR_id=Column(Integer,ForeignKey('ncr_model.id'))  
