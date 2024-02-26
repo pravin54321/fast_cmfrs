@@ -1119,10 +1119,12 @@ async def create_ncr_from_complaint(current_user:Annotated[UserBase,Depends(get_
         
 @router.post('/create_ncr',response_model=NCRBaseGet,tags=['NCR_API'])
 async def create_ncr(current_user:Annotated[UserBase,Depends(get_current_active_user)],
-                     ncr:NCRBase,comp_addresses:list[CompAddressBase],accusess:list[AccusedBase],
-                     ncr_acts:list[NCR_ACTBase],db:Session=Depends((getdb))):
+                     ncr:NCRBase,comp_addresses:list[CompAddressBase],
+                     image:UploadFile=File(),db:Session=Depends((getdb))):
     user_id=[current_user.id if current_user.id else None]
     ncr.user_id=user_id[0]
+    file_path=await imagestore(image,'ncr/complainant_img')
+    setattr(ncr,'Complainant_imgpath',f"Static/Images/ncr/complainant_img/{file_path}")
     ncr_item=NCRModel(**ncr.model_dump())
     db.add(ncr_item)
     db.commit()
@@ -1135,22 +1137,7 @@ async def create_ncr(current_user:Annotated[UserBase,Depends(get_current_active_
             )
             db.add(address_instance)  # Add each instance individually
             db.commit()
-    if ncr_item.id:
-        for ncr_act in ncr_acts:
-            ncract_item=NCR_ACTModel(NCR_id=ncr_item.id,Act_id=ncr_act.Act_id,Section=ncr_act.Section) 
-            db.add(ncract_item)
-        db.commit()   
-    if ncr_item.id:
-        for accused in accusess:
-            add_accused=AccusedModel(NCR_id=ncr_item.id,Name=accused.Name,Father_Name=accused.Father_Name,Age=accused.Age)
-            db.add(add_accused)
-            db.commit() 
-            for address in accused.Addresses:
-                add_accuaddress=Accused_AddressModel(Accused_id=add_accused.id,NCR_id=ncr_item.id,Address_Type=address.Address_Type,Address=address.Address)
-                db.add(add_accuaddress)
-            db.commit()
-    db.refresh(ncr_item)                
-    return ncr_item
+        return ncr_item
 @router.patch('/update_ncr/{ncr_id}',response_model=NCRBaseGet,tags=['NCR_API'])
 def update_ncr(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                ncr_id:int,ncr_item:NCRBase,comp_addresses:list[CompAddressBase],accused_list:list[AccusedBase],
