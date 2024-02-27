@@ -450,7 +450,8 @@ class NCRModel(Base):
     create_date=Column(DateTime,default=get_current_time)
     update_date=Column(DateTime,default=get_current_time,onupdate=func.now())
     complainant_address=relationship('Complainat_AddressModel',backref='complainant_address')   
-    accused=relationship('AccusedModel',backref='accused') 
+    accused=relationship('AccusedModel',backref='accused',cascade='all,delete-orphan') 
+    act=relationship('NCR_ACTModel',backref='act',cascade='all,delete-orphan')
     police_station=relationship('PoliceStationModel',back_populates='ncr')
 class Complainat_AddressModel(Base):#ncr_model
     __tablename__='ncr_com_address'
@@ -471,8 +472,7 @@ class AccusedModel(Base):# for ncr  accused model
     image_path=Column(String(256))
     create_date=Column(DateTime,default=get_current_time)
     update_date=Column(DateTime,default=get_current_time,onupdate=func.now())
-    # ncr=relationship('NCRModel',back_populates='accused')
-    accus_address=relationship('Accused_AddressModel',backref="accuse_address")
+    accus_address=relationship('Accused_AddressModel',backref="accuse_address",cascade='all,delete-orphan')
 class Accused_AddressModel(Base):# for NCR Accused address model
     __tablename__='ncr_accused_address'
     id=Column(Integer,primary_key=True,index=True,autoincrement=True)    
@@ -486,7 +486,7 @@ class NCR_ACTModel(Base):# for NCR act_section
     __tablename__='ncr_act'
     id=Column(Integer,primary_key=True,unique=True,index=True)  
     Act_id=Column(Integer,ForeignKey('kalam.id'))
-    NCR_id=Column(Integer,ForeignKey('ncr.id'))
+    NCR_id=Column(Integer,ForeignKey('ncr_model.id'))
     Section=Column(Text)  
     create_date=Column(DateTime,default=get_current_time)
     update_date=Column(DateTime,default=get_current_time,onupdate=func.now()) 

@@ -556,8 +556,13 @@ class CompAddressBaseGet(CompAddressBase):# for ncr
     NCR_id:int     
 class AccuAddressBase(BaseModel):# for ncr
     Address_Type:Optional[str]=None
-    Address:str      
+    Address:str  
+class Accused_Address_Get(AccuAddressBase):
+    id:int
+    Accused_id:int
+
 class AccusedBase(BaseModel):#for ncr
+    NCR_id:int
     Name:str
     Father_Name:str
     Age:int
@@ -573,12 +578,13 @@ class AccusedBaseGet(BaseModel):#ncr accused
     Name:str
     Father_Name:Optional[str]=None
     Age:int
-    accus_address:list[AccuAddressBase]
+    accus_address:list[Accused_Address_Get]
    
 class NCR_ACTBase(BaseModel):
+    NCR_id:int
     Act_id:int
-    Section:str 
-class NCR_ACTGet(BaseModel):
+    Section:list
+class NCR_ACTGet(NCR_ACTBase):
     id:int
     kalam:CrimeKalamGet    
     Section:str
