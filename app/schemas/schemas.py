@@ -1,5 +1,5 @@
 import fileinput
-from pydantic import BaseModel,EmailStr,Field,conint,model_validator
+from pydantic import BaseModel,EmailStr,Field,conint,model_validator,validator,ValidationError
 from fastapi import Form, UploadFile,File
 from datetime import date,time
 from typing import Optional, Union
@@ -560,12 +560,37 @@ class AccuAddressBase(BaseModel):# for ncr
 class Accused_Address_Get(AccuAddressBase):
     id:int
     Accused_id:int
-
+class NCR_ACTBase(BaseModel):
+    Act_id:int
+    Section:list[str] 
+class ncr_Actupdate(BaseModel):
+    accused_id:int
+    Act_id:int
+    Section:list[str] 
+class NCR_ACTGet(BaseModel):
+    id:int
+    kalam:CrimeKalamGet    
+    Section:list[str]
+    create_date:datetime
+    update_date:datetime
+    @validator('Section', pre=True)
+    def parse_section(cls, v):
+        if isinstance(v, str):
+            try:
+                return json.loads(v)
+            except json.JSONDecodeError:
+                raise ValidationError("Invalid JSON string for Section field")
+                return [v]  # Return the value as a list with a single element
+        return v   
 class AccusedBase(BaseModel):#for ncr
     NCR_id:int
     Name:str
+    Aliase_Name:str=None
     Father_Name:str
     Age:int
+    DOB:date=None
+    Mobile_Number:str=None
+    Accused_Description:str=None
     Addresses:list[AccuAddressBase]
     @model_validator(mode='before')
     @classmethod
@@ -576,19 +601,14 @@ class AccusedBase(BaseModel):#for ncr
 class AccusedBaseGet(BaseModel):#ncr accused
     id:int
     Name:str
+    Aliase_Name:Optional[str]=None
     Father_Name:Optional[str]=None
-    Age:int
+    DOB:Optional[date]=None
+    Age:Optional[int]=None
+    Mobile_Number:Optional[str]=None
+    Accused_Description:Optional[str]=None
     accus_address:list[Accused_Address_Get]
-   
-class NCR_ACTBase(BaseModel):
-    NCR_id:int
-    Act_id:int
-    Section:list
-class NCR_ACTGet(NCR_ACTBase):
-    id:int
-    kalam:CrimeKalamGet    
-    Section:str
-   
+    act:list[NCR_ACTGet]
 class NCRBaseGet(BaseModel):
     id:int
     NCR_uid:str
@@ -608,8 +628,7 @@ class NCRBaseGet(BaseModel):
     Complainant_Description:str
     complainant_address:list[CompAddressBaseGet]=None  
     accused:list[AccusedBaseGet]=None
-    act:list[NCR_ACTGet]=None  
-
+    
 #--------------fir_schema--------------------
 class FirBase(BaseModel):
     P_Station:int

@@ -1163,8 +1163,6 @@ def update_ncr(current_user:Annotated[UserBase,Depends(get_current_active_user)]
                 db.commit()
                 # db.refresh(ncr_exist)  
                 return ncr_exist
-          
-               
     raise HTTPException(detail=f'{ncr_id} does not exist',status_code=status.HTTP_404_NOT_FOUND)
 @router.delete('/del_ncr/{ncr_id}',tags=['NCR_API'])
 async def del_ncr(current_user:Annotated[UserBase,Depends(get_current_active_user)],
@@ -1188,9 +1186,15 @@ async def create_ncr_accused(current_user:Annotated[UserBase,Depends(get_current
     ncr_exist=db.query(NCRModel).filter(NCRModel.id==accused_shema.NCR_id).first()
     if ncr_exist:
             image_path=await imagestore(image,'ncr/accused_img')
-            accused_data=AccusedModel(Name=accused_shema.Name,Father_Name=accused_shema.Father_Name,
-                                    Age=accused_shema.Age,image_path=f"Static/Images/ncr/accused_img/{image_path}",
-                                    NCR_id=accused_shema.NCR_id)
+            accused_data=AccusedModel(Name=accused_shema.Name,
+                                      Father_Name=accused_shema.Father_Name,
+                                      Aliase_Name=accused_shema.Aliase_Name,
+                                      DOB=accused_shema.DOB,
+                                      Mobile_Number=accused_shema.Mobile_Number,
+                                      Accused_Description=accused_shema.Accused_Description,
+                                      Age=accused_shema.Age,
+                                      image_path=f"Static/Images/ncr/accused_img/{image_path}",
+                                      NCR_id=accused_shema.NCR_id)
             db.add(accused_data)
             db.commit()
             if accused_data.id:
@@ -1241,22 +1245,46 @@ async def dlt_ncr_accused(current_user:Annotated[UserBase,Depends(get_current_ac
         return Response(content=f"accused has been deleted successfully",status_code=status.HTTP_200_OK)
     raise HTTPException(detail=f"id-{accused_id} accuseed item does not exist",status_code=status.HTTP_400_BAD_REQUEST)
 #-------------ncr_act_____
-@router.post('/create_ncr_act',response_model=NCRBaseGet,tags=['NCR_Act'])
+@router.post('/create_ncr_act/{accused_id}',response_model=AccusedBaseGet,tags=['NCR_Act'])
 async def create_ncr_act(current_user:Annotated[UserBase,Depends(get_current_active_user)],
-                         act_item:NCR_ACTBase,db:Session=Depends(getdb)):
-    print(type(act_item.Section))
-    ncr_exist=db.query(NCRModel).filter(NCRModel.id==act_item.NCR_id).first()
+                         accused_id:int,act_item:list[NCR_ACTBase],db:Session=Depends(getdb)):
+    ncr_exist=db.query(AccusedModel).filter(AccusedModel.id==accused_id).first()
     if ncr_exist:
-        serialise_section=json.dumps(act_item.Section)
-        act_data={
-            "NCR_id": act_item.NCR_id,
-            "Act_id": act_item.Act_id,
-            "Section": serialise_section}
-        ncr_act_db=NCR_ACTModel(**act_data)
-        db.add(ncr_act_db)
+        act_data=[{
+            "accused_id":accused_id,
+            "Act_id": actItem.Act_id,
+            "Section": json.dumps(actItem.Section)} for actItem in act_item]
+        actInstance=[NCR_ACTModel(**data) for data in act_data]
+        db.add_all(actInstance)
         db.commit()
         return ncr_exist   
-    return ncr_exist   
+    raise HTTPException(detail=f"id-{accused_id} accused item does not eist",status_code=status.http400)
+@router.put('/update_ncr_act/{ncr_act_id}',response_model=AccusedBaseGet,tags=['NCR_Act'])
+async def update_ncr_act(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                         ncr_act_id:int,actSchema:ncr_Actupdate,db:Session=Depends(getdb)):
+    act_exist=db.query(NCR_ACTModel).filter(NCR_ACTModel.id==ncr_act_id).first()
+    if act_exist:
+        accused_exist=db.query(AccusedModel).filter(AccusedModel.id==actSchema.accused_id).first()
+        if accused_exist:
+            act_exist.Act_id=actSchema.Act_id
+            act_exist.accused_id=actSchema.accused_id
+            act_exist.Section=json.dumps(actSchema.Section)
+            db.commit()
+            db.refresh(accused_exist)
+            return accused_exist
+        raise HTTPException(detail=f"id-{actSchema.accused_id} accused does not found",status_code=status.HTTP_400_BAD_REQUEST)
+    raise HTTPException(detail=f"id-{ncr_act_id} ncr_act not found",status_code=status.HTTP_400_BAD_REQUEST)
+@router.delete('/delete_ncr_act/{act_id}',tags=['NCR_Act'])
+async def delete_ncr_act(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                         act_id:int,db:Session=Depends(getdb)):
+    act_exist=db.query(NCR_ACTModel).filter(NCR_ACTModel.id==act_id).first()
+    if act_exist:
+        db.delete(act_exist)
+        db.commit()
+        return Response(content="act item has been deleted successfully",status_code=status.HTTP_200_OK)
+    raise HTTPException(detail=f"id-{act_id} act item does not exist",status_code=status.HTTP_400_BAD_REQUEST)
+        
+    
 
     
 
