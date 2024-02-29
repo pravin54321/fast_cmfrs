@@ -15,7 +15,7 @@ async def state_create(current_user:Annotated[UserBase,Depends(get_current_activ
                        state:StateBase,db:Session=Depends(getdb)):
     state_exist = db.query(StateModel).filter(StateModel.State==state.State).first()
     if state_exist:
-        raise HTTPException(status_code=400,detail='State already exist')
+        raise HTTPException(detail=f'{state.State}State already exist',status_code=status.HTTP_400_BAD_REQUEST)
     state = StateModel(**state.model_dump())
     db.add(state)
     db.commit()
@@ -24,7 +24,7 @@ async def state_create(current_user:Annotated[UserBase,Depends(get_current_activ
 @router.put('/update_state/{state_id}',response_model=StateGet,tags=['Master_state'])
 async def update_state(current_user:Annotated[UserBase,Depends(get_current_active_user)]
                        ,state_id:int,state:StateBase,db:Session=Depends(getdb)):
-    duplicate_state = db.query(StateModel).filter(StateModel.State==state.State).first()
+    duplicate_state = db.query(StateModel).filter(StateModel.State==state.State,StateModel.id!=state_id).first()
     if duplicate_state:
         raise HTTPException(status_code=400,detail=f"{state.State} already exists")
     state_exist = db.query(StateModel).filter(StateModel.id==state_id).first()
@@ -33,17 +33,19 @@ async def update_state(current_user:Annotated[UserBase,Depends(get_current_activ
         db.commit()
         db.refresh(state_exist)
         return state_exist
-    raise HTTPException(status_code=404,detail=f"id-{state_id} does not exist",) 
+    raise HTTPException(status_code=400,detail=f"id-{state_id} does not exist",) 
 @router.delete('/delete_state/{state_id}',tags=['Master_state'])
 async def delete_state(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                        state_id:int,db:Session=Depends(getdb)):
-    state_exist = db.query(StateModel).filter(StateModel.id==state_id).first()
-    if state_exist:
-        db.delete(state_exist)
-        db.commit()
-        return Response(content=f"State_id {state_id} has been deleted successfully",status_code=200) 
-    raise HTTPException(detail=f"id-{state_id} does not exist",status_code=status.HTTP_404_NOT_FOUND)
-    
+    try:
+        state_exist = db.query(StateModel).filter(StateModel.id==state_id).first()
+        if state_exist:
+            db.delete(state_exist)
+            db.commit()
+            return Response(content=f"State_id {state_id} has been deleted successfully",status_code=200) 
+        raise HTTPException(detail=f"id-{state_id} does not exist",status_code=status.HTTP_400_BAD_REQUEST)
+    except IntegrityError as e:
+        raise HTTPException(detail=f"{str(e.orig)}",status_code=status.HTTP_400_BAD_REQUEST)
 #--------master_region---------
 @router.get('/get_region',response_model=list[RegionGet],tags=['Master_region'])
 async def get_region(current_user:Annotated[UserBase,Depends(get_current_active_user)],
@@ -55,7 +57,7 @@ async def create_region(current_user:Annotated[UserBase,Depends(get_current_acti
                         region:RegionBase,db:Session=Depends(getdb)):
     region_exist = db.query(RegionModel).filter(RegionModel==region.Region).first()
     if region_exist:
-        raise HTTPException(status_code=400,detail=f'{region.Region} already exist')
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail=f'{region.Region} already exist')
     region = RegionModel(**region.model_dump())
     db.add(region)
     db.commit()
@@ -78,12 +80,15 @@ async def update_region(current_user:Annotated[UserBase,Depends(get_current_acti
 @router.delete('/del_region/{region_id}',tags=['Master_region'])
 async def del_region(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                      region_id:int,db:Session=Depends(getdb)):
-    region_exist = db.query(RegionModel).filter(RegionModel.id == region_id ).first()
-    if region_exist:
-        db.delete(region_exist)
-        db.commit()
-        return Response(content=f'id-{region_id} has been deleted successfully',status_code=200)
-    raise HTTPException(detail=f'id-{region_id} doess not exist',status_code=400)
+    try:
+        region_exist = db.query(RegionModel).filter(RegionModel.id == region_id).first()
+        if region_exist:
+            db.delete(region_exist)
+            db.commit()
+            return Response(content=f'id-{region_id} has been deleted successfully',status_code=200)
+        raise HTTPException(detail=f'id-{region_id} doess not exist',status_code=status.HTTP_400_BAD_REQUEST)
+    except IntegrityError as e:
+        raise HTTPException(detail=f'{str(e.orig)}',status_code=status.HTTP_400_BAD_REQUEST)
 #---------master_distric------------------------
 @router.get('/get_distric',response_model=list[DistricGet],tags=['Master_Distric'])
 async def get_distric(current_user:Annotated[UserBase,Depends(get_current_active_user)],
@@ -95,7 +100,7 @@ async def distric_create(current_user:Annotated[UserBase,Depends(get_current_act
                          distric:DistricBase,db:Session=Depends(getdb)):
     distric_exist = db.query(DistricModel).filter(DistricModel.Distric==distric.Distric).first()
     if distric_exist:
-        raise HTTPException(detail=f'{distric.Distric} already exists',status_code=400)
+        raise HTTPException(detail=f'{distric.Distric} already exists',status_code=status.HTTP_400_BAD_REQUEST)
     distric_item = DistricModel(**distric.model_dump())
     db.add(distric_item)
     db.commit()

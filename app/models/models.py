@@ -107,7 +107,7 @@ class StateModel(Base):
     State = Column(String(200),nullable=False,unique=True,)
     create_date = Column(DateTime,default=get_current_time)
     update_date = Column(DateTime,default=get_current_time,onupdate=func.now())
-    region=relationship('RegionModel',back_populates='state',cascade='all,delete')
+    region=relationship('RegionModel',back_populates='state')
     distric=relationship('DistricModel',back_populates='state',cascade='all,delete')
     headoffices= relationship('HeadOfficeModel',back_populates='state',cascade='all,delete')
     subdivision=relationship('SubdivisionModel',back_populates='state',cascade='all,delete')
@@ -118,7 +118,7 @@ class StateModel(Base):
 class RegionModel(Base):
     __tablename__='region' 
     id = Column(Integer,primary_key=True,autoincrement=True)
-    Region = Column(String(200),unique=True,nullable= False)
+    Region = Column(String(200),nullable= False)
     State_id=Column(Integer,ForeignKey('state.id'),nullable=False)
     create_date = Column(DateTime,default=get_current_time)
     update_date = Column(DateTime,default=get_current_time,onupdate=func.now())
