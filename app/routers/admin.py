@@ -1090,11 +1090,16 @@ async def create_ncr_from_complaint(current_user:Annotated[UserBase,Depends(get_
                                     complaint_id:int,db:Session=Depends(getdb)):
     complaint_exist=db.query(ComplaintModel).filter(ComplaintModel.id==complaint_id).first()
     if complaint_exist:
-        ncr_db=NCRModel(police_station_id=complaint_exist.Station_id,Complaint_id=complaint_exist.id,
-                        info_recive=complaint_exist.Complaint_Date,Occurrence_Date_Time=complaint_exist.Occurance_date_time,
-                        Place_Occurrence=complaint_exist.Place_Occurance,Name_Complainant=complaint_exist.Complainant_Name,
-                        Complainant_Mob_Number=complaint_exist.Mob_Number,Complainant_Age=complaint_exist.Complainant_Age,
-                        Complainant_imgpath=complaint_exist.Complainant_Imgpath,Complainant_Description=complaint_exist.Complaint_Desc,
+        ncr_db=NCRModel(police_station_id=complaint_exist.Station_id,
+                        Complaint_id=complaint_exist.id,
+                        info_recive=complaint_exist.Complaint_Date,
+                        Occurrence_Date_Time=complaint_exist.Occurance_date_time,
+                        Place_Occurrence=complaint_exist.Place_Occurance,
+                        Name_Complainant=complaint_exist.Complainant_Name,
+                        Complainant_Mob_Number=complaint_exist.Mob_Number,
+                        Complainant_Age=complaint_exist.Complainant_Age,
+                        Complainant_imgpath=complaint_exist.Complainant_Imgpath,
+                        Complainant_Description=complaint_exist.Complaint_Desc,
                         complaint_or_Ncr=0,user_id=current_user.id)
         db.add(ncr_db)
         db.commit()
@@ -1107,7 +1112,8 @@ async def create_ncr_from_complaint(current_user:Annotated[UserBase,Depends(get_
             if complaint_accused_exist:
                 for accused in complaint_accused_exist:
                     ncr_accused_db=AccusedModel(NCR_id=ncr_db.id,Name=accused.Accused_Name
-                                                ,Age=accused.Accused_Age,image_path=accused.Accused_Imgpath)
+                                                ,Age=accused.Accused_Age,
+                                                image_path=accused.Accused_Imgpath)
                     db.add(ncr_accused_db)
                     db.commit()
                     ncr_accused_address=Accused_AddressModel(Accused_id=ncr_accused_db.id,
@@ -1245,6 +1251,11 @@ async def dlt_ncr_accused(current_user:Annotated[UserBase,Depends(get_current_ac
         return Response(content=f"accused has been deleted successfully",status_code=status.HTTP_200_OK)
     raise HTTPException(detail=f"id-{accused_id} accuseed item does not exist",status_code=status.HTTP_400_BAD_REQUEST)
 #-------------ncr_act_____
+@router.get('/get_list_act',response_model=list[NCR_ACTGet],tags=['NCR_Act'])
+async def get_list_act(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                       db:Session=Depends(getdb)):
+    list_act=db.query(NCR_ACTModel).all()
+    return list_act
 @router.post('/create_ncr_act/{accused_id}',response_model=AccusedBaseGet,tags=['NCR_Act'])
 async def create_ncr_act(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                          accused_id:int,act_item:list[NCR_ACTBase],db:Session=Depends(getdb)):
