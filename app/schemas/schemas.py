@@ -567,8 +567,20 @@ class ncr_Actupdate(BaseModel):
     accused_id:int
     Act_id:int
     Section:list[str] 
+class accused_for_act(BaseModel):#ncr accused
+    id:int
+    NCR_id:int
+    Name:str
+    Aliase_Name:Optional[str]=None
+    Father_Name:Optional[str]=None
+    DOB:Optional[date]=None
+    Age:Optional[int]=None
+    Mobile_Number:Optional[str]=None
+    Accused_Description:Optional[str]=None
+    accus_address:list[Accused_Address_Get]    
 class NCR_ACTGet(BaseModel):
     id:int
+    accused:Optional[accused_for_act]=None
     kalam:CrimeKalamGet    
     Section:list[str]
     create_date:datetime
@@ -600,6 +612,7 @@ class AccusedBase(BaseModel):#for ncr
         return value  
 class AccusedBaseGet(BaseModel):#ncr accused
     id:int
+    NCR_id:int
     Name:str
     Aliase_Name:Optional[str]=None
     Father_Name:Optional[str]=None

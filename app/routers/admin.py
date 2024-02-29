@@ -3,7 +3,6 @@ from ..dependencies import *
 from ..models.models import *
 from ..schemas.schemas import *
 from .authentication import *
-
 router = APIRouter()
 
 #---------------master--------------------------
@@ -1295,11 +1294,6 @@ async def delete_ncr_act(current_user:Annotated[UserBase,Depends(get_current_act
         return Response(content="act item has been deleted successfully",status_code=status.HTTP_200_OK)
     raise HTTPException(detail=f"id-{act_id} act item does not exist",status_code=status.HTTP_400_BAD_REQUEST)
         
-    
-
-    
-
-   
 #-----------------------------fir_api-------------------------------------------------------------
 @router.get('/get_fir',response_model=list[FirBaseGet],tags=['FIR_API'])
 async def get_fir(current_user:Annotated[UserBase,Depends(get_current_active_user)],db:Session=Depends(getdb)):

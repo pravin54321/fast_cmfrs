@@ -476,7 +476,7 @@ class AccusedModel(Base):# for ncr  accused model
     create_date=Column(DateTime,default=get_current_time)
     update_date=Column(DateTime,default=get_current_time,onupdate=func.now())
     accus_address=relationship('Accused_AddressModel',backref="accuse_address",cascade='all,delete-orphan')
-    act=relationship('NCR_ACTModel',backref='act',cascade='all,delete-orphan')
+    act=relationship('NCR_ACTModel',back_populates='accused',cascade='all,delete-orphan')
 class Accused_AddressModel(Base):# for NCR Accused address model
     __tablename__='ncr_accused_address'
     id=Column(Integer,primary_key=True,index=True,autoincrement=True)    
@@ -489,11 +489,12 @@ class Accused_AddressModel(Base):# for NCR Accused address model
 class NCR_ACTModel(Base):# for NCR act_section
     __tablename__='ncr_act'
     id=Column(Integer,primary_key=True,unique=True,index=True)  
-    Act_id=Column(Integer,ForeignKey('kalam.id'))
-    accused_id=Column(Integer,ForeignKey('ncr_accused.id'))
+    Act_id=Column(Integer,ForeignKey('kalam.id') , nullable=False)
+    accused_id=Column(Integer,ForeignKey('ncr_accused.id'),nullable=False)
     Section=Column(Text)  
     create_date=Column(DateTime,default=get_current_time)
-    update_date=Column(DateTime,default=get_current_time,onupdate=func.now()) 
+    update_date=Column(DateTime,default=get_current_time,onupdate=func.now())
+    accused=relationship('AccusedModel',back_populates='act') 
     # ncr=relationship(NCRModel,back_populates='act')
     kalam=relationship('CrimeKalamModel',back_populates='ncr_act')
 class FIRModel(Base):
