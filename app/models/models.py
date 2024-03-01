@@ -218,8 +218,8 @@ class PoliceStationModel(Base):
     post=relationship('PostModel',back_populates='policestation',cascade='all,delete')
     complaint=relationship('ComplaintModel',back_populates='policestation',cascade="all,delete")
     ncr=relationship('NCRModel',back_populates='police_station',cascade='delete,all')
-    fir=relationship('FIRModel',back_populates='police_station',foreign_keys='FIRModel.P_Station')
-    fir_outside=relationship('FIRModel',back_populates='out_side_ps',foreign_keys='FIRModel.outside_ps')
+    # fir=relationship('FIRModel',back_populates='police_station',foreign_keys='FIRModel.P_Station')
+    # fir_outside=relationship('FIRModel',back_populates='out_side_ps',foreign_keys='FIRModel.outside_ps')
     charge_sheet=relationship('ChargeSheetModel',back_populates='police_station')
    
 class PostModel(Base):
@@ -500,6 +500,7 @@ class NCR_ACTModel(Base):# for NCR act_section
 class FIRModel(Base):
     __tablename__='fir'
     id=Column(Integer,primary_key=True,autoincrement=True,index=True)
+    complaint_id=Column(Integer,ForeignKey('complaint.id'),nullable=True)
     P_Station=Column(Integer,ForeignKey('policestation.id'),nullable=False)
     Year=Column(Integer)
     Fir_No=Column(String(200),default=fir_uid)
@@ -514,26 +515,49 @@ class FIRModel(Base):
     Diary_Entery_No=Column(Integer)
     Diary_Date=Column(Date)
     Diary_Time=Column(Time)
-    Type_Information=Column(String(200))
+    Type_Information_id=Column(Integer,ForeignKey('infomode.id'))
     Dir_distance_From_Ps=Column(Text)
     Occurrence_Address=Column(Text)
+    Beat_no=Column(String(200))
+    State_id=Column(Integer,ForeignKey('state.id'))
+    Distric_id=Column(Integer,ForeignKey('distric.id'))
     outside_ps=Column(Integer,ForeignKey('policestation.id'))
+    status=Column(Integer,comment='0 for complaint & 1 for dir_fir')
     user_id=Column(Integer,comment="logine user id")
     create_date=Column(DateTime,default=get_current_time)
     update_date=Column(DateTime,default=get_current_time,onupdate=func.now())
-    fir_act=relationship('FirSectionActModel',back_populates='fir',cascade='delete,all')
-    police_station=relationship('PoliceStationModel',back_populates='fir',foreign_keys=[P_Station])
-    out_side_ps=relationship('PoliceStationModel',back_populates='fir_outside',foreign_keys=[outside_ps])
+    mode_information=relationship(Infomode_Model,backref='mode_information')
+    fir_act=relationship('FirSectionActModel',backref='fir_act',cascade='all,delete-orphan')
+    outside_state=relationship(StateModel,backref='outside_state')
+    outside_distric=relationship(DistricModel,backref='otside_distric')
+    police_station=relationship('PoliceStationModel',backref='fir',foreign_keys=[P_Station])
+    out_side_ps=relationship('PoliceStationModel',backref='fir_outside',foreign_keys=[outside_ps])
+
+class FirAccused_model(Base):
+    __tablename__='fir_accused'
+    id=Column(Integer,primary_key=True,autoincrement=True,unique=True)
+    fir_id=Column(Integer,ForeignKey('fir.id'),nullable=False)
+    Name=Column(String(200))
+    Alias_Name=Column(String(200))
+    Father_Name=Column(String(200))
+    DOB=Column(Date)
+    Age=Column(Integer)
+    Mobile_Name=Column(String(12))
+    Accused_Description=Column(Text)
+    Image_Path=Column(String(200))
+    create_date=Column(DateTime,default=get_current_time)
+    update_date=Column(DateTime,default=get_current_time,onupdate=func.now())
+    accused_act=relationship('FirSectionActModel',backref='accused_act',cascade='all,delete-orphan')
 class FirSectionActModel(Base):
     __tablename__='fir_act'
     id=Column(Integer,primary_key=True,autoincrement=True,index=True)
-    Fir_id=Column(Integer,ForeignKey('fir.id'))
-    Fir_Act=Column(Integer,ForeignKey('kalam.id'))
+    accused_id=Column(Integer,ForeignKey('fir_accused.id'),nullable=False)
+    Fir_Act=Column(Integer,ForeignKey('kalam.id'),nullable=False)
     Fir_Section=Column(String(200))
     create_date=Column(DateTime,default=get_current_time)
     update_date=Column(DateTime,default=get_current_time,onupdate=func.now())
-    fir=relationship('FIRModel',back_populates='fir_act')
-    kalam=relationship('CrimeKalamModel',back_populates='fir_act')
+    kalam=relationship('CrimeKalamModel',back_populates='fir_act')    
+
 #--------------------model chargesheet---------------------------
 class ChargeSheetModel(Base):
     __tablename__='charge_Sheet'

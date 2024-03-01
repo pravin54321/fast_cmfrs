@@ -657,14 +657,31 @@ class FirBase(BaseModel):
     Diary_Entery_No:int
     Diary_Date:date
     Diary_Time:time
-    Type_Information:str
+    Beat_no:str
+    Type_Information_id:int
     Dir_distance_From_Ps:str
     Occurrence_Address:str
+    State_id:int
+    Distric_id:int
     outside_ps:int
     user_id:int=None
+class Fir_accused_Base(BaseModel):
+    fir_id:int
+    Name:str
+    Alias_Name:str
+    Father_Name:str
+    DOB:datetime
+    Age:int
+    Mobile_Name:str
+    Accused_Description:str
+    Image_Path:str
+class fir_accused_Get(Fir_accused_Base):
+    id:int
+    create_date:datetime
+    update_date:datetime    
 class Fir_ActBase(BaseModel):
     Fir_Act:int
-    Fir_Section:str        
+    Fir_Section:list[str]        
 class Fir_ActBaseGet(BaseModel):
     id:int
     kalam:CrimeKalamGet=None
@@ -672,23 +689,26 @@ class Fir_ActBaseGet(BaseModel):
 class FirBaseGet(BaseModel):
     id:int
     police_station:PoliceStation_only
-    Year: conint(ge=1900, le=2100)
-    Day:str
-    Time_Period:time
-    Date_From:date
-    Date_To:date
-    Time_From:time 
-    Time_To:time
-    Info_Recived_Date:date
-    Info_Recived_Time:time
-    Diary_Entery_No:int
-    Diary_Date:date
-    Diary_Time:time
-    Type_Information:str
-    Dir_distance_From_Ps:str
-    Occurrence_Address:str
-    out_side_ps:PoliceStation_only
-    fir_act:list[Fir_ActBaseGet] 
+    Year: Optional[conint(ge=1900, le=2100)]=None
+    Day:Optional[str]=None
+    Time_Period:Optional[time]=None
+    Date_From:Optional[date]=None
+    Date_To:Optional[date]=None
+    Time_From:Optional[time]=None 
+    Time_To:Optional[time]=None
+    Info_Recived_Date:Optional[date]=None
+    Info_Recived_Time:Optional[time]=None
+    Diary_Entery_No:Optional[int]=None
+    Diary_Date:Optional[date]=None
+    Diary_Time:Optional[time]=None
+    mode_information:Optional[Infomode_Base]=None
+    Dir_distance_From_Ps:Optional[str]=None
+    Occurrence_Address:Optional[str]=None
+    Beat_no:Optional[str]=None
+    outside_state:Optional[StateGet]=None
+    outside_distric:Optional[DistricGet]=None
+    out_side_ps:Optional[PoliceStation_only]=None
+    fir_act:list[Fir_ActBaseGet] =None
 #------------chargesheet_shema-------------
 class ChargeSheet_ActBase(BaseModel):
     ChargeSheet_Act:int
