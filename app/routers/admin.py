@@ -1085,6 +1085,11 @@ async def del_evidence(current_user:Annotated[UserBase,Depends(get_current_activ
         return Response(content=f'id-{evidence_id} has been delete successfully',status_code=status.HTTP_200_OK)
     raise HTTPException(detail=f'id-{evidence_id} does not exist',status_code=status.HTTP_404_NOT_FOUND)
 #--------------------------Ncr-------------------------------
+@router.get('/get_single_ncr/{ncr_id}',response_model=NCRBaseGet,tags=['NCR_API'])
+def get_single_ncr(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                   ncr_id:int,db:Session=Depends(getdb)):
+    ncr_exist=db.query(NCRModel).filter(NCRModel.id==ncr_id).first()
+    return ncr_exist
 @router.get('/get_ncr',response_model=list[NCRBaseGet],tags=['NCR_API'])
 async def get_ncr(current_user:Annotated[UserBase,Depends(get_current_active_user)],db:Session=Depends(getdb)):
     list_ncr=db.query(NCRModel).filter(NCRModel.user_id==current_user.id).order_by(NCRModel.id.desc()).all()

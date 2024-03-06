@@ -301,7 +301,6 @@ class CrimeKalamModel(Base):
     create_date=Column(DateTime,default=get_current_time)
     update_date=Column(DateTime,default=get_current_time,onupdate=func.now())
     ncr_act=relationship('NCR_ACTModel',back_populates='kalam')
-    fir_act=relationship('FirSectionActModel',back_populates='kalam')
     charge_sheet_act=relationship('ChargeSheet_ActModel',back_populates='kalam')
 #---------designation_model------------------
 class DesignationModel(Base):
@@ -527,7 +526,6 @@ class FIRModel(Base):
     create_date=Column(DateTime,default=get_current_time)
     update_date=Column(DateTime,default=get_current_time,onupdate=func.now())
     mode_information=relationship(Infomode_Model,backref='mode_information')
-    fir_act=relationship('FirSectionActModel',backref='fir_act',cascade='all,delete-orphan')
     outside_state=relationship(StateModel,backref='outside_state')
     outside_distric=relationship(DistricModel,backref='otside_distric')
     police_station=relationship('PoliceStationModel',backref='fir',foreign_keys=[P_Station])
@@ -556,7 +554,7 @@ class FirSectionActModel(Base):
     Fir_Section=Column(String(200))
     create_date=Column(DateTime,default=get_current_time)
     update_date=Column(DateTime,default=get_current_time,onupdate=func.now())
-    kalam=relationship('CrimeKalamModel',back_populates='fir_act')    
+    kalam=relationship('CrimeKalamModel',backref='fir_act')    
 
 #--------------------model chargesheet---------------------------
 class ChargeSheetModel(Base):
