@@ -665,6 +665,15 @@ class FirBase(BaseModel):
     Distric_id:int
     outside_ps:int
     user_id:int=None
+class Fir_Accused_Address_Base(BaseModel):
+    Address_Type:str
+    Address:str 
+class Fir_accused_address_Get(BaseModel):
+      id:int
+      Address_Type:str
+      Address:str 
+      create_date:datetime
+      update_date:datetime
 class Fir_accused_Base(BaseModel):
     fir_id:int
     Name:str
@@ -675,8 +684,28 @@ class Fir_accused_Base(BaseModel):
     Mobile_Name:str
     Accused_Description:str
     Image_Path:str
-class fir_accused_Get(Fir_accused_Base):
+    addresses:Optional[list[Fir_Accused_Address_Base]]=None
+    @model_validator(mode='before')
+    @classmethod
+    def validate_to_json(cls, value):
+        if isinstance(value, str):
+            return cls(**json.loads(value))
+        return value 
+    class Config:
+        orm_mode = True
+
+class fir_accused_Get(BaseModel):
     id:int
+    fir_id:int
+    Name:str
+    Alias_Name:str
+    Father_Name:str
+    DOB:datetime
+    Age:int
+    Mobile_Name:str
+    Accused_Description:str
+    Image_Path:str
+    addresses:Optional[list[Fir_accused_address_Get]]=None
     create_date:datetime
     update_date:datetime    
 class Fir_ActBase(BaseModel):

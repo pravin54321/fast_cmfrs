@@ -546,12 +546,22 @@ class FirAccused_model(Base):
     create_date=Column(DateTime,default=get_current_time)
     update_date=Column(DateTime,default=get_current_time,onupdate=func.now())
     accused_act=relationship('FirSectionActModel',backref='accused_act',cascade='all,delete-orphan')
+    addresses=relationship('Fir_Accused_Address_Model',backref='addresses',cascade='all,delete-orphan')
+class Fir_Accused_Address_Model(Base):
+    __tablename__="fir_accused_address"
+    id=Column(Integer,primary_key=True,autoincrement=True,unique=True,index=True) 
+    Accused_id=Column(Integer,ForeignKey('fir_accused.id'),nullable=False) 
+    Address_Type=Column(String(255))
+    Address=Column(Text)
+    create_date=Column(DateTime,default=get_current_time)
+    update_date=Column(DateTime,default=get_current_time,onupdate=func.now())
+
 class FirSectionActModel(Base):
     __tablename__='fir_act'
     id=Column(Integer,primary_key=True,autoincrement=True,index=True)
     accused_id=Column(Integer,ForeignKey('fir_accused.id'),nullable=False)
     Fir_Act=Column(Integer,ForeignKey('kalam.id'),nullable=False)
-    Fir_Section=Column(String(200))
+    Fir_Section=Column(Text)
     create_date=Column(DateTime,default=get_current_time)
     update_date=Column(DateTime,default=get_current_time,onupdate=func.now())
     kalam=relationship('CrimeKalamModel',backref='fir_act')    
