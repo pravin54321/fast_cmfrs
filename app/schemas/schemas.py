@@ -591,7 +591,7 @@ class NCR_ACTGet(BaseModel):
             try:
                 return json.loads(v)
             except json.JSONDecodeError:
-                raise ValidationError("Invalid JSON string for Section field")
+                # raise ValidationError("Invalid JSON string for Section field")
                 return [v]  # Return the value as a list with a single element
         return v   
 class AccusedBase(BaseModel):#for ncr
@@ -661,19 +661,38 @@ class FirBase(BaseModel):
     Type_Information_id:int
     Dir_distance_From_Ps:str
     Occurrence_Address:str
-    State_id:int
-    Distric_id:int
-    outside_ps:int
+    State_id:Optional[int]=None
+    Distric_id:Optional[int]=None
+    outside_ps:Optional[int]=None
     user_id:int=None
 class Fir_Accused_Address_Base(BaseModel):
     Address_Type:str
-    Address:str 
+    Address:str     
 class Fir_accused_address_Get(BaseModel):
       id:int
       Address_Type:str
       Address:str 
       create_date:datetime
       update_date:datetime
+class Fir_ActBase(BaseModel):
+    Fir_Act:int
+    Fir_Section:list[str]  
+class fir_act_update(Fir_ActBase):
+    accused_id:int          
+class Fir_ActBaseGet(BaseModel):
+    id:int
+    accused_id:int
+    kalam:CrimeKalamGet=None
+    Fir_Section:Optional[list[str]]=None
+    @validator('Fir_Section',pre=True)
+    def parse_section(cls,v):
+        if isinstance(v,str):
+            try:
+                return json.loads(v)
+            except json.JSONDecodeError:
+                #raise ValidationError('invalid JSON string for section field')
+                return[v]
+        return v           
 class Fir_accused_Base(BaseModel):
     fir_id:int
     Name:str
@@ -706,15 +725,11 @@ class fir_accused_Get(BaseModel):
     Accused_Description:str
     Image_Path:str
     addresses:Optional[list[Fir_accused_address_Get]]=None
+    accused_act:Optional[list[Fir_ActBaseGet]]=None
     create_date:datetime
     update_date:datetime    
-class Fir_ActBase(BaseModel):
-    Fir_Act:int
-    Fir_Section:list[str]        
-class Fir_ActBaseGet(BaseModel):
-    id:int
-    kalam:CrimeKalamGet=None
-    Fir_Section:str        
+
+           
 class FirBaseGet(BaseModel):
     id:int
     police_station:PoliceStation_only
@@ -734,10 +749,10 @@ class FirBaseGet(BaseModel):
     Dir_distance_From_Ps:Optional[str]=None
     Occurrence_Address:Optional[str]=None
     Beat_no:Optional[str]=None
-    outside_state:Optional[StateGet]=None
-    outside_distric:Optional[DistricGet]=None
-    out_side_ps:Optional[PoliceStation_only]=None
-    fir_act:list[Fir_ActBaseGet] =None
+    # outside_state:Optional[StateGet]=None
+    # outside_distric:Optional[DistricGet]=None
+    out_side_ps:Optional[PoliceStationGet]=None
+    fir_accused:Optional[list[fir_accused_Get]]=None
 #------------chargesheet_shema-------------
 class ChargeSheet_ActBase(BaseModel):
     ChargeSheet_Act:int

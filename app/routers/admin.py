@@ -3,6 +3,7 @@ from ..dependencies import *
 from ..models.models import *
 from ..schemas.schemas import *
 from .authentication import *
+from sqlalchemy.exc import SQLAlchemyError
 router = APIRouter()
 
 #---------------master--------------------------
@@ -1317,31 +1318,39 @@ async def get_fir(current_user:Annotated[UserBase,Depends(get_current_active_use
 @router.post('/fir_from_complaint/{complaint_id}',response_model=FirBaseGet,tags=['FIR_API'])
 async def fir_from_complaint(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                              complaint_id:int,db:Session=Depends(getdb)):
-    complaint_exist=db.query(ComplaintModel).filter(ComplaintModel.id==complaint_id).first()
-    complaintData={
-        "complaint_id":complaint_exist.id,
-        "P_Station":complaint_exist.Station_id,
-        "Info_Recived_Date":complaint_exist.Complaint_Date.strftime('%Y-%m-%d'),
-        "Info_Recived_Time":complaint_exist.Complaint_Date.strftime('%H:%M:%S'),
-        "Type_Information_id":complaint_exist.Mode_Complaint_id,
-         "Dir_distance_From_Ps":complaint_exist.Dfrom_Pstation,
-         "Occurrence_Address":complaint_exist.Place_Occurance,
-         "user_id":current_user.id
-    }
-    firInstance=FIRModel(**complaintData)
-    db.add(firInstance)
-    db.commit()
-    return firInstance
+    try:
+            complaint_exist=db.query(ComplaintModel).filter(ComplaintModel.id==complaint_id).first()
+            if complaint_exist:
+                complaintData={
+                    "complaint_id":complaint_exist.id,
+                    "P_Station":complaint_exist.Station_id,
+                    "Info_Recived_Date":complaint_exist.Complaint_Date.strftime('%Y-%m-%d'),
+                    "Info_Recived_Time":complaint_exist.Complaint_Date.strftime('%H:%M:%S'),
+                    "Type_Information_id":complaint_exist.Mode_Complaint_id,
+                    "Dir_distance_From_Ps":complaint_exist.Dfrom_Pstation,
+                    "Occurrence_Address":complaint_exist.Place_Occurance,
+                    "user_id":current_user.id
+                }
+                firInstance=FIRModel(**complaintData)
+                db.add(firInstance)
+                db.commit()
+                return firInstance
+            raise HTTPException(detail=f"id-{complaint_id} complaint item does not exist",status_code=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)
 @router.post('/create_fir',response_model=FirBaseGet,tags=['FIR_API'])
 async def create_fir(current_user:Annotated[UserBase,Depends(get_current_user)],
                      fir_item:FirBase,db:Session=Depends(getdb)):
-    user_id=[current_user.id if current_user.id else None]
-    fir_item.user_id=user_id[0]
-    fir_db=FIRModel(**fir_item.model_dump())
-    db.add(fir_db)
-    db.commit()
-    db.refresh(fir_db)
-    return fir_db
+    try:
+        user_id=[current_user.id if current_user.id else None]
+        fir_item.user_id=user_id[0]
+        fir_db=FIRModel(**fir_item.model_dump())
+        db.add(fir_db)
+        db.commit()
+        db.refresh(fir_db)
+        return fir_db
+    except Exception as e:
+        raise HTTPException(detail=f"error:{str(e)}",status_code=status.HTTP_400_BAD_REQUEST)
 @router.put('/update_fir/{fir_id}',response_model=FirBase,tags=['FIR_API'])
 async def update_fir(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                      fir_id:int,fir_item:FirBase,db:Session=Depends(getdb)):
@@ -1429,10 +1438,56 @@ async def dlt_fir_accused(current_usr:Annotated[UserBase,Depends(get_current_act
         return Response(content=f"item deleted successfully",status_code=status.HTTP_200_OK) 
     raise HTTPException(detail=f"id-{accused_id} does not exist",status_code=status.HTTP_400_BAD_REQUEST) 
 #-------------------fir_act---------------------------------------------
-@router.post('/create_fir_act',response_model=Fir_ActBaseGet,tags=['Fir_Act_Api'])
+@router.get('/get_fir_act',response_model=list[Fir_ActBaseGet],tags=['Fir_Act_Api'])
+async def  get_fir_act(current_user:Annotated[UserBase,Depends(get_current_active_user)],db:Session=Depends(getdb)):
+    list_fir_act=db.query(FirActModel).all()
+    return list_fir_act
+@router.post('/create_fir_act/{accused_id}',response_model=fir_accused_Get,tags=['Fir_Act_Api'])
 async def create_fir_act(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                         accused_id:int,
                          fir_act:list[Fir_ActBase],db:Session=Depends(getdb)):
-    pass
+    fir_accused_exist=db.query(FirAccused_model).filter(FirAccused_model.id==accused_id).first()
+    if fir_accused_exist:
+        fir_act_instance=[
+            {
+            "accused_id": accused_id,
+            "Fir_Act":fir_act_item.Fir_Act,
+            "Fir_Section":json.dumps(fir_act_item.Fir_Section)
+        } for fir_act_item in fir_act]
+        fir_act_db=[FirActModel(**data) for data in fir_act_instance]
+        db.add_all(fir_act_db)
+        db.commit()
+        return fir_accused_exist
+    raise HTTPException(detail=f"id-{accused_id} does not exist",status_code=status.HTTP_400_BAD_REQUEST)
+    
+@router.put('/update_fir_act/{fir_act_id}',response_model=fir_accused_Get,tags=['Fir_Act_Api'])
+async def update_fir_act(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                         fir_act_id:int,fir_act:fir_act_update,db:Session=Depends(getdb)):
+    try:
+        fir_act_exist=db.query(FirActModel).filter(FirActModel.id==fir_act_id).first()
+        if fir_act_exist:
+            fir_accused_exist=db.query(FirAccused_model).filter(FirAccused_model.id==fir_act.accused_id).first()
+            if fir_accused_exist:
+                fir_act_exist.accused_id=fir_act.accused_id
+                fir_act_exist.Fir_Act=fir_act.Fir_Act
+                fir_act_exist.Fir_Section=json.dumps(fir_act.Fir_Section)
+                db.commit()
+                return fir_accused_exist
+            raise HTTPException(detail=f"id-{fir_act.accused_id} accuseed  item does not exist",status_code=status.HTTP_400_BAD_REQUEST)
+        raise HTTPException(detail=f"id-{fir_act_id} fir_act item does not exist",status_code=status.HTTP_400_BAD_REQUEST)
+    except SQLAlchemyError as e:
+        raise HTTPException(detail=f"error occure while updateing:{e}",status_code=status.HTTP_400_BAD_REQUEST)   
+@router.delete('/dlt_fir_act/{act_id}',tags=['Fir_Act_Api'])
+async def dlt_fir_act(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                      act_id:int,db:Session=Depends(getdb)):
+    fir_act_item=db.query(FirActModel).filter(FirActModel.id==act_id).first()
+    if fir_act_item:
+        db.delete(fir_act_item)
+        db.commit()
+        return Response("fir act item has been deleted successfully",status_code=status.HTTP_200_OK)
+    raise HTTPException(detail=f"id-{act_id} fir_act item does not exist",status_code=status.HTTP_400_BAD_REQUEST)
+    
+             
 #------------charge_sheet__form---------------------
 @router.get('/get_chargesheet',response_model=list[ChargeSheetBaseGet],tags=['ChargeSheet_Api'])
 async def get_chargesheet(current_user:Annotated[UserBase,Depends(get_current_active_user)],db:Session=Depends(getdb)):

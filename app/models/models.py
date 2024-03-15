@@ -518,9 +518,9 @@ class FIRModel(Base):
     Dir_distance_From_Ps=Column(Text)
     Occurrence_Address=Column(Text)
     Beat_no=Column(String(200))
-    State_id=Column(Integer,ForeignKey('state.id'))
-    Distric_id=Column(Integer,ForeignKey('distric.id'))
-    outside_ps=Column(Integer,ForeignKey('policestation.id'))
+    State_id=Column(Integer,ForeignKey('state.id'),nullable=True)
+    Distric_id=Column(Integer,ForeignKey('distric.id'),nullable=True)
+    outside_ps=Column(Integer,ForeignKey('policestation.id'),nullable=True)
     status=Column(Integer,comment='0 for complaint & 1 for dir_fir')
     user_id=Column(Integer,comment="logine user id")
     create_date=Column(DateTime,default=get_current_time)
@@ -530,6 +530,7 @@ class FIRModel(Base):
     outside_distric=relationship(DistricModel,backref='otside_distric')
     police_station=relationship('PoliceStationModel',backref='fir',foreign_keys=[P_Station])
     out_side_ps=relationship('PoliceStationModel',backref='fir_outside',foreign_keys=[outside_ps])
+    fir_accused=relationship('FirAccused_model',backref='fir_accused',cascade='all,delete-orphan' )
 
 class FirAccused_model(Base):
     __tablename__='fir_accused'
@@ -545,7 +546,7 @@ class FirAccused_model(Base):
     Image_Path=Column(String(200))
     create_date=Column(DateTime,default=get_current_time)
     update_date=Column(DateTime,default=get_current_time,onupdate=func.now())
-    accused_act=relationship('FirSectionActModel',backref='accused_act',cascade='all,delete-orphan')
+    accused_act=relationship('FirActModel',backref='accused_act',cascade='all,delete-orphan')
     addresses=relationship('Fir_Accused_Address_Model',backref='addresses',cascade='all,delete-orphan')
 class Fir_Accused_Address_Model(Base):
     __tablename__="fir_accused_address"
@@ -556,7 +557,7 @@ class Fir_Accused_Address_Model(Base):
     create_date=Column(DateTime,default=get_current_time)
     update_date=Column(DateTime,default=get_current_time,onupdate=func.now())
 
-class FirSectionActModel(Base):
+class FirActModel(Base):
     __tablename__='fir_act'
     id=Column(Integer,primary_key=True,autoincrement=True,index=True)
     accused_id=Column(Integer,ForeignKey('fir_accused.id'),nullable=False)
