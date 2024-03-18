@@ -383,15 +383,27 @@ class infomode_BaseGet(Infomode_Base):
     create_date:datetime=None
     update_date:datetime=None              
 #-------------complaint_schema---------------
+class Comp_Accused_Address_Base(BaseModel):
+    Address_Type:str
+    Address:str 
+class Com_Accused_Addres_Get(BaseModel):
+   id:int
+   Address_Type:str
+   Address:str 
+   create_date:datetime
+   update_date:datetime        
 class ComAccused_Base(BaseModel):
     complaint_id:int
     Accused_Name:str
     Aliase:str
-    Accused_Age:int  
-    Accused_Address:str
+    Father_Name:str
+    Mobile_Number:Optional[str]=None
+    DOB:Optional[date]=None
+    Accused_Age:Optional[int]=None  
     relation:str
     Remark:str
     Accused_Imgpath:Optional[str]=None
+    addresses:list[Comp_Accused_Address_Base]
     @model_validator(mode='before')
     @classmethod
     def validate_to_json(cls, value):
@@ -399,8 +411,19 @@ class ComAccused_Base(BaseModel):
             return cls(**json.loads(value))
         return value    
                      
-class ComAccused_BaseGet(ComAccused_Base):
+class ComAccused_BaseGet(BaseModel):
     id:int
+    complaint_id:int
+    Accused_Name:str
+    Aliase:str
+    Father_Name:str
+    Mobile_Number:Optional[str]=None
+    DOB:Optional[date]=None
+    Accused_Age:Optional[int]=None  
+    relation:str
+    Remark:str
+    Accused_Imgpath:Optional[str]=None
+    addresses:list[Com_Accused_Addres_Get]
     create_date:datetime=None
     update_date:datetime=None
 class ComWitness_Base(BaseModel):
@@ -535,14 +558,9 @@ class NCRBase(BaseModel):
             return cls(**json.loads(value))
         return value
 class CompAddressBase(BaseModel):# for ncr
-    Address_Type:str=None
+    Address_Type:Optional[str]=None
     Address:str 
-    @model_validator(mode='before')
-    @classmethod
-    def validate_to_json(cls, value):
-        if isinstance(value, str):
-            return cls(**json.loads(value))
-        return value
+   
 class Com_address_Schema(BaseModel):
     com_address:list[CompAddressBase]  
     @model_validator(mode='before')
@@ -721,7 +739,7 @@ class fir_accused_Get(BaseModel):
     Father_Name:str
     DOB:datetime
     Age:int
-    Mobile_Name:str
+    Mobile_Number:str
     Accused_Description:str
     Image_Path:str
     addresses:Optional[list[Fir_accused_address_Get]]=None
@@ -745,13 +763,13 @@ class FirBaseGet(BaseModel):
     Diary_Entery_No:Optional[int]=None
     Diary_Date:Optional[date]=None
     Diary_Time:Optional[time]=None
-    mode_information:Optional[Infomode_Base]=None
+    mode_information:Optional[infomode_BaseGet]=None
     Dir_distance_From_Ps:Optional[str]=None
     Occurrence_Address:Optional[str]=None
     Beat_no:Optional[str]=None
     # outside_state:Optional[StateGet]=None
     # outside_distric:Optional[DistricGet]=None
-    out_side_ps:Optional[PoliceStationGet]=None
+    # out_side_ps:Optional[PoliceStationGet]=None
     fir_accused:Optional[list[fir_accused_Get]]=None
 #------------chargesheet_shema-------------
 class ChargeSheet_ActBase(BaseModel):

@@ -902,44 +902,94 @@ async def get_comaccused(current_user:Annotated[UserBase,Depends(get_current_act
     return(list_comaccused) 
 @router.post('/create_comaccused',response_model=ComAccused_BaseGet,tags=['Complaint_Accused'])
 async def  create_comaccused(current_user:Annotated[UserBase,Depends(get_current_active_user)],
-                             com_accused:ComAccused_Base=Body(),image:UploadFile=File(None),db:Session=Depends(getdb)):
+                             com_accused:ComAccused_Base,image:UploadFile=File(None),db:Session=Depends(getdb)):
     com_accused_duplicate=db.query(ComAccused_Model).filter(ComAccused_Model.Accused_Name==com_accused.Accused_Name,
                                                             ComAccused_Model.complaint_id==com_accused.complaint_id).first()
     if com_accused_duplicate:
         raise HTTPException(detail=f"{com_accused.Accused_Name} alrady have been present this complaint",status_code=status.HTTP_400_BAD_REQUEST)
-    if image:
-        file_path=await imagestore(image,'complaint/Accused_img')
-        setattr(com_accused,'Accused_Imgpath',f"Static/Images/complaint/Accused_img/{file_path}")
-    com_accused=ComAccused_Model(**com_accused.model_dump())
-    db.add(com_accused)
-    db.commit()
-    db.refresh(com_accused) 
-    return com_accused 
+    try: 
+            if image:
+                file_path=await imagestore(image,'complaint/Accused_img')
+                setattr(com_accused,'Accused_Imgpath',f"Static/Images/complaint/Accused_img/{file_path}")
+            com_accused_instance={
+                "complaint_id": com_accused.complaint_id,
+                "Accused_Name": com_accused.Accused_Name,
+                "Aliase": com_accused.Aliase,
+                "Father_Name": com_accused.Father_Name,
+                "Mobile_Number": com_accused.Mobile_Number,
+                "DOB": com_accused.DOB,
+                "Accused_Age": com_accused.Accused_Age,
+                "relation": com_accused.relation,
+                "Remark": com_accused.Remark,
+                "Accused_Imgpath": com_accused.Accused_Imgpath} 
+            com_accused_db=ComAccused_Model(**com_accused_instance)
+            db.add(com_accused_db)
+            db.commit()
+            if com_accused_db.id:
+                com_accused_address=[{
+                    "accused_id":com_accused_db.id,
+                    "Address_Type": address.Address_Type,
+                    "Address": address.Address
+                } for address in com_accused.addresses]
+                com_accused_address_db=[Com_Accused_Address_Model(**data) for data in com_accused_address]
+                db.add_all(com_accused_address_db)
+                db.commit()
+                return com_accused_db  
+            raise Response(content=f"warnning:accused address not add to database please add mannuay",status_code=status.HTTP_200_OK)  
+    except Exception as e:
+        raise HTTPException(detail=f"error:{str(e)}",status_code=status.HTTP_400_BAD_REQUEST)        
 @router.put('/update_comaccused/{comaccused_id}',response_model=ComAccused_BaseGet,tags=['Complaint_Accused']) 
-async def update_cimaccused(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+async def update_com_accused(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                             comaccused_id:int,com_accused:ComAccused_Base,db:Session=Depends(getdb)):
-    comaccused_item=db.query(ComAccused_Model).filter(ComAccused_Model.id==comaccused_id).first()
-    if comaccused_item:
-        com_accused_duplicate=db.query(ComAccused_Model).filter(ComAccused_Model.Accused_Name==com_accused.Accused_Name,
-                                                                ComAccused_Model.complaint_id==comaccused_item.complaint_id,
-                                                                ComAccused_Model.id!=comaccused_id).first()
-        if com_accused_duplicate:
-            raise HTTPException(detail=f'{com_accused.Accused_Name} already exist',status_code=status.HTTP_400_BAD_REQUEST)
-        for field,item in com_accused.model_dump(exclude_unset=True).items():
-            setattr(comaccused_item,field,item)
-        db.commit()
-        db.refresh(comaccused_item)   
-        return comaccused_item 
-    raise HTTPException(detail=f"{comaccused_id} does not exist",status_code=status.HTTP_400_BAD_REQUEST)
+    try:
+            comaccused_item=db.query(ComAccused_Model).filter(ComAccused_Model.id==comaccused_id).first()
+            if comaccused_item:
+                com_accused_duplicate=db.query(ComAccused_Model).filter(ComAccused_Model.Accused_Name==com_accused.Accused_Name,
+                                                                        ComAccused_Model.complaint_id==comaccused_item.complaint_id,
+                                                                        ComAccused_Model.id!=comaccused_id).first()
+                if com_accused_duplicate:
+                    raise HTTPException(detail=f'{com_accused.Accused_Name} already exist',status_code=status.HTTP_400_BAD_REQUEST)
+            
+                comaccused_item.complaint_id=com_accused.complaint_id
+                comaccused_item.Accused_Name=com_accused.Accused_Name
+                comaccused_item.Aliase=com_accused.Aliase
+                comaccused_item.Father_Name= com_accused.Father_Name
+                comaccused_item.Mobile_Number=com_accused.Mobile_Number
+                comaccused_item.DOB=com_accused.DOB
+                comaccused_item.Accused_Age=com_accused.Accused_Age
+                comaccused_item.relation=com_accused.relation
+                comaccused_item.Remark=com_accused.Remark
+                comaccused_item.Accused_Imgpath=com_accused.Accused_Imgpath
+                db.commit()
+                accused_address=db.query(Com_Accused_Address_Model).filter(Com_Accused_Address_Model.accused_id==comaccused_id).all()
+                if accused_address:
+                    [db.delete(item) for item in accused_address]
+                    db.commit()
+                com_accused_address_instance=[{
+                    "accused_id": comaccused_id,
+                    "Address_Type":address.Address_Type,
+                    "Address":address.Address,
+                } for address in com_accused.addresses  ] 
+                comp_accused_address_db=[Com_Accused_Address_Model(**data) for data in  com_accused_address_instance]
+                db.add_all(comp_accused_address_db)
+                db.commit()   
+                return comaccused_item 
+            raise HTTPException(detail=f"{comaccused_id} does not exist",status_code=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        raise HTTPException(detail=f"error:{str(e)}")
 @router.delete('/dlt_com_accused/{com_accused_id}',tags=["Complaint_Accused"])
 async def dlt_com_accused(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                          com_accused_id:int,db:Session=Depends(getdb)):
-    com_accused_item=db.query(ComAccused_Model).filter(ComAccused_Model.id==com_accused_id).first()
-    if com_accused_item:
-        db.delete(com_accused_item)
-        db.commit()
-        return Response(content=f"com_accused_item has been deleted successfully",status_code=status.HTTP_200_OK)
-    raise HTTPException(detail=f"{com_accused_id} does not exist",status_code=status.HTTP_200_OK)
+    try:
+        com_accused_item=db.query(ComAccused_Model).filter(ComAccused_Model.id==com_accused_id).first()
+        if com_accused_item:
+            await dlt_image(com_accused_item.Accused_Imgpath) if com_accused_item.Accused_Imgpath else None
+            db.delete(com_accused_item)
+            db.commit()
+            return Response(content=f"com_accused_item has been deleted successfully",status_code=status.HTTP_200_OK)
+        raise HTTPException(detail=f"{com_accused_id} does not exist",status_code=status.HTTP_200_OK)
+    except Exception as e:
+        raise HTTPException(detail=(f"error:{str(e)}"))
 #----------------complaint_witness----------------------------
 @router.get('/get_com_witness',response_model=list[ComWitness_BaseGet],tags=["Complaint_Witness"])
 async def get_com_witness(current_user:Annotated[UserBase,Depends(get_current_active_user)],complaint_id:int,
@@ -973,9 +1023,8 @@ async def update_com_witness(current_user:Annotated[UserBase,Depends(get_current
         raise HTTPException(detail=f"{com_witness} already present",status_code=status.HTTP_400_BAD_REQUEST)
     witness_exist=db.query(ComWitness_Model).filter(ComWitness_Model.id==witness_id).first()
     if witness_exist:
-        for field,item in com_witness.dict(exclude_unset=True).items():
+        for field,item in com_witness.model_dump(exclude_unset=True).items():
             setattr(witness_exist,field,item)
-            print(f"{field}====>{item}")
         db.commit()
         db.refresh(witness_exist) 
         return witness_exist
@@ -1126,16 +1175,29 @@ async def create_ncr_from_complaint(current_user:Annotated[UserBase,Depends(get_
             complaint_accused_exist=db.query(ComAccused_Model).filter(ComAccused_Model.complaint_id==complaint_id).all()
             if complaint_accused_exist:
                 for accused in complaint_accused_exist:
-                    ncr_accused_db=AccusedModel(NCR_id=ncr_db.id,Name=accused.Accused_Name
-                                                ,Age=accused.Accused_Age,
+                    ncr_accused_db=AccusedModel(NCR_id=ncr_db.id,
+                                                Name=accused.Accused_Name,
+                                                Aliase_Name=accused.Aliase,
+                                                Father_Name=accused.Father_Name,
+                                                Age=accused.Accused_Age,
+                                                DOB=accused.DOB,
+                                                Mobile_Number=accused.Mobile_Number,
+                                                Accused_Description=accused.Remark,
                                                 image_path=accused.Accused_Imgpath)
                     db.add(ncr_accused_db)
                     db.commit()
-                    ncr_accused_address=Accused_AddressModel(Accused_id=ncr_accused_db.id,
-                                                             Address=accused.Accused_Address)
-                    db.add(ncr_accused_address)
-                db.commit()
-            return ncr_db   
+                    accused_addresses=db.query(Com_Accused_Address_Model).filter(Com_Accused_Address_Model.accused_id==accused.id).all()
+                    if accused_addresses and ncr_accused_db.id:
+                        ncr_accused_address_instance=[{
+                             "Accused_id":ncr_accused_db.id,
+                             "Address_Type":address.Address_Type,
+                             "Address":address.Address
+                        } for address in accused_addresses]
+                        ncr_accused_address_db=[Accused_AddressModel(**data) for data in ncr_accused_address_instance]
+                        db.add_all(ncr_accused_address_db)
+                        db.commit()
+                return ncr_db 
+    raise HTTPException(detail=f"id-{complaint_id} item does not exist in complaint table",status_code=status.HTTP_400_BAD_REQUEST)  
             
 @router.post('/create_ncr',response_model=NCRBaseGet,tags=['NCR_API'])
 async def create_ncr(current_user:Annotated[UserBase,Depends(get_current_active_user)],
@@ -1334,6 +1396,33 @@ async def fir_from_complaint(current_user:Annotated[UserBase,Depends(get_current
                 firInstance=FIRModel(**complaintData)
                 db.add(firInstance)
                 db.commit()
+                if firInstance.id:
+                    complaint_accused=db.query(ComAccused_Model).filter(ComAccused_Model.complaint_id==complaint_id).all()
+                    if complaint_accused:
+                        for accused in complaint_accused:
+                            fir_accused_db=FirAccused_model(fir_id=firInstance.id,
+                                                            Name=accused.Accused_Name,
+                                                            Alias_Name=accused.Aliase,
+                                                            Father_Name=accused.Father_Name,
+                                                            Mobile_Number=accused.Mobile_Number,
+                                                            DOB=accused.DOB,
+                                                            Age=accused.Accused_Age,
+                                                            Accused_Description=accused.Remark,
+                                                            Image_Path=accused.Accused_Imgpath
+                                                            )
+                            db.add(fir_accused_db)
+                            db.commit()
+                            complaint_accused_addresses=db.query(Com_Accused_Address_Model).\
+                            filter(Com_Accused_Address_Model.accused_id==accused.id).all()
+                            if  complaint_accused_addresses and fir_accused_db.id:
+                                fir_accused_address_instance=[{
+                                    "Accused_id":fir_accused_db.id,
+                                    "Address_Type":address.Address_Type,
+                                    "Address":address.Address
+                                } for address in complaint_accused_addresses]
+                                fir_accused_address_db=[Fir_Accused_Address_Model(**data) for data in fir_accused_address_instance]
+                                db.add_all(fir_accused_address_db)
+                                db.commit()
                 return firInstance
             raise HTTPException(detail=f"id-{complaint_id} complaint item does not exist",status_code=status.HTTP_400_BAD_REQUEST)
     except Exception as e:

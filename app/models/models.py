@@ -408,13 +408,24 @@ class ComAccused_Model(Base):#complaint accused
     complaint_id=Column(Integer,ForeignKey('complaint.id'))
     Accused_Name=Column(String(256))
     Aliase=Column(String(256),comment='aliase name')
+    Father_Name=Column(String(256))
+    Mobile_Number=Column(String(12))
+    DOB=Column(Date)
     Accused_Age=Column(Integer)  
-    Accused_Address=Column(Text)
     relation=Column(String(256),comment='relation with victime')
     Remark=Column(Text)
     Accused_Imgpath=Column(String(256))#accused image path
+    addresses=relationship("Com_Accused_Address_Model",backref="addresses",cascade='all,delete-orphan')
     create_date=Column(DateTime,default=get_current_time)
     update_date=Column(DateTime,default=get_current_time,onupdate=func.now())
+class Com_Accused_Address_Model(Base):
+    __tablename__="com_accused_address"
+    id=Column(Integer,primary_key=True,unique=True,index=True,nullable=True)
+    accused_id=Column(Integer,ForeignKey("complaint_accused.id"))
+    Address_Type=Column(String(255))
+    Address=Column(Text)  
+    create_date=Column(DateTime,default=get_current_time)
+    update_date=Column(DateTime,default=get_current_time,onupdate=func.now())  
 class ComEvidenceModel(Base):
     __tablename__='comevidence'
     id=Column(Integer,primary_key=True,autoincrement=True,index=True)
@@ -541,7 +552,7 @@ class FirAccused_model(Base):
     Father_Name=Column(String(200))
     DOB=Column(Date)
     Age=Column(Integer)
-    Mobile_Name=Column(String(12))
+    Mobile_Number=Column(String(12))
     Accused_Description=Column(Text)
     Image_Path=Column(String(200))
     create_date=Column(DateTime,default=get_current_time)
