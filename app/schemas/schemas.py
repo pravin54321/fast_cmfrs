@@ -159,7 +159,7 @@ class RegionGet(BaseModel):
         orm_mode:True
 class StateRegion(BaseModel):
     id:int
-    Region:str        
+    Region:str            
 #------------master_distric-------------
 class DistricBase(BaseModel):
     Distric: str
@@ -262,10 +262,18 @@ class PoliceStationGet(BaseModel):
     taluka:TalukaGet
     class config:
         orm_mode=True
-
 class TalukaPolicestation(BaseModel):
     id:int
-    PoliceStation:str        
+    PoliceStation:str 
+class outside_policestation(BaseModel):
+    id:int
+    PoliceStation:str
+    create_date:datetime=None
+    update_date:datetime=None
+    state:StateGet
+    distric:District_only
+    
+           
 #_______post_________
 class PostBase(BaseModel):
     Post:str
@@ -769,7 +777,7 @@ class FirBaseGet(BaseModel):
     Beat_no:Optional[str]=None
     # outside_state:Optional[StateGet]=None
     # outside_distric:Optional[DistricGet]=None
-    # out_side_ps:Optional[PoliceStationGet]=None
+    out_side_ps:Optional[outside_policestation]=None
     fir_accused:Optional[list[fir_accused_Get]]=None
 #------------chargesheet_shema-------------
 class ChargeSheet_ActBase(BaseModel):
