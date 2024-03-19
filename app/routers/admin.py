@@ -1202,7 +1202,7 @@ async def create_ncr_from_complaint(current_user:Annotated[UserBase,Depends(get_
                         ncr_accused_address_db=[Accused_AddressModel(**data) for data in ncr_accused_address_instance]
                         db.add_all(ncr_accused_address_db)
                         db.commit()
-                return ncr_db 
+        return ncr_db 
     raise HTTPException(detail=f"id-{complaint_id} item does not exist in complaint table",status_code=status.HTTP_400_BAD_REQUEST)  
             
 @router.post('/create_ncr',response_model=NCRBaseGet,tags=['NCR_API'])
