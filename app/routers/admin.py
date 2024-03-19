@@ -1520,7 +1520,7 @@ async def update_fir_accused(current_user:Annotated[UserBase,Depends(get_current
             fir_accused_exist.Father_Name=fir_accuse.Father_Name
             fir_accused_exist.Age=fir_accuse.Age
             fir_accused_exist.DOB=fir_accuse.DOB
-            fir_accused_exist.Mobile_Name=fir_accuse.Mobile_Name
+            fir_accused_exist.Mobile_Number=fir_accuse.Mobile_Number
             fir_accused_exist.Accused_Description=fir_accuse.Accused_Description
             fir_accused_exist.Image_Path=fir_accuse.Image_Path
             db.commit() 
