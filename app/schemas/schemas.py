@@ -727,7 +727,7 @@ class Fir_accused_Base(BaseModel):
     Father_Name:str
     DOB:datetime
     Age:int
-    Mobile_Name:str
+    Mobile_Number:str
     Accused_Description:str
     Image_Path:str
     addresses:Optional[list[Fir_Accused_Address_Base]]=None

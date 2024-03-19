@@ -1485,7 +1485,7 @@ async def create_fir_accused(current_user:Annotated[UserBase,Depends(get_current
             "Father_Name":fir_accused.Father_Name,
             "DOB":fir_accused.DOB,
             "Age":fir_accused.Age,
-             "Mobile_Name":fir_accused.Mobile_Name,
+             "Mobile_Number":fir_accused.Mobile_Number,
             "Accused_Description":fir_accused.Accused_Description,
             "Image_Path":f"Static/Images/ncr/complainant_img/{file_path}"
         }
