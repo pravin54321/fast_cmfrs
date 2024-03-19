@@ -750,7 +750,7 @@ class fir_accused_Get(BaseModel):
     Age:int
     Mobile_Number:str
     Accused_Description:str
-    Image_Path:str
+    Image_Path:Optional[str]=None
     addresses:Optional[list[Fir_accused_address_Get]]=None
     accused_act:Optional[list[Fir_ActBaseGet]]=None
     create_date:datetime

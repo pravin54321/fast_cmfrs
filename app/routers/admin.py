@@ -1475,64 +1475,78 @@ async def get_fir_accused(current_user:Annotated[UserBase,Depends(get_current_ac
 @router.post('/create_fir_accused',response_model=fir_accused_Get,tags=['Fir_Accused_Api'])
 async def create_fir_accused(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                              fir_accused:Fir_accused_Base,image:UploadFile=File(None),db:Session=Depends(getdb)):
-    fir_exist=db.query(FIRModel).filter(FIRModel.id==fir_accused.fir_id).first()
-    if fir_exist:
-        file_path= await imagestore(image,'fir/accused_img')
-        accused_instance={
-            "fir_id":fir_accused.fir_id,
-            "Name":fir_accused.Name,
-            "Alias_Name":fir_accused.Alias_Name,
-            "Father_Name":fir_accused.Father_Name,
-            "DOB":fir_accused.DOB,
-            "Age":fir_accused.Age,
-             "Mobile_Number":fir_accused.Mobile_Number,
-            "Accused_Description":fir_accused.Accused_Description,
-            "Image_Path":f"Static/Images/ncr/complainant_img/{file_path}"
-        }
-        fir_accused_instance=FirAccused_model(**accused_instance)
-        db.add(fir_accused_instance)
-        db.commit()
-        db.refresh(fir_accused_instance)
-        if fir_accused.addresses and fir_accused_instance.id:
-            for address in fir_accused.addresses:
-                db_address=Fir_Accused_Address_Model(**address.model_dump(),Accused_id=fir_accused_instance.id)
-                db.add(db_address)
-            db.commit()    
-            return fir_accused_instance
-        raise HTTPException(detail=f"some error to  adding  accused address",status_code=status.HTTP_400_BAD_REQUEST)
+    try:
+            fir_exist=db.query(FIRModel).filter(FIRModel.id==fir_accused.fir_id).first()
+            if fir_exist:# image condition check
+                if image:
+                     file_path= await imagestore(image,'fir/accused_img')
+                     file_path=f"Static/Images/ncr/complainant_img/{file_path}"
+                else:
+                    file_path=None     
+                accused_instance={
+                    "fir_id":fir_accused.fir_id,
+                    "Name":fir_accused.Name,
+                    "Alias_Name":fir_accused.Alias_Name,
+                    "Father_Name":fir_accused.Father_Name,
+                    "DOB":fir_accused.DOB,
+                    "Age":fir_accused.Age,
+                    "Mobile_Number":fir_accused.Mobile_Number,
+                    "Accused_Description":fir_accused.Accused_Description,
+                    "Image_Path":file_path
+                }
+                fir_accused_instance=FirAccused_model(**accused_instance)
+                db.add(fir_accused_instance)
+                db.commit()
+                db.refresh(fir_accused_instance)
+                if fir_accused.addresses and fir_accused_instance.id:
+                    for address in fir_accused.addresses:
+                        db_address=Fir_Accused_Address_Model(**address.model_dump(),Accused_id=fir_accused_instance.id)
+                        db.add(db_address)
+                    db.commit()    
+                    return fir_accused_instance
+                raise HTTPException(detail=f"some error to  adding  accused address",status_code=status.HTTP_400_BAD_REQUEST)
+            raise HTTPException(detail=f"id-{fir_accused.fir_id} fir item does not exist",status_code=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+         raise HTTPException(detail=f"{str(e)}",status_code=status.HTTP_400_BAD_REQUEST) 
 @router.put('/update_fir_accused/{accused_id}',response_model=fir_accused_Get,tags=["Fir_Accused_Api"])
 async def update_fir_accused(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                              accused_id:int,fir_accuse:Fir_accused_Base,db:Session=Depends(getdb)):
-    fir_accused_exist=db.query(FirAccused_model).filter(FirAccused_model.id==accused_id).first() 
-    if fir_accused_exist:
-        fir_accused_exist.fir_id=fir_accuse.fir_id
-        fir_accused_exist.Name=fir_accuse.Name
-        fir_accused_exist.Alias_Name=fir_accuse.Alias_Name
-        fir_accused_exist.Father_Name=fir_accuse.Father_Name
-        fir_accused_exist.Age=fir_accuse.Age
-        fir_accused_exist.DOB=fir_accuse.DOB
-        fir_accused_exist.Mobile_Name=fir_accuse.Mobile_Name
-        fir_accused_exist.Accused_Description=fir_accuse.Accused_Description
-        fir_accused_exist.Image_Path=fir_accuse.Image_Path
-        db.commit() 
-        accused_address_exist=db.query(Fir_Accused_Address_Model).filter(Fir_Accused_Address_Model.Accused_id==accused_id).all()
-        if accused_address_exist:
-            [db.delete(del_address) for del_address in accused_address_exist]
-        for address in fir_accuse.addresses:
-            db_address=Fir_Accused_Address_Model(**address.model_dump(),Accused_id=accused_id)
-            db.add(db_address)
-        db.commit()    
-        return fir_accused_exist
-    raise HTTPException(detail=f"id-{accused_id} does not exist",status_code=status.HTTP_400_BAD_REQUEST)    
+    try:
+        fir_accused_exist=db.query(FirAccused_model).filter(FirAccused_model.id==accused_id).first() 
+        if fir_accused_exist:
+            fir_accused_exist.fir_id=fir_accuse.fir_id
+            fir_accused_exist.Name=fir_accuse.Name
+            fir_accused_exist.Alias_Name=fir_accuse.Alias_Name
+            fir_accused_exist.Father_Name=fir_accuse.Father_Name
+            fir_accused_exist.Age=fir_accuse.Age
+            fir_accused_exist.DOB=fir_accuse.DOB
+            fir_accused_exist.Mobile_Name=fir_accuse.Mobile_Name
+            fir_accused_exist.Accused_Description=fir_accuse.Accused_Description
+            fir_accused_exist.Image_Path=fir_accuse.Image_Path
+            db.commit() 
+            accused_address_exist=db.query(Fir_Accused_Address_Model).filter(Fir_Accused_Address_Model.Accused_id==accused_id).all()
+            if accused_address_exist:
+                [db.delete(del_address) for del_address in accused_address_exist]
+            for address in fir_accuse.addresses:
+                db_address=Fir_Accused_Address_Model(**address.model_dump(),Accused_id=accused_id)
+                db.add(db_address)
+            db.commit()    
+            return fir_accused_exist
+        raise HTTPException(detail=f"id-{accused_id} does not exist",status_code=status.HTTP_400_BAD_REQUEST)    
+    except  Exception as e:
+        raise HTTPException(detail=f"{str(e)}",status_code=status.HTTP_400_BAD_REQUEST)
 @router.delete('/dlt_fir_accused/{accused_id}',tags=['Fir_Accused_Api'])
 async def dlt_fir_accused(current_usr:Annotated[UserBase,Depends(get_current_active_user)],
                           accused_id:int,db:Session=Depends(getdb)):
-    fir_accused_exist=db.query(FirAccused_model).filter(FirAccused_model.id==accused_id).first()
-    if fir_accused_exist:
-        db.delete(fir_accused_exist)
-        db.commit()
-        return Response(content=f"item deleted successfully",status_code=status.HTTP_200_OK) 
-    raise HTTPException(detail=f"id-{accused_id} does not exist",status_code=status.HTTP_400_BAD_REQUEST) 
+    try:
+        fir_accused_exist=db.query(FirAccused_model).filter(FirAccused_model.id==accused_id).first()
+        if fir_accused_exist:
+            db.delete(fir_accused_exist)
+            db.commit()
+            return Response(content=f"item deleted successfully",status_code=status.HTTP_200_OK) 
+        raise HTTPException(detail=f"id-{accused_id} does not exist",status_code=status.HTTP_400_BAD_REQUEST) 
+    except Exception as e:
+        raise HTTPException(detail=f"{str(e)}",status_code=status.HTTP_400_BAD_REQUEST)
 #-------------------fir_act---------------------------------------------
 @router.get('/get_fir_act',response_model=list[Fir_ActBaseGet],tags=['Fir_Act_Api'])
 async def  get_fir_act(current_user:Annotated[UserBase,Depends(get_current_active_user)],db:Session=Depends(getdb)):
