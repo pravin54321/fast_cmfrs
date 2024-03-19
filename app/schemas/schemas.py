@@ -690,6 +690,7 @@ class FirBase(BaseModel):
     State_id:Optional[int]=None
     Distric_id:Optional[int]=None
     outside_ps:Optional[int]=None
+    status:int # 0 for complaint and 1 for  mannually
     user_id:int=None
 class Fir_Accused_Address_Base(BaseModel):
     Address_Type:str

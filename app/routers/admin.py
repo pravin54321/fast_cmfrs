@@ -838,15 +838,18 @@ async def del_stationlog(current_user:Annotated[UserBase,Depends(get_current_act
 async def create_complaint(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                         complaint:ComplaintBase=Body(...),img_file:UploadFile=File(None),
                         db:Session=Depends(getdb)):
-    if img_file:
-        file_path=await imagestore(img_file,'complaint/complainant_img')
-        setattr(complaint,'Complainant_Imgpath',f"Static/Images/complaint/complainant_img/{file_path}")
-    user_id=[current_user.id if current_user.id else None]
-    complaint.user_id=user_id[0]
-    complaint_item=ComplaintModel(**complaint.model_dump())
-    db.add(complaint_item)
-    db.commit()
-    return complaint_item
+    try:
+            if img_file:
+                file_path=await imagestore(img_file,'complaint/complainant_img')
+                setattr(complaint,'Complainant_Imgpath',f"Static/Images/complaint/complainant_img/{file_path}")
+            user_id=[current_user.id if current_user.id else None]
+            complaint.user_id=user_id[0]
+            complaint_item=ComplaintModel(**complaint.model_dump())
+            db.add(complaint_item)
+            db.commit()
+            return complaint_item
+    except Exception as e:
+        raise HTTPException(detail=f"error:{str(e)}",status_code=status.HTTP_400_BAD_REQUEST)
 @router.get('/get_complaint',response_model=list[ComplaintGet],tags=['Complaint_Api'])
 async def get_complaint(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                         db:Session=Depends(getdb)):
@@ -880,20 +883,23 @@ async def update_complaint(current_user:Annotated[UserBase,Depends(getdb)],
 @router.delete('/del/{complaint_id}',tags=['Complaint_Api'])
 async def del_complaint(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                         complaint_id:int,db:Session=Depends(getdb)):
-    complaint_exist=db.query(ComplaintModel).filter(ComplaintModel.id==complaint_id).first()
-    evidance_exist=db.query(ComEvidenceModel).filter(ComEvidenceModel.Complaint_id==complaint_id).all()
-    accused_exist=db.query(ComAccused_Model).filter(ComAccused_Model.complaint_id==complaint_id).all()
-    witness_exist=db.query(ComWitness_Model).filter(ComWitness_Model.complaint_id==complaint_id).all()
-    victime_exist=db.query(ComVictime_Model).filter(ComVictime_Model.complaint_id==complaint_id).all()
-    if complaint_exist:
-        dlt_evidence=[await dlt_image(evidence.File_Path) for evidence in evidance_exist] if evidance_exist else None
-        dlt_accused=[await dlt_image(accused.Accused_Imgpath) for accused in accused_exist] if accused_exist else None
-        dlt_witness=[await dlt_image(witness.Witness_Imgpath) for witness in witness_exist] if witness_exist else None
-        dlt_victime=[await dlt_image(victime.Victime_Imgpath) for victime in victime_exist] if victime_exist else None
-        db.delete(complaint_exist)
-        db.commit()
-        return Response(content=f'id-{complaint_id} has been deleted successfully',status_code=status.HTTP_200_OK)  
-    raise HTTPException(detail=f"id-{complaint_id} does not exist",status_code=status.HTTP_404_NOT_FOUND)  
+    try:
+        complaint_exist=db.query(ComplaintModel).filter(ComplaintModel.id==complaint_id).first()
+        evidance_exist=db.query(ComEvidenceModel).filter(ComEvidenceModel.Complaint_id==complaint_id).all()
+        accused_exist=db.query(ComAccused_Model).filter(ComAccused_Model.complaint_id==complaint_id).all()
+        witness_exist=db.query(ComWitness_Model).filter(ComWitness_Model.complaint_id==complaint_id).all()
+        victime_exist=db.query(ComVictime_Model).filter(ComVictime_Model.complaint_id==complaint_id).all()
+        if complaint_exist:
+            dlt_evidence=[await dlt_image(evidence.File_Path) for evidence in evidance_exist] if evidance_exist else None
+            dlt_accused=[await dlt_image(accused.Accused_Imgpath) for accused in accused_exist] if accused_exist else None
+            dlt_witness=[await dlt_image(witness.Witness_Imgpath) for witness in witness_exist] if witness_exist else None
+            dlt_victime=[await dlt_image(victime.Victime_Imgpath) for victime in victime_exist] if victime_exist else None
+            db.delete(complaint_exist)
+            db.commit()
+            return Response(content=f'id-{complaint_id} has been deleted successfully',status_code=status.HTTP_200_OK)  
+        raise HTTPException(detail=f"id-{complaint_id} does not exist",status_code=status.HTTP_404_NOT_FOUND)  
+    except Exception as e:
+        raise HTTPException(detail=f"error:{str(e)}",status_code=status.HTTP_400_BAD_REQUEST)
 #_________________________complaint_accused_______________________________
 @router.get("/get_comaccused",response_model=list[ComAccused_BaseGet],tags=["Complaint_Accused"]) 
 async def get_comaccused(current_user:Annotated[UserBase,Depends(get_current_active_user)],complaint_id:int,
@@ -1391,6 +1397,7 @@ async def fir_from_complaint(current_user:Annotated[UserBase,Depends(get_current
                     "Type_Information_id":complaint_exist.Mode_Complaint_id,
                     "Dir_distance_From_Ps":complaint_exist.Dfrom_Pstation,
                     "Occurrence_Address":complaint_exist.Place_Occurance,
+                    "status":0, # 0 for direct complaint and 1 for manually created
                     "user_id":current_user.id
                 }
                 firInstance=FIRModel(**complaintData)
@@ -1455,9 +1462,9 @@ async def dlt_fir(current_user:Annotated[UserBase,Depends(get_current_active_use
                   fir_id:int,db:Session=Depends(getdb)):
                  fir_exist=db.query(FIRModel).filter(FIRModel.id==fir_id).first()
                  if fir_exist:
-                     db.delete(fir_exist)
-                     db.commit()
-                     return Response(content=f'id-{fir_id} has been deleted successfully',status_code=status.HTTP_200_OK) 
+                    db.delete(fir_exist)
+                    db.commit()
+                    return Response(content=f'id-{fir_id} has been deleted successfully',status_code=status.HTTP_200_OK) 
                  raise HTTPException(detail=f"id-{fir_id} does not exist",status_code=status.HTTP_400_BAD_REQUEST)            
 #----------------------------------fir_accused-------------------------------------------------------
 @router.get('/get_fir_accused',response_model=list[fir_accused_Get],tags=['Fir_Accused_Api'])
