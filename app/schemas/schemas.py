@@ -670,8 +670,10 @@ class NCRBaseGet(BaseModel):
     
 #--------------fir_schema--------------------
 class FirBase(BaseModel):
-    P_Station:int
-    Year: conint(ge=1900, le=2100)
+    ps_state_id:int # for police station state
+    ps_district_id:int # for police station district
+    P_Station:int # police station 
+    Year: conint(ge=1900, le=2100) # type: ignore
     Day:str
     Time_Period:time
     Date_From:date
@@ -759,7 +761,7 @@ class fir_accused_Get(BaseModel):
            
 class FirBaseGet(BaseModel):
     id:int
-    police_station:PoliceStation_only
+    police_station:outside_policestation
     Year: Optional[conint(ge=1900, le=2100)]=None
     Day:Optional[str]=None
     Time_Period:Optional[time]=None
@@ -783,20 +785,31 @@ class FirBaseGet(BaseModel):
 #------------chargesheet_shema-------------
 class ChargeSheet_ActBase(BaseModel):
     ChargeSheet_Act:int
-    ChargeSheet_Section:str 
+    ChargeSheet_Section:Optional[list[str]]=None 
 class ChargeSheet_ActBaseGet(BaseModel):
     id:int
     kalam:CrimeKalamGet
-    ChargeSheet_Section:str 
+    ChargeSheet_Section:list[str] 
     create_date:datetime
-    update_date:datetime            
+    update_date:datetime  
+    @validator('ChargeSheet_Section',pre=True)
+    def parse_section(cls,v):
+        if isinstance(v,str):
+            try:
+                return json.loads(v)
+            except json.JSONDecodeError:
+                #raise ValidationError('invalid JSON string for section field')
+                return[v]
+        return v                     
 class ChargeSheetBase(BaseModel):
-    P_Station:int
+    State_id:int
+    District_id:int
+    ps_id:int
     Year:conint(ge=1900,le=2100)
     Fir_No:str
     Fir_Date:date  
     ChargeSheet_Date:date
-    Type_FinalReport:str
+    Type_Final_Report:str
     If_FIR_Unoccured:str      
     If_ChargeSheet:str
     Name_IO:str
@@ -807,12 +820,12 @@ class ChargeSheetBase(BaseModel):
     user_id:int=None
 class ChargeSheetBaseGet(BaseModel):
     id:int
-    police_station:PoliceStation_only
+    police_station:Optional[outside_policestation]=None
     Year:conint(ge=1900,le=2100)
     Fir_No:str
     Fir_Date:date  
     ChargeSheet_Date:date
-    Type_FinalReport:str
+    Type_Final_Report:str
     If_FIR_Unoccured:str      
     If_ChargeSheet:str
     Name_IO:str
@@ -822,7 +835,9 @@ class ChargeSheetBaseGet(BaseModel):
     Detail_Properties:str
     create_date:datetime
     update_date:datetime
-    charge_sheet_act:list[ChargeSheet_ActBaseGet]
+    charge_sheet_act:Optional[list[ChargeSheet_ActBaseGet]]=None
+    create_date:datetime
+    update_date:datetime
 
 #Enquiry_Namuna_Form
 class EnquiryNamunaBase(BaseModel):

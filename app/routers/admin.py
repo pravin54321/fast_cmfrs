@@ -1450,13 +1450,18 @@ async def create_fir(current_user:Annotated[UserBase,Depends(get_current_user)],
 @router.put('/update_fir/{fir_id}',response_model=FirBase,tags=['FIR_API'])
 async def update_fir(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                      fir_id:int,fir_item:FirBase,db:Session=Depends(getdb)):
-    fir_exist=db.query(FIRModel).filter(FIRModel.id==fir_id).first()  
-    if fir_exist:
-        for field,value in fir_item.model_dump(exclude={"Fir_No"},exclude_unset=True).items():
-            setattr(fir_exist,field,value)
-        db.commit()
-        return fir_exist 
-    raise HTTPException(detail=f'id-{fir_id} does not exist',status_code=status.HTTP_400_BAD_REQUEST) 
+  
+        fir_exist=db.query(FIRModel).filter(FIRModel.id==fir_id).first()  
+        try:
+            if fir_exist:
+                for field,value in fir_item.model_dump(exclude={"Fir_No"},exclude_unset=True).items():
+                    setattr(fir_exist,field,value)
+                db.commit()
+                return fir_exist 
+        except  Exception as e:
+              raise HTTPException(detail=f"{str(e)}",status_code=status.HTTP_400_BAD_REQUEST)    
+        raise HTTPException(detail=f'id-{fir_id} does not exist',status_code=status.HTTP_400_BAD_REQUEST) 
+  
 @router.delete('/dlt_fir/{fir_id}',tags=['FIR_API'])
 async def dlt_fir(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                   fir_id:int,db:Session=Depends(getdb)):
@@ -1606,39 +1611,52 @@ async def get_chargesheet(current_user:Annotated[UserBase,Depends(get_current_ac
 @router.post('/create_chargesheet',response_model=ChargeSheetBaseGet,tags=['ChargeSheet_Api'])
 async def create_chargesheet(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                              charge_sheet:ChargeSheetBase,chargesheet_act:list[ChargeSheet_ActBase],db:Session=Depends(getdb)):
-    user_id=[current_user.id if current_user.id else None]
-    charge_sheet.user_id=user_id[0]
-    chargesheet_item=ChargeSheetModel(**charge_sheet.model_dump())
-    db.add(chargesheet_item)
-    db.commit()
-    if chargesheet_item.id:
-        for sheet_act in  chargesheet_act:
-            chargesheet_act_db=ChargeSheet_ActModel(ChargeSheet_id=chargesheet_item.id,ChargeSheet_Act=sheet_act.ChargeSheet_Act,
-                                                    ChargeSheet_Section=sheet_act.ChargeSheet_Section)
-            db.add(chargesheet_act_db)
-        db.commit()     
-    db.refresh(chargesheet_item) 
-    return chargesheet_item     
+    try:
+            user_id=[current_user.id if current_user.id else None]
+            charge_sheet.user_id=user_id[0]
+            charge_sheet_item=ChargeSheetModel(**charge_sheet.model_dump())
+            db.add(charge_sheet_item)
+            db.commit()
+            if charge_sheet_item.id:
+                act_section_instance=[{
+                    "ChargeSheet_id":charge_sheet_item.id,
+                    "ChargeSheet_Act":act.ChargeSheet_Act,
+                    "ChargeSheet_Section":json.dumps(act.ChargeSheet_Section)
+                } for act in chargesheet_act]
+                act_section_db=[ChargeSheet_ActModel(**data)for data in act_section_instance]
+                db.add_all(act_section_db)
+                db.commit()
+            return  charge_sheet_item    
+               
+    except Exception as e:
+        raise HTTPException(detail=f"error:{str(e)}",status_code=status.HTTP_400_BAD_REQUEST)
 
-@router.patch('/update_chargesheet/{charge_sheet_id}',response_model=ChargeSheetBase,tags=['ChargeSheet_Api'])
+@router.patch('/update_chargesheet/{charge_sheet_id}',response_model=ChargeSheetBaseGet,tags=['ChargeSheet_Api'])
 async def update_chargesheet(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                              charge_sheet_id:int,charge_sheet:ChargeSheetBase,chargesheet_act:list[ChargeSheet_ActBase],
                              db:Session=Depends(getdb)):
-    charegsheet_exist=db.query(ChargeSheetModel).filter(ChargeSheetModel.id==charge_sheet_id).first()
-    if charegsheet_exist:
-        for field,value in charge_sheet.model_dump(exclude={"ChargeSheet_No"},exclude_unset=True).items():
-            setattr(charegsheet_exist,field,value)
-        db.commit()
-        chargesheet_act_exist=db.query(ChargeSheet_ActModel).filter(ChargeSheet_ActModel.ChargeSheet_id==charge_sheet_id).all()
-        if chargesheet_act_exist:
-            for sheet_act in chargesheet_act_exist:
-                db.delete(sheet_act)
-            db.commit()
-            for act in chargesheet_act:
-                act_db=ChargeSheet_ActModel(ChargeSheet_id=charegsheet_exist.id,ChargeSheet_Act=act.ChargeSheet_Act,ChargeSheet_Section=act.ChargeSheet_Section)
-                db.add(act_db)
-            db.commit() 
-        return charegsheet_exist     
+    try:
+            charegsheet_exist=db.query(ChargeSheetModel).filter(ChargeSheetModel.id==charge_sheet_id).first()
+            if charegsheet_exist:
+                for field,value in charge_sheet.model_dump(exclude={"ChargeSheet_No"},exclude_unset=True).items():
+                    setattr(charegsheet_exist,field,value)
+                db.commit()
+                chargesheet_act_exist=db.query(ChargeSheet_ActModel).filter(ChargeSheet_ActModel.ChargeSheet_id==charge_sheet_id).all()
+                if chargesheet_act_exist:
+                    for sheet_act in chargesheet_act_exist: db.delete(sheet_act)
+                    db.commit()
+                act_section_instance=[{
+                    "ChargeSheet_id":charge_sheet_id,
+                    "ChargeSheet_Act":act_section.ChargeSheet_Act,
+                    "ChargeSheet_Section":json.dumps(act_section.ChargeSheet_Section)
+                } for act_section in chargesheet_act]  
+                act_section_db=[ChargeSheet_ActModel(**data) for data in act_section_instance]
+                db.add_all(act_section_db)
+                db.commit()
+                return charegsheet_exist  
+            raise HTTPException(detail=f"id-{charge_sheet_id} item does not exist",status_code=status.HTTP_400_BAD_REQUEST)   
+    except Exception as e:
+        raise HTTPException(detail=f"{str(e)}",status_code=status.HTTP_400_BAD_REQUEST)        
 @router.delete('/dlt_chargesheet/{sheet_id}',tags=['ChargeSheet_Api'])
 async def dlt_chargesheet(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                           sheet_id:int,db:Session=Depends(getdb)):
