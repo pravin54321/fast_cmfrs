@@ -479,6 +479,9 @@ class ComEvidenceGet(ComEvidenceBase):
    id:int      
 
 class ComplaintBase(BaseModel):
+   state_id:int
+   distric_id:int
+   Station_id:int
    Complainant_Name:str
    Mob_Number:str  
    Complainant_Age:int
@@ -486,7 +489,6 @@ class ComplaintBase(BaseModel):
    Address:str
    Pin_Code:int
    Adhar_Number:str
-   Station_id:int
    Auth_Person:str
    Complaint_Date:datetime
    Designation_id:int
@@ -497,8 +499,11 @@ class ComplaintBase(BaseModel):
    Mode_Complaint_id:int
    Crime_type_id:int
    Dutty_Officer:str
+   do_designation_id:int
    Preliminary_enq_Officer:str
+   pio_designation_id:int
    Investing_Officer:str
+   io_designation_id:int
    Complainant_Imgpath:Optional[str]=None
    Complaint_Desc:str
    user_id:Optional[int]=None 
@@ -511,6 +516,7 @@ class ComplaintBase(BaseModel):
 
 class ComplaintGet(BaseModel):
    id:int
+   policestation:outside_policestation
    Complaint_uid:str
    Complainant_Name:str
    Complainant_Age:int
@@ -520,7 +526,6 @@ class ComplaintGet(BaseModel):
    Pin_Code:int
    Complaint_Date:datetime
    Adhar_Number:str
-   policestation:PoliceStation_only
    Auth_Person:str
    designation:DesignationGet   
    Place_Occurance:str
@@ -530,8 +535,11 @@ class ComplaintGet(BaseModel):
    mode_complaint:infomode_BaseGet
    crime_type:CrimeType_Get
    Dutty_Officer:str
+   do_designation:DesignationGet
    Preliminary_enq_Officer:str
+   pio_designation:DesignationGet
    Investing_Officer:str
+   io_designation:DesignationGet
    Complainant_Imgpath:Optional[str]=None
    Complaint_Desc:str
    evidence:list[ComEvidenceGet]=None
@@ -707,12 +715,26 @@ class Fir_ActBase(BaseModel):
     Fir_Act:int
     Fir_Section:list[str]  
 class fir_act_update(Fir_ActBase):
-    accused_id:int          
+    accused_id:int
+class fir_accused_act(BaseModel):#this shema only for fir_act   
+    id:int
+    fir_id:int
+    Name:str
+    Alias_Name:str
+    Father_Name:str
+    DOB:datetime
+    Age:int
+    Mobile_Number:str
+    Accused_Description:str
+    Image_Path:Optional[str]=None
+    addresses:Optional[list[Fir_accused_address_Get]]=None
+    create_date:datetime
+    update_date:datetime           
 class Fir_ActBaseGet(BaseModel):
     id:int
-    accused_id:int
     kalam:CrimeKalamGet=None
     Fir_Section:Optional[list[str]]=None
+    fir_accused_info:fir_accused_act
     @validator('Fir_Section',pre=True)
     def parse_section(cls,v):
         if isinstance(v,str):
@@ -762,7 +784,7 @@ class fir_accused_Get(BaseModel):
 class FirBaseGet(BaseModel):
     id:int
     police_station:outside_policestation
-    Year: Optional[conint(ge=1900, le=2100)]=None
+    Year: Optional[conint(ge=1900, le=2100)]=None # type: ignore
     Day:Optional[str]=None
     Time_Period:Optional[time]=None
     Date_From:Optional[date]=None
@@ -805,7 +827,7 @@ class ChargeSheetBase(BaseModel):
     State_id:int
     District_id:int
     ps_id:int
-    Year:conint(ge=1900,le=2100)
+    Year:conint(ge=1900,le=2100) # type: ignore
     Fir_No:str
     Fir_Date:date  
     ChargeSheet_Date:date
@@ -821,20 +843,18 @@ class ChargeSheetBase(BaseModel):
 class ChargeSheetBaseGet(BaseModel):
     id:int
     police_station:Optional[outside_policestation]=None
-    Year:conint(ge=1900,le=2100)
-    Fir_No:str
-    Fir_Date:date  
-    ChargeSheet_Date:date
-    Type_Final_Report:str
-    If_FIR_Unoccured:str      
-    If_ChargeSheet:str
-    Name_IO:str
-    IO_Rank:int
-    Name_Complainant:str
-    Father_Name:str
-    Detail_Properties:str
-    create_date:datetime
-    update_date:datetime
+    Year:conint(ge=1900,le=2100) # type: ignore
+    Fir_No:Optional[str]=None
+    Fir_Date:Optional[date]=None  
+    ChargeSheet_Date:Optional[date]=None
+    Type_Final_Report:Optional[str]=None
+    If_FIR_Unoccured:Optional[str]=None      
+    If_ChargeSheet:Optional[str]=None
+    Name_IO:Optional[str]=None
+    IO_Rank:Optional[int]=None
+    Name_Complainant:Optional[str]=None
+    Father_Name:Optional[str]=None
+    Detail_Properties:Optional[str]=None
     charge_sheet_act:Optional[list[ChargeSheet_ActBaseGet]]=None
     create_date:datetime
     update_date:datetime

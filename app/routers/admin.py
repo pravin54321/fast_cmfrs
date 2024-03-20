@@ -1608,6 +1608,33 @@ async def dlt_fir_act(current_user:Annotated[UserBase,Depends(get_current_active
 async def get_chargesheet(current_user:Annotated[UserBase,Depends(get_current_active_user)],db:Session=Depends(getdb)):
     list_chargesheet=db.query(ChargeSheetModel).filter(ChargeSheetModel.user_id==current_user.id).order_by(ChargeSheetModel.id.desc())
     return list_chargesheet
+@router.post('/create_sheet_from_fir/{fir_id}',response_model=ChargeSheetBaseGet,tags=["ChargeSheet_Api"])
+async def charge_sheet_from_fir(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                                fir_id:int,db:Session=Depends(getdb)):
+    fir_exist=db.query(FIRModel).filter(FIRModel.id==fir_id).first()
+    complaint_exist=db.query(ComplaintModel).filter(ComplaintModel.id==fir_exist.complaint_id).first()
+    if fir_exist:
+        try:
+           charge_sheet_fir_instance={
+               "State_id":fir_exist.ps_state_id,
+               "District_id":fir_exist.ps_district_id,
+               "ps_id":fir_exist.P_Station,
+               "Year":fir_exist.Year,
+               "Fir_No":fir_exist.Fir_No,
+               "Fir_Date":fir_exist.create_date,
+               "Name_IO":complaint_exist.Investing_Officer if complaint_exist else None,
+               "IO_Rank":complaint_exist.io_designation_id if complaint_exist else  None,
+               "Name_Complainant":complaint_exist.Complainant_Name if complaint_exist else None,
+               "Father_Name":complaint_exist.Complainant_Father_Name if complaint_exist else None
+           }
+           charge_sheet_db=ChargeSheetModel(**charge_sheet_fir_instance)
+           db.add(charge_sheet_db)
+           db.commit()
+           db.refresh(charge_sheet_db)
+           return charge_sheet_db
+        except Exception as e:
+            raise HTTPException(detail=f"{str(e)}",status_code=status.HTTP_400_BAD_REQUEST)
+    raise HTTPException(detail=f"id-{fir_id} fir item does not exist",status_code=status.HTTP_400_BAD_REQUEST)
 @router.post('/create_chargesheet',response_model=ChargeSheetBaseGet,tags=['ChargeSheet_Api'])
 async def create_chargesheet(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                              charge_sheet:ChargeSheetBase,chargesheet_act:list[ChargeSheet_ActBase],db:Session=Depends(getdb)):
@@ -1660,12 +1687,15 @@ async def update_chargesheet(current_user:Annotated[UserBase,Depends(get_current
 @router.delete('/dlt_chargesheet/{sheet_id}',tags=['ChargeSheet_Api'])
 async def dlt_chargesheet(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                           sheet_id:int,db:Session=Depends(getdb)):
-         charge_sheet_exist=db.query(ChargeSheetModel).filter(ChargeSheetModel.id==sheet_id).first()
-         if charge_sheet_exist:
-             db.delete(charge_sheet_exist)
-             db.commit()
-             return Response(content=f'id-{sheet_id} has been deleted successfully',status_code=status.HTTP_200_OK) 
-         raise HTTPException(detail=f'{sheet_id} does not exist',status_code=status.HTTP_400_BAD_REQUEST) 
+        charge_sheet_exist=db.query(ChargeSheetModel).filter(ChargeSheetModel.id==sheet_id).first()
+        try:
+            if charge_sheet_exist:
+                db.delete(charge_sheet_exist)
+                db.commit()
+                return Response(content=f'id-{sheet_id} has been deleted successfully',status_code=status.HTTP_200_OK) 
+        except Exception as e:
+            raise HTTPException(detail=f"{str(e)}",status_code=status.HTTP_400_BAD_REQUEST)    
+        raise HTTPException(detail=f'{sheet_id} does not exist',status_code=status.HTTP_400_BAD_REQUEST) 
 #_____________________inquiry_form_____________________________
 @router.get('/get_enqform',response_model=list[EnquiryNamunaBaseGet],tags=['Enquiry_Api'])
 async def enqform(current_user:Annotated[UserBase,Depends(get_current_active_user)],

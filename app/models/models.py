@@ -310,7 +310,7 @@ class DesignationModel(Base):
     create_date=Column(DateTime,default=get_current_time)
     update_date=Column(DateTime,default=get_current_time,onupdate=func.now()) 
     policestation_login=relationship('PoliceStationLogineModel',back_populates='designation')
-    complaint=relationship('ComplaintModel',back_populates='designation')   
+     
 class Infomode_Model(Base):
     __tablename__='infomode'
     id=Column(Integer,primary_key=True,index=True,autoincrement=True)
@@ -343,8 +343,12 @@ class PoliceStationLogineModel(Base):
 class ComplaintModel(Base):
     __tablename__='complaint'
     id=Column(Integer,primary_key=True,autoincrement=True,index=True)
+    state_id=Column(Integer,ForeignKey('state.id'),nullable=False)
+    distric_id=Column(Integer,ForeignKey('distric.id'),nullable=False)
+    Station_id=Column(Integer,ForeignKey('policestation.id'),nullable=False)
     Complaint_uid=Column(String(200),default=complaint_uid)
     Complainant_Name=Column(String(200),nullable=False)
+    Complainant_Father_Name=Column(String(200))
     Mob_Number=Column(String(50),nullable=False)
     Complainant_Age=Column(Integer)
     Email=Column(String(200))  
@@ -356,14 +360,16 @@ class ComplaintModel(Base):
     Place_Occurance=Column(Text)
     Dfrom_Pstation=Column(String(256),comment="distance from police station")
     Relation_Victim=Column(String(256),comment='relation with complainant and victime')
-    Station_id=Column(Integer,ForeignKey('policestation.id'),nullable=False)
     Auth_Person=Column(String(200),nullable=False)
     Designation_id=Column(Integer,ForeignKey('designation.id'),nullable=False)
     Mode_Complaint_id=Column(Integer,ForeignKey('infomode.id'),comment="foreigne key of complaint mode")
     Crime_type_id=Column(Integer,ForeignKey("crime_method.id"))
     Dutty_Officer=Column(String(256))
+    do_designation_id=Column(Integer,ForeignKey('designation.id'),nullable=False,comment='duty officer')
     Preliminary_enq_Officer=Column(String(256))
+    pio_designation_id=Column(Integer,ForeignKey('designation.id'),nullable=False,comment='preliminary inquiry officer')
     Investing_Officer=Column(String(256))
+    io_designation_id=Column(Integer,ForeignKey('designation.id'),nullable=False,comment='investigation officer')
     Complainant_Imgpath=Column(String(256))
     Complaint_Desc=Column(Text)
     user_id=Column(Integer,comment='current user id save')
@@ -374,7 +380,10 @@ class ComplaintModel(Base):
     witness=relationship('ComWitness_Model',backref='witness',cascade='all,delete-orphan')
     accuse=relationship('ComAccused_Model',backref='accuse',cascade='all,delete-orphan')
     policestation=relationship('PoliceStationModel',back_populates='complaint')
-    designation=relationship('DesignationModel',back_populates='complaint')
+    do_designation=relationship('DesignationModel',backref='do_designation',foreign_keys=[do_designation_id])
+    io_designation=relationship('DesignationModel',backref='io_designation',foreign_keys=[io_designation_id])
+    pio_designation=relationship('DesignationModel',backref='pio_designation',foreign_keys=[pio_designation_id])
+    designation=relationship('DesignationModel',backref='designation',foreign_keys=[Designation_id])
     mode_complaint=relationship('Infomode_Model',backref='mode_complaint')
     crime_type=relationship('CrimeMethod_Model',backref='crime_type')
 
@@ -579,6 +588,7 @@ class FirActModel(Base):
     create_date=Column(DateTime,default=get_current_time)
     update_date=Column(DateTime,default=get_current_time,onupdate=func.now())
     kalam=relationship('CrimeKalamModel',backref='fir_act')    
+    fir_accused_info=relationship('FirAccused_model',backref='fir_accused_info')
 
 #--------------------model chargesheet---------------------------
 class ChargeSheetModel(Base):
@@ -603,7 +613,7 @@ class ChargeSheetModel(Base):
     user_id=Column(Integer,comment='current logine user')
     create_date=Column(DateTime,default=get_current_time)
     update_date=Column(DateTime,default=get_current_time,onupdate=func.now())
-    charge_sheet_act=relationship('ChargeSheet_ActModel',back_populates='charge_sheet',cascade='delete,all')
+    charge_sheet_act=relationship('ChargeSheet_ActModel',backref=' charge_sheet_act',cascade='delete,all')
     police_station=relationship(PoliceStationModel,back_populates='charge_sheet')
 class ChargeSheet_ActModel(Base):
     __tablename__='chargesheet_act'
@@ -613,7 +623,6 @@ class ChargeSheet_ActModel(Base):
     ChargeSheet_Section=Column(Text) 
     create_date=Column(DateTime,default=get_current_time)
     update_date=Column(DateTime,default=get_current_time,onupdate=func.now())
-    charge_sheet=relationship(ChargeSheetModel,back_populates='charge_sheet_act')
     kalam=relationship(CrimeKalamModel,back_populates='charge_sheet_act')   
 #_____________________Enquiry_form_________________________
 class EnquiryFormModel(Base):
