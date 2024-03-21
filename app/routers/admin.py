@@ -1352,7 +1352,7 @@ async def create_ncr_act(current_user:Annotated[UserBase,Depends(get_current_act
         db.add_all(actInstance)
         db.commit()
         return ncr_exist   
-    raise HTTPException(detail=f"id-{accused_id} accused item does not eist",status_code=status.http400)
+    raise HTTPException(detail=f"id-{accused_id} accused item does not eist",status_code=status.HTTP_400_BAD_REQUEST)
 @router.put('/update_ncr_act/{ncr_act_id}',response_model=AccusedBaseGet,tags=['NCR_Act'])
 async def update_ncr_act(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                          ncr_act_id:int,actSchema:ncr_Actupdate,db:Session=Depends(getdb)):
