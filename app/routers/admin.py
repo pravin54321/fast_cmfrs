@@ -1026,15 +1026,20 @@ async def update_com_witness(current_user:Annotated[UserBase,Depends(get_current
                                                          ComWitness_Model.complaint_id==com_witness.complaint_id,
                                                          ComWitness_Model.id!=witness_id).first()
     if dupllicate_witness:
-        raise HTTPException(detail=f"{com_witness} already present",status_code=status.HTTP_400_BAD_REQUEST)
+        raise HTTPException(detail=f"{com_witness.Witness_Name} already present",status_code=status.HTTP_400_BAD_REQUEST)
     witness_exist=db.query(ComWitness_Model).filter(ComWitness_Model.id==witness_id).first()
-    if witness_exist:
-        for field,item in com_witness.model_dump(exclude_unset=True).items():
-            setattr(witness_exist,field,item)
-        db.commit()
-        db.refresh(witness_exist) 
-        return witness_exist
-    raise HTTPException(detail=f"{witness_id} does not found",status_code=status.HTTP_400_BAD_REQUEST)
+    try:
+        if witness_exist:
+            print(type(com_witness))
+            for field,value in com_witness.model_dump(exclude_unset=True).items():
+                print(f"Setting {field} to {value} (type: {type(value)})")
+                setattr(witness_exist,field,value)
+            db.commit()
+            db.refresh(witness_exist) 
+            return witness_exist
+    except Exception as e:
+        raise HTTPException(detail=f"{str(e)}",status_code=status.HTTP_400_BAD_REQUEST)    
+    raise HTTPException(detail=f"id-{witness_id} item does not exist",status_code=status.HTTP_400_BAD_REQUEST)
 @router.delete('/dlt_com_witness/{witness_id}',tags=["Complaint_Witness"])    
 async def del_com_complaint(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                             witness_id:int,db:Session=Depends(getdb)):

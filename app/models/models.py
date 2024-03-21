@@ -410,7 +410,7 @@ class ComWitness_Model(Base):#complaint witness
     Witness_Imgpath=Column(String(256))
     Remark=Column(Text)
     create_date=Column(DateTime,default=get_current_time)
-    update_date=Column(DateTime,default=get_current_time,onupdate=func.now)
+    update_date=Column(DateTime,default=get_current_time,onupdate=func.now())
 class ComAccused_Model(Base):#complaint accused
     __tablename__='complaint_accused'
     id=Column(Integer,primary_key=True,unique=True,autoincrement=True)
