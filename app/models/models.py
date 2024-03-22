@@ -372,6 +372,7 @@ class ComplaintModel(Base):
     io_designation_id=Column(Integer,ForeignKey('designation.id'),nullable=False,comment='investigation officer')
     Complainant_Imgpath=Column(String(256))
     Complaint_Desc=Column(Text)
+    status_for_fir=Column(String(200),comment='status for move to fir or not')
     user_id=Column(Integer,comment='current user id save')
     create_date=Column(DateTime,default=get_current_time)
     update_date=Column(DateTime,default=get_current_time,onupdate=func.now())

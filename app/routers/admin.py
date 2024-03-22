@@ -1030,10 +1030,8 @@ async def update_com_witness(current_user:Annotated[UserBase,Depends(get_current
     witness_exist=db.query(ComWitness_Model).filter(ComWitness_Model.id==witness_id).first()
     try:
         if witness_exist:
-            print(type(com_witness))
             for field,value in com_witness.model_dump(exclude_unset=True).items():
-                print(f"Setting {field} to {value} (type: {type(value)})")
-                setattr(witness_exist,field,value)
+               setattr(witness_exist,field,value)
             db.commit()
             db.refresh(witness_exist) 
             return witness_exist
@@ -1044,10 +1042,13 @@ async def update_com_witness(current_user:Annotated[UserBase,Depends(get_current
 async def del_com_complaint(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                             witness_id:int,db:Session=Depends(getdb)):
     com_witness_exist=db.query(ComWitness_Model).filter(ComWitness_Model.id==witness_id).first()
-    if com_witness_exist:
-        db.delete(com_witness_exist)
-        db.commit()
-        return Response(content=f"com_witness has been deleted succesfully",status_code=status.HTTP_200_OK)
+    try:
+        if com_witness_exist:
+            db.delete(com_witness_exist)
+            db.commit()
+            return Response(content=f"com_witness has been deleted succesfully",status_code=status.HTTP_200_OK)
+    except Exception as e:
+        raise HTTPException(detail=f"{e}",status_code=status.HTTP_400_BAD_REQUEST)    
     raise HTTPException(detail=f'{witness_id} does not exist',status_code=status.HTTP_400_BAD_REQUEST)   
 #--------------------------complaint_Victime_--------------------------------------------------
 @router.get('/get_victime',response_model=list[ComVictime_BaseGet],tags=['Complaint_Victime'])
@@ -1063,14 +1064,17 @@ async def create_com_victime(current_user:Annotated[UserBase,Depends(get_current
                                                         ComVictime_Model.Victime_Name==com_victime.Victime_Name).first()
     if duplicate_victime:
         raise HTTPException(detail=f"{com_victime.Victime_Name} already exist in this complaint",status_code=status.HTTP_400_BAD_REQUEST) 
-    if image:
-        img_path=await imagestore(image,'complaint/victime_img')
-        setattr(com_victime,'Victime_Imgpath',f"Static/Images/complaint/victime_img/{img_path}")
-    victime_db=ComVictime_Model(**com_victime.model_dump())
-    db.add(victime_db)
-    db.commit()     
-    db.refresh(victime_db)
-    return victime_db
+    try:
+        if image:
+            img_path=await imagestore(image,'complaint/victime_img')
+            setattr(com_victime,'Victime_Imgpath',f"Static/Images/complaint/victime_img/{img_path}")
+        victime_db=ComVictime_Model(**com_victime.model_dump())
+        db.add(victime_db)
+        db.commit()     
+        db.refresh(victime_db)
+        return victime_db
+    except Exception as e:
+        raise HTTPException(detail=f"{str(e)}",status_code=status.HTTP_400_BAD_REQUEST)
 @router.put('/updadte_com_victime/{victime_id}',response_model=ComVictime_BaseGet,tags=['Complaint_Victime'])
 async def update_com_victime(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                              victime_id:int,com_victime:ComVictime_Base,db:Session=Depends(getdb)):
@@ -1080,23 +1084,29 @@ async def update_com_victime(current_user:Annotated[UserBase,Depends(get_current
     if duplicate_victime:
         raise HTTPException(detail=f"{com_victime.Victime_Name} already present in this complaint",status_code=status.HTTP_400_BAD_REQUEST)
     victime_exist=db.query(ComVictime_Model).filter(ComVictime_Model.id==victime_id).first()
-    if victime_exist:
-                for field,item  in com_victime.model_dump(exclude_unset=True).items():
-                    setattr(victime_exist,field,item)
-                db.commit()
-                db.refresh(victime_exist)
-                return victime_exist
-    raise HTTPException(detail=f"id-{victime_id} does not found",status_code=status.HTTP_400_BAD_REQUEST)  
+    try:
+        if victime_exist:
+                    for field,item  in com_victime.model_dump(exclude_unset=True).items():
+                        setattr(victime_exist,field,item)
+                    db.commit()
+                    db.refresh(victime_exist)
+                    return victime_exist
+        raise HTTPException(detail=f"id-{victime_id} does not found",status_code=status.HTTP_400_BAD_REQUEST) 
+    except Exception as e:
+        raise HTTPException(detail=f'{str(e)}',status_code=status.HTTP_400_BAD_REQUEST) 
 @router.delete('/del_com_victime/{victime_id}',tags=['Complaint_Victime'])
 async def del_com_victime(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                           victime_id:int,db:Session=Depends(getdb)):
     victime_exist=db.query(ComVictime_Model).filter(ComVictime_Model.id==victime_id).first()
-    if victime_exist:
-        db.delete(victime_exist)
-        db.commit()
-        return Response(content=f"victime has been deleted successfully",status_code=status.HTTP_200_OK)
-    raise HTTPException(detail=f"id-{victime_id} does not found",status_code=status.HTTP_400_BAD_REQUEST)
-    
+    try:
+        if victime_exist:
+            db.delete(victime_exist)
+            db.commit()
+            return Response(content=f"victime has been deleted successfully",status_code=status.HTTP_200_OK)
+        raise HTTPException(detail=f"id-{victime_id} does not found",status_code=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        raise HTTPException(detail=f'{str(e)}')
+        
 #----------------------------evidence_api------------------------
 @router.get('/get_evidence/{complaint_id}',response_model=list[ComEvidenceBase],tags=['Complaint_Evidence'])
 async def get_evidence(current_user:Annotated[UserBase,Depends(get_current_active_user)],
@@ -1108,16 +1118,19 @@ async def evidence_cretae(current_user:Annotated[UserBase,Depends(get_current_ac
                           complaint_id:int=Form(...),
                           evidence: list[UploadFile] = File(None),db:Session=Depends(getdb)):
     complaint_exist=db.query(ComplaintModel).filter(ComplaintModel.id==complaint_id).first()
-    if complaint_exist: 
-        if evidence:
-            for image in evidence:
-                file_type=image.content_type
-                file_path=await imagestore(image,'complaint/evidence_img')
-                evidence_db=ComEvidenceModel(File_Path=f'Static/Images/complaint/evidence_img/{file_path}',File_Type=file_type,Complaint_id=complaint_id)
-                db.add(evidence_db)
-            db.commit()
-            db.refresh(evidence_db)
-            return complaint_exist
+    try:
+        if complaint_exist: 
+            if evidence:
+                for image in evidence:
+                    file_type=image.content_type
+                    file_path=await imagestore(image,'complaint/evidence_img')
+                    evidence_db=ComEvidenceModel(File_Path=f'Static/Images/complaint/evidence_img/{file_path}',File_Type=file_type,Complaint_id=complaint_id)
+                    db.add(evidence_db)
+                db.commit()
+                db.refresh(evidence_db)
+                return complaint_exist
+    except Exception as e:
+        raise HTTPException(detail=f"{str(e)}",status_code=status.HTTP_400_BAD_REQUEST)        
     raise HTTPException(detail=f"complaint id {complaint_id} does not  exist",status_code=status.HTTP_400_BAD_REQUEST)
 @router.put('/update_evidence/{evidence_id}',tags=['Complaint_Evidence'])
 async def update_evidence(current_user:Annotated[UserBase,Depends(get_current_active_user)],

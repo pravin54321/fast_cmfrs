@@ -506,6 +506,7 @@ class ComplaintBase(BaseModel):
    io_designation_id:int
    Complainant_Imgpath:Optional[str]=None
    Complaint_Desc:str
+   status_for_fir:Optional[str]=None
    user_id:Optional[int]=None 
    @model_validator(mode='before')
    @classmethod
@@ -542,6 +543,7 @@ class ComplaintGet(BaseModel):
    io_designation:DesignationGet
    Complainant_Imgpath:Optional[str]=None
    Complaint_Desc:str
+   status_for_fir:str
    evidence:list[ComEvidenceGet]=None
    victime:list[ComVictime_BaseGet]=None
    witness:list[ComWitness_BaseGet]=None
