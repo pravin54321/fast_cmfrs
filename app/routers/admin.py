@@ -7,24 +7,33 @@ from sqlalchemy.exc import SQLAlchemyError
 router = APIRouter()
 
 #---------------master--------------------------
-@router.get('/get_state',response_model=list[StateGet],tags=['Master_state'])
+@router.get('/get_state',response_model=list[StateGet],tags=['state_api'])
 async def get_state(current_user:Annotated[UserBase,Depends(get_current_active_user)],db:Session=Depends(getdb)):
     all_state = db.query(StateModel).order_by(StateModel.id.desc()).all()
     return all_state
-@router.post('/state',response_model=StateGet,tags=['Master_state'])
+@router.post('/state',response_model=StateGet,tags=['state_api'])
 async def state_create(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                        state:StateBase,db:Session=Depends(getdb)):
+    """
+    create  master state
+    """
     state_exist = db.query(StateModel).filter(StateModel.State==state.State).first()
     if state_exist:
         raise HTTPException(detail=f'{state.State}State already exist',status_code=status.HTTP_400_BAD_REQUEST)
-    state = StateModel(**state.model_dump())
-    db.add(state)
-    db.commit()
-    db.refresh(state)
-    return state
-@router.put('/update_state/{state_id}',response_model=StateGet,tags=['Master_state'])
+    try:
+        state = StateModel(**state.model_dump())
+        db.add(state)
+        db.commit()
+        db.refresh(state)
+        return state
+    except Exception as e:
+        raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)
+@router.put('/update_state/{state_id}',response_model=StateGet,tags=['state_api'])
 async def update_state(current_user:Annotated[UserBase,Depends(get_current_active_user)]
                        ,state_id:int,state:StateBase,db:Session=Depends(getdb)):
+    """
+    update the given state
+    """
     duplicate_state = db.query(StateModel).filter(StateModel.State==state.State,StateModel.id!=state_id).first()
     if duplicate_state:
         raise HTTPException(status_code=400,detail=f"{state.State} already exists")
@@ -34,102 +43,143 @@ async def update_state(current_user:Annotated[UserBase,Depends(get_current_activ
         db.commit()
         db.refresh(state_exist)
         return state_exist
-    raise HTTPException(status_code=400,detail=f"id-{state_id} does not exist",) 
-@router.delete('/delete_state/{state_id}',tags=['Master_state'])
+    raise HTTPException(status_code=400,detail=f"id-{state_id} does not exist") 
+@router.delete('/delete_state/{state_id}',tags=['state_api'])
 async def delete_state(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                        state_id:int,db:Session=Depends(getdb)):
+    """delete given state from database"""
+    state_exist = db.query(StateModel).filter(StateModel.id==state_id).first()
     try:
-        state_exist = db.query(StateModel).filter(StateModel.id==state_id).first()
         if state_exist:
             db.delete(state_exist)
             db.commit()
             return Response(content=f"State_id {state_id} has been deleted successfully",status_code=200) 
-        raise HTTPException(detail=f"id-{state_id} does not exist",status_code=status.HTTP_400_BAD_REQUEST)
     except IntegrityError as e:
-        raise HTTPException(detail=f"{str(e.orig)}",status_code=status.HTTP_400_BAD_REQUEST)
+        error_msg = str(e.orig)
+        if 'foreign key constraint' in error_msg.lower():
+            raise HTTPException(detail=f"State ID {state_id} is used in another table", status_code=status.HTTP_409_CONFLICT)
+        else:
+            raise HTTPException(detail=f"Error: {error_msg}", status_code=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)
+    raise HTTPException(detail=f"id-{state_id} does not exist",status_code=status.HTTP_400_BAD_REQUEST)
 #--------master_region---------
-@router.get('/get_region',response_model=list[RegionGet],tags=['Master_region'])
+@router.get('/get_region',response_model=list[RegionGet],tags=['region_api'])
 async def get_region(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                      db:Session=Depends(getdb)):
+    """get list of all regions from database"""
     all_region = db.query(RegionModel).order_by(RegionModel.id.desc()).all()
     return all_region
-@router.post('/create_region',response_model=RegionGet,tags=['Master_region'])
+@router.post('/create_region',response_model=RegionGet,tags=['region_api'])
 async def create_region(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                         region:RegionBase,db:Session=Depends(getdb)):
+    """
+    create master region
+    """
     region_exist = db.query(RegionModel).filter(RegionModel==region.Region).first()
     if region_exist:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail=f'{region.Region} already exist')
-    region = RegionModel(**region.model_dump())
-    db.add(region)
-    db.commit()
-    db.refresh(region)
-    return region
-@router.put('/update_region/{region_id}',response_model=RegionGet,tags=['Master_region'])
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail=f'{region.Region} region already exist')
+    try:
+        region = RegionModel(**region.model_dump())
+        db.add(region)
+        db.commit()
+        db.refresh(region)
+        return region
+    except  Exception as e:
+        raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)
+@router.put('/update_region/{region_id}',response_model=RegionGet,tags=['region_api'])
 async def update_region(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                         region_id:int,region:RegionBase,db:Session=Depends(getdb)):
+    """
+    update master region 
+    """
     duplicate_exist = db.query(RegionModel).filter(RegionModel.Region==region.Region,RegionModel.id !=region_id).first()
     if duplicate_exist:
         raise HTTPException(detail=f'{region.Region} already exists',status_code=400)
     region_exist = db.query(RegionModel).filter(RegionModel.id==region_id).first()
-    if region_exist:
-        region_exist.Region = region.Region
-        region_exist.State_id=region.State_id     
-        db.commit()
-        db.refresh(region_exist)
-        return region_exist
+    try:
+        if region_exist:
+            region_exist.Region = region.Region
+            region_exist.State_id=region.State_id     
+            db.commit()
+            db.refresh(region_exist)
+            return region_exist
+    except Exception as e:
+        raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)    
     raise HTTPException(detail=f'id-{region_id} does not exist',status_code=400)
-@router.delete('/del_region/{region_id}',tags=['Master_region'])
+@router.delete('/del_region/{region_id}',tags=['region_api'])
 async def del_region(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                      region_id:int,db:Session=Depends(getdb)):
-    try:
+        """delete region from database in given region id"""
         region_exist = db.query(RegionModel).filter(RegionModel.id == region_id).first()
-        if region_exist:
-            db.delete(region_exist)
-            db.commit()
-            return Response(content=f'id-{region_id} has been deleted successfully',status_code=200)
+        try:
+            if region_exist:
+                db.delete(region_exist)
+                db.commit()
+                return Response(content=f'id-{region_id} has been deleted successfully',status_code=200)
+        except IntegrityError as e:
+            if "foreign key constraint" in str(e.orig).lower():
+                raise HTTPException(detail=f'can not delete state with id {region_id}.It is use in anather table',status_code=status.HTTP_409_CONFLICT)    
+            else:
+                raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST) 
         raise HTTPException(detail=f'id-{region_id} doess not exist',status_code=status.HTTP_400_BAD_REQUEST)
-    except IntegrityError as e:
-        raise HTTPException(detail=f'{str(e.orig)}',status_code=status.HTTP_400_BAD_REQUEST)
+    
 #---------master_distric------------------------
-@router.get('/get_distric',response_model=list[DistricGet],tags=['Master_Distric'])
+@router.get('/get_distric',response_model=list[DistricGet],tags=['district_api'])
 async def get_distric(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                       db:Session=Depends(getdb)):
     all_distric = db.query(DistricModel).order_by(DistricModel.id.desc()).all()
     return all_distric
-@router.post('/distric_create',response_model=DistricGet,tags=['Master_Distric'])
+@router.post('/distric_create',response_model=DistricGet,tags=['district_api'])
 async def distric_create(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                          distric:DistricBase,db:Session=Depends(getdb)):
+    '''
+    create master district from distric schema
+    '''
     distric_exist = db.query(DistricModel).filter(DistricModel.Distric==distric.Distric).first()
-    if distric_exist:
-        raise HTTPException(detail=f'{distric.Distric} already exists',status_code=status.HTTP_400_BAD_REQUEST)
-    distric_item = DistricModel(**distric.model_dump())
-    db.add(distric_item)
-    db.commit()
-    db.refresh(distric_item)
-    return distric_item
-@router.put('/update_distric/{distric_id}',response_model=DistricGet,tags=['Master_Distric'])
+    try:
+        if distric_exist:
+            raise HTTPException(detail=f'{distric.Distric} already exists',status_code=status.HTTP_400_BAD_REQUEST)
+        distric_item = DistricModel(**distric.model_dump())
+        db.add(distric_item)
+        db.commit()
+        db.refresh(distric_item)
+        return distric_item
+    except Exception as e:
+        raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)
+@router.put('/update_distric/{distric_id}',response_model=DistricGet,tags=['district_api'])
 async def update_distric(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                         distric_id:int,distric:DistricBase,db:Session=Depends(getdb)):
     duplicate_exist = db.query(DistricModel).filter(DistricModel.Distric==distric.Distric,DistricModel.id !=distric_id).first()
     if duplicate_exist:
         raise HTTPException(detail=f'{distric.Distric} already Available',status_code=400)
     distric_exist = db.query(DistricModel).filter(DistricModel.id==distric_id).first()
-    if distric_exist:
-        distric_exist.Distric =  distric.Distric 
-        distric_exist.State_id=distric.State_id
-        distric_exist.Region_id=distric.Region_id   
-        db.commit()
-        db.refresh(distric_exist)
-        return distric_exist
+    try:
+        if distric_exist:
+            for field,value in distric.model_dump(exclude_unset=True).items():
+                setattr(distric_exist,field,value)
+                db.commit()
+                db.refresh(distric_exist)
+                return distric_exist
+    except Exception as e:
+        raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)        
     raise HTTPException(detail=f"id {distric_id} does not exist",status_code=400)
 @router.delete('/del_distric/{distric_id}',tags=['Master_Distric'])
 async def del_distric(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                      distric_id:int,db:Session=Depends(getdb)):
     distric_exist = db.query(DistricModel).filter(DistricModel.id==distric_id).first()
-    if distric_exist:
-        db.delete(distric_exist)
-        db.commit()
-        return Response(content=f"distric id-{distric_id} has been delete successfully",status_code=200)
+    try:
+        if distric_exist:
+            db.delete(distric_exist)
+            db.commit()
+            return Response(content=f"distric id-{distric_id} has been delete successfully",status_code=200)
+    except IntegrityError as e:
+        if 'foreign key constraint' in str(e).lower():
+            raise HTTPException(detail=f"can not delete district.Id-{distric_id} isuse in anather table",status_code=status.HTTP_409_CONFLICT)  
+        else:
+            raise HTTPException(detail=str(e),status_code=status.HTTP_404_NOT_FOUND)  
     raise HTTPException(detail=f"distric id {distric_id} does not exists",status_code=400)
 @router.get('/state_region/{state_id}',response_model=list[StateRegion],tags=['Master_Distric'])
 async def state_region(current_user:Annotated[UserBase,Depends(get_current_active_user)],
@@ -1715,56 +1765,108 @@ async def dlt_chargesheet(current_user:Annotated[UserBase,Depends(get_current_ac
             raise HTTPException(detail=f"{str(e)}",status_code=status.HTTP_400_BAD_REQUEST)    
         raise HTTPException(detail=f'{sheet_id} does not exist',status_code=status.HTTP_400_BAD_REQUEST) 
 #_____________________inquiry_form_____________________________
-@router.get('/get_enqform',response_model=list[EnquiryNamunaBaseGet],tags=['Enquiry_Api'])
+@router.get('/get_enqform',response_model=list[Enquiry_Form_Get_03],tags=['Enquiry_Api'])
 async def enqform(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                                          db:Session=Depends(getdb)):
     list_enqform=db.query(EnquiryFormModel).filter(EnquiryFormModel.user_id==current_user.id).order_by(EnquiryFormModel.id.desc()).all()
     return list_enqform
-@router.post('/create_inquiry_namuna',response_model=EnquiryNamunaBaseGet,tags=['Enquiry_Api'])
-async def create_inquiry_form(current_user:Annotated[UserBase,Depends(get_current_active_user)],
-                              file:UploadFile=File(None),
-                              enquiry_form:EnquiryNamunaBase=Depends(),
-                              db:Session=Depends(getdb)):
-   
-    file_path=await imagestore(file,'namuna_form')
-    setattr(enquiry_form,'Image_Path',file_path)
-    user_id=[current_user.id if current_user.id else None]
-    EnquiryNamunaBase.user_id=user_id[0]
-    Enquiry_form_item=EnquiryFormModel(**enquiry_form.model_dump())
-    db.add(Enquiry_form_item) 
-    db.commit()
-    db.refresh(Enquiry_form_item)
-    return Enquiry_form_item
-@router.patch('/update_enqform/{enqform_id}',response_model=EnquiryNamunaBase,tags=['Enquiry_Api'])
+@router.post('/crete_enquiry_form',response_model=Enquiry_Form_Get_01,tags=['Enquiry_Api'])
+async def create_enquiry_form(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                              enquiry_schema:Enquiry_Form_Base_01,db:Session=Depends(getdb)):
+    try:
+        setattr(enquiry_schema,'user_id',current_user.id)
+        enquiry_form_db=EnquiryFormModel(**enquiry_schema.model_dump())
+        db.add(enquiry_form_db)
+        db.commit()
+        db.refresh(enquiry_form_db)
+        return enquiry_form_db
+    except Exception as e:
+        raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)
+@router.patch('/create_enquiry_form_02/{enqury_form_id}',response_model=Enquiry_Form_Get_02,tags=['Enquiry_Api'])
+async def create_enquiry_form_02(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                                 enquiry_form_id:int,enquiry_form_shema_02:Enquiry_Form_Base_02,
+                                 db:Session=Depends(getdb)):
+    enquiry_form_exist=db.query(EnquiryFormModel).filter(EnquiryFormModel.id==enquiry_form_id).first()
+    try:
+        if enquiry_form_exist:
+            for field,value in enquiry_form_shema_02.model_dump(exclude_unset=True).items():
+                setattr(enquiry_form_exist,field,value)
+            db.commit()
+            db.refresh(enquiry_form_exist)
+            return enquiry_form_exist
+    except Exception as e:
+        raise HTTPException    
+    raise HTTPException(detail=f"id-{enquiry_form_id} itemdoes not exist",status_code=status.HTTP_400_BAD_REQUEST)
+@router.patch('/create_enquiry_form_03/{enquiry_form_id}',response_model=Enquiry_Form_Get_03,tags=['Enquiry_Api'])
+async def create_enquiry_form_03(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                                 enquiry_form_id:int,enquiry_form_schema_03:Enquiry_Form_Base_03,
+                                 image:UploadFile=File(None),db:Session=Depends(getdb)):
+    enquiry_form_exist=db.query(EnquiryFormModel).filter(EnquiryFormModel.id==enquiry_form_id).first()
+    if enquiry_form_exist:
+        try:
+            file_path=await imagestore(image,'namuna_form')
+            setattr(enquiry_form_schema_03,'Image_Path',f"Static/Images/namuna_form/{file_path}")
+            for field,value in enquiry_form_schema_03.model_dump(exclude_unset=True).items():
+                setattr(enquiry_form_exist,field,value)
+            db.commit()
+            db.refresh(enquiry_form_exist)
+            return enquiry_form_exist
+        except Exception as e:
+            raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)
+    raise HTTPException(detail=f'id-{enquiry_form_id} item does not exist',status_code=status.HTTP_400_BAD_REQUEST)    
+          
+@router.patch('/update_enquiry_form_01/{enqform_id}',response_model=Enquiry_Form_Get_03,tags=['Enquiry_Api'])
 async def update_enqform(current_user:Annotated[UserBase,Depends(get_current_active_user)],
-                         enqform_id:int,enq_form:EnquiryNamunaBaseGet,db:Session=Depends(getdb)):
+                         enqform_id:int,enq_form:Enquiry_Form_Base_01,db:Session=Depends(getdb)):
     enqform_exist=db.query(EnquiryFormModel).filter(EnquiryFormModel.id==enqform_id).first()
     if enqform_exist:
-        for field,value in enq_form.model_dump(exclude={'Image_Path'},exclude_unset=True).items():
-             setattr(enqform_exist,field,value) 
-        db.commit()
-        db.refresh(enqform_exist)
-        return enqform_exist
+        try:
+            for field,value in enq_form.model_dump(exclude_unset=True).items():
+                setattr(enqform_exist,field,value) 
+            db.commit()
+            db.refresh(enqform_exist)
+            return enqform_exist
+        except Exception as e:
+            raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)
     raise HTTPException(detail=f'id-{enqform_id} does not exist',status_code=status.HTTP_400_BAD_REQUEST)
 @router.delete('/dlt_enqform/{enqform_id}',tags=['Enquiry_Api']) 
 async def del_enqform(curremt_user:Annotated[UserBase,Depends(get_current_active_user)],
                       enqform_id:int,db:Session=Depends(getdb)):
+    """delete the enquiry_form recode from database"""
     enqform_exist=db.query(EnquiryFormModel).filter(EnquiryFormModel.id==enqform_id).first()
-    if enqform_exist:
-        db.delete(enqform_exist)
-        db.commit()
-        return Response(content=f"id-{enqform_id} has  been deleted successfully",status_code=status.HTTP_200_OK)
+    try:
+        if enqform_exist:
+            await dlt_image(enqform_exist.Image_Path)#dlt_image(ima_path)  it's function use for delete image from folder
+            db.delete(enqform_exist)
+            db.commit()
+            return Response(content=f"id-{enqform_id} has  been deleted successfully",status_code=status.HTTP_200_OK)
+    except Exception as e:
+        raise HTTPException(detail=str(e))    
     raise HTTPException(detail=f"id-{enqform_id} does not exist",status_code=status.HTTP_400_BAD_REQUEST) 
 @router.put('/update_image/{enqform_id}',tags=['Enquiry_Api'])
-async def update_img(current_user:Annotated[UserBase,Depends(get_current_active_user)],enqform_id:int,
-                     file:UploadFile=File(...),
+async def update_img(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                     enqform_id:int,image:UploadFile=File(...),
                      db:Session=Depends(getdb)):
-    file_path=await imagestore(file,'namuna_form')
-    enqform_exist=db.query(EnquiryFormModel).filter(EnquiryFormModel.id==enqform_id).update({'Image_Path':file_path})
-    db.commit()
-    if enqform_exist is 1:
-      return Response(content="image has been change successfully",status_code=status.HTTP_200_OK)
+    """
+    update the image for given enquiry form    
+    """
+    enquiry_form_exist=db.query(EnquiryFormModel).filter(EnquiryFormModel.id==enqform_id).first()
+    try:
+        if enquiry_form_exist and image:
+            old_image_path = enquiry_form_exist.Image_Path
+            new_image_path=await imagestore(image,'namuna_form')#imagestore(img,dir) ids function to store image in specific folder
+            update_image=db.query(EnquiryFormModel).filter(EnquiryFormModel.id==enqform_id).\
+            update({'Image_Path':f"Static/Images/namuna_form/{new_image_path}"})
+            db.commit()
+            if update_image is 1:
+                await dlt_image(old_image_path)#dlt_image(file_path) is function to delete image
+                return Response(content="image has been updated  successfully",status_code=status.HTTP_200_OK)
+    except Exception as e:
+        raise HTTPException(detail=str(e))    
     raise HTTPException(detail=f"id-{enqform_id} does not exist",status_code=status.HTTP_400_BAD_REQUEST)
+
+   
+    
 #_______________yellow_card____________________
 @router.get('/get_ycard',response_model=list[Yellow_CardBaseGet],tags=['Yellow_Card_Api'])
 async def get_ycard(current_user:Annotated[UserBase,Depends(get_current_active_user)],
