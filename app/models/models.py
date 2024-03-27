@@ -723,44 +723,88 @@ class EnquiryFormModel(Base):
     father_occupation=relationship(OccupationModel,foreign_keys=[Father_Occupation_id],backref='father_occupation')
 #--------------------Accused_name----------------------------------------------
 class YellowCardModel(Base):
+    """
+    yellow card model
+    """
     __tablename__='yellow_card'
     id=Column(Integer,primary_key=True,autoincrement=True,unique=True)
     Accused_Name=Column(String(200)) 
     Accused_Age=Column(Integer)
-    PS_id=Column(Integer,ForeignKey("policestation.id"))
-    Accused_Bplace=Column(Text)
+    state_id=Column(Integer,ForeignKey('state.id'))
+    district_id=Column(Integer,ForeignKey('distric.id'))
+    PS_id=Column(Integer,ForeignKey("policestation.id"),comment='police station id')
+    Accused_Bplace=Column(Text,comment='accused biarth place')
     Accused_Height=Column(String(200))
-    Accused_Bcomplexion=Column(String(200))
-    Accused_Btype=Column(String(200))
-    Accuse_Ecolur=Column(String(200))
-    Accused_Hcolur=Column(String(200))
+    Accused_Bcomplexion=Column(String(200),comment=' accused body complexion')
+    Accused_Btype=Column(String(200),comment='accused body type')
+    Accuse_Ecolur=Column(String(200),comment='accused eyes color')
+    Accused_Hcolur=Column(String(200),comment='accused hair color')
     Occupation_id=Column(Integer,ForeignKey('Occupation.id'))
-    Accused_Imark=Column(Text)
-    Scast_id=Column(Integer,ForeignKey('subcast.id'))
-    Accused_Education=Column(String(200))
-    Pstation_Rnumber=Column(String(200))
+    Accused_Imark=Column(Text,comment='accused identification mark')
+    Scast_id=Column(Integer,ForeignKey('subcast.id'),comment='accused subcast')
+    Accused_Education=Column(String(200),comment='accused subcast')
+    Pstation_Rnumber=Column(String(200),comment='police station register number')
     CRD_Number=Column(String(200))
     Accused_Address=Column(Text)
     Accused_ImgPath=Column(String(200))
-    Caddress_Saddress=Column(Text)
-    Moment_Oinfo=Column(Text)
-    Pofficer_who_Iaccused=Column(Text)
-    Relativ_Friends=Column(Text)
-    Accused_Fdetails=Column(Text)
-    Wife_Details=Column(Text)
-    Apartner_MOBnumber=Column(Text)
-    Pcrime_Pstation=Column(Integer,ForeignKey('policestation.id'),comment='previous crime under which policestation')#prove crime
-    Crime_Number=Column(String(200))
-    Crime_Date=Column(DateTime)
-    Pcrime_Sentence=Column(String(200),comment='previous crime punishment')
-    Pcrime_Date=Column(DateTime,comment='privious crime sentence date')
+    Caddress_Saddress=Column(Text,comment='accused regular address and permanent address')
+    Moment_Oinfo=Column(Text,comment='moment and its information')
+    Pofficer_who_Iaccused=Column(Text)# name of police officer those are identify to accused
+    Accused_Father_Name=Column(String(255),comment='accused father name')
+    Accused_Father_Address=Column(Text)
+    Accused_Father_Age=Column(Integer)
+    Wife_or_Husband=Column(Text,comment='accused wife details')
     user_id=Column(Integer)
     create_date=Column(DateTime,default=get_current_time)
     update_date=Column(DateTime,default=get_current_time,onupdate=func.now())
     police_station=relationship(PoliceStationModel,foreign_keys=[PS_id],backref='police_station')
-    prv_pstation=relationship(PoliceStationModel,foreign_keys=[Pcrime_Pstation],backref='prv_pstation')
     occupation=relationship(OccupationModel,backref='occupation')
     ycard_subcast=relationship(SubcastModel,backref='ycard_subcast')
+class friend_relative_model(Base):
+    """
+    friend and relative information  of accused from yellow card
+    """
+    __tablename__="ycard_friend_relative"
+    id=Column(Integer,primary_key=True,autoincrement=True,unique=True,index=True,nullable=False) 
+    yellow_card_id=Column(Integer,ForeignKey('yellow_card.id'))
+    name=Column(String(255),comment='relative_or_friends name')
+    age=Column(Integer)
+    address=Column(Text)
+    relation=Column(String(255),comment='relation with accused')
+    remark=Column(Text)
+    create_date=Column(DateTime,default=get_current_time)
+    update_date=Column(DateTime,default=get_current_time,onupdate=func.now())
+   
+class accused_partner_model(Base):
+    """
+    accused partner and modes of appready number from yellow card
+    """ 
+    __tablename__="ycard_accused_partner" 
+    id=Column(Integer,primary_key=True,unique=True,autoincrement=True,nullable=False)
+    yellow_card_id=Column(Integer,ForeignKey('yellow_card.id'))
+    name=Column(String(255),comment='accused partner name')#partner name those are involved in crime with accused
+    age=Column(Integer)
+    address=Column(Text) 
+    MOB_Number=Column(String(255),comment='modes of appready bureau number') 
+    remark=Column(Text)
+    create_date=Column(DateTime,default=get_current_time)
+    update_date=Column(DateTime,default=get_current_time,onupdate=func.now())
+class criminal_history_model(Base):#this table refer to yellow card accused
+    """brief history about accused from yellow card"""  
+    __tablename__="ycard_crime_info"  
+    id=Column(Integer,primary_key=True,autoincrement=True,index=True,nullable=False)
+    yellow_card_id=Column(Integer,ForeignKey('yellow_card.id'))
+    state_id=Column(Integer,ForeignKey('state.id'))
+    district_id=Column(Integer,ForeignKey('distric.id'))
+    police_station_id=Column(Integer,ForeignKey('policestation.id'))
+    crime_number=Column(String(256))
+    punishment=Column(Text)
+    act_id=Column(Integer,ForeignKey('kalam.id'))
+    section=Column(Text)
+    remark=Column(Text)
+    create_date=Column(DateTime,default=get_current_time)
+    update_date=Column(DateTime,default=get_current_time,onupdate=func.now())
+   
 
 
 

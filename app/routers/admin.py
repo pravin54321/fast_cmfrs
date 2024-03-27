@@ -918,18 +918,38 @@ async def get_single_complaint(current_user:Annotated[UserBase,Depends(get_curre
         complaint_item=db.query(ComplaintModel).filter(ComplaintModel.id==complaint_id,ComplaintModel.user_id==current_user.id).first()
         return complaint_item
 
-@router.patch('/update_complaint/{complaint_id}',response_model=ComplaintGet,tags=['Complaint_Api'])
+@router.put('/update_complaint/{complaint_id}',response_model=ComplaintGet,tags=['Complaint_Api'])
 async def update_complaint(current_user:Annotated[UserBase,Depends(getdb)],
                            complaint_id:int,
                            complaint:ComplaintBase,db:Session=Depends(getdb)):
+    """update complaint table"""
     complaint_exist=db.query(ComplaintModel).filter(ComplaintModel.id==complaint_id).first()
-    if complaint_exist:
-        for field,value in complaint.model_dump(exclude={'Complaint_uid'},exclude_unset=True).items():
-          setattr(complaint_exist,field,value)
+    try:
+        if complaint_exist:
+            for field,value in complaint.model_dump(exclude_unset=True).items():
+                setattr(complaint_exist,field,value)
+                db.commit()
+                db.refresh(complaint_exist)
+                return complaint_exist
+    except Exception as e:
+        raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)    
+    raise HTTPException(detail=f'id-{complaint_id} does not exist',status_code=status.HTTP_404_NOT_FOUND) 
+@router.patch('/update_complaint_fir_status/{complaint_id}',tags=['Complaint_Api'])
+async def update_complaint_fir_status(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                                      complaint_id:int,
+                                      status_for_fir:str,db:Session=Depends(getdb)):
+    """
+    if complaint move to fir then update status yes if doesnot move then status none
+    """
+    try:
+        complaint_exist=db.query(ComplaintModel).filter(ComplaintModel.id==complaint_id).update({"status_for_fir":status_for_fir})
         db.commit()
-        db.refresh(complaint_exist)
-        return complaint_exist
-    raise HTTPException(detail=f'id-{complaint_id} does not exist',status_code=status.HTTP_404_NOT_FOUND)  
+        if complaint_exist is 1:
+            return Response(content='status has been successfully update',status_code=status.HTTP_200_OK)
+        raise HTTPException(detail="something wrong please try again",status_code=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        raise HTTPException(detail=str(e),status_code=status.HTTP_409_CONFLICT)
+        
 @router.delete('/del/{complaint_id}',tags=['Complaint_Api'])
 async def del_complaint(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                         complaint_id:int,db:Session=Depends(getdb)):
@@ -1874,17 +1894,25 @@ async def get_ycard(current_user:Annotated[UserBase,Depends(get_current_active_u
     list_yellowcard=db.query(YellowCardModel).filter(YellowCardModel.user_id==current_user.id).order_by(YellowCardModel.id.desc()).all()
     return list_yellowcard
 @router.post('/create_yellow_card',response_model=Yellow_CardBase,tags=['Yellow_Card_Api'])
-async def create_yellowcard(current_user:Annotated[UserBase,Depends(get_current_user)],
-                           yellow_card:Yellow_CardBase=Depends(),file:UploadFile=File(None),db:Session=Depends(getdb)):
-    file_path=await imagestore(file,'yellow_card')
-    setattr(yellow_card,'Accused_ImgPath',file_path)
-    user_id=current_user.id
-    yellow_card.user_id=user_id
-    yellow_card_item=YellowCardModel(**yellow_card.model_dump())
-    db.add(yellow_card_item)
-    db.commit()
-    db.refresh(yellow_card_item)
-    return yellow_card_item
+async def create_yellow_card(current_user:Annotated[UserBase,Depends(get_current_user)],
+                           yellow_card:Yellow_CardBase,file:UploadFile=File(None),db:Session=Depends(getdb)):
+    """create yellow card"""
+    accused_exist=db.query(YellowCardModel).filter(YellowCardModel.Accused_Name==yellow_card.Accused_Name).first()
+    if accused_exist:
+        raise HTTPException(detail=f"accused with name -{yellow_card.Accused_Name} already exist",
+                            status_code=status.HTTP_400_BAD_REQUEST)
+    try:
+        if image is None:
+            image_path=await imagestore(file,'yellow_card') 
+            setattr(yellow_card,'Accused_ImgPath',f"Static/Images/yellow_card/{image_path}")
+        setattr(yellow_card,"user_id",current_user.id)
+        yellow_card_item=YellowCardModel(**yellow_card.model_dump())
+        db.add(yellow_card_item)
+        db.commit()
+        db.refresh(yellow_card_item)
+        return yellow_card_item
+    except Exception as e:
+        raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)
 @router.patch('/update_yellow_card/{ycard_id}',response_model=Yellow_CardBase,tags=['Yellow_Card_Api'])
 async def update_ycard(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                        ycard_id:int,yellow_card:Yellow_CardBase,db:Session=Depends(getdb)):

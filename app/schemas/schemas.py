@@ -543,7 +543,7 @@ class ComplaintGet(BaseModel):
    io_designation:DesignationGet
    Complainant_Imgpath:Optional[str]=None
    Complaint_Desc:str
-   status_for_fir:str
+   status_for_fir:Optional[str]=None
    evidence:list[ComEvidenceGet]=None
    victime:list[ComVictime_BaseGet]=None
    witness:list[ComWitness_BaseGet]=None
@@ -1127,39 +1127,69 @@ class Enquiry_Form_Get_03(BaseModel):
     Image_Path:str 
     create_date:datetime
     update_date:datetime    
-
-         
+#---------------yellow card----------------  
+class accused_partner_schema(BaseModel):#criminal partner  they are involved in crimme
+    """ from yellow_card"""
+    yellow_card_id:int
+    name:str
+    age:int
+    address:str
+    MOB_Number:str
+    remark:str
+class friend_relative_schema(BaseModel):#accused relative_or_friend 
+    """from yellow card"""
+    yellow_card_id:int
+    name:str
+    age:int
+    address:str
+    relation:str
+    remark:str  
+class criminal_history_schema(BaseModel):# accused crime history
+    """from yellow_card"""
+    yellow_card_id:int
+    state_id:int
+    district_id:int
+    police_station_id:int
+    crime_number:str
+    punishment:str
+    act_id:int
+    section:list[str]
+    remark:str
 class Yellow_CardBase(BaseModel):
-    Accused_Name:str=Form(...) 
-    Accused_Age:int=Form(...)
-    PS_id:int=Form(...)
-    Accused_Bplace:str=Form(...)
-    Accused_Height:str=Form(...)
-    Accused_Bcomplexion:str=Form(...)
-    Accused_Btype:str=Form(...)
-    Accuse_Ecolur:str=Form(...)
-    Accused_Hcolur:str=Form(...)
-    Occupation_id:int=Form(...)
-    Accused_Imark:str=Form(...)
-    Scast_id:int=Form(...)
-    Accused_Education:str=Form(...)
-    Pstation_Rnumber:str=Form(...)
-    CRD_Number:str=Form(...)
-    Accused_Address:str=Form(...)
-    Accused_ImgPath:Optional[str]=Form(None)
-    Caddress_Saddress:str=Form(...)
-    Moment_Oinfo:str=Form(...)
-    Pofficer_who_Iaccused:str=Form(...)
-    Relativ_Friends:str=Form(...)
-    Accused_Fdetails:str=Form(...)
-    Wife_Details:str=Form(...)
-    Apartner_MOBnumber:str=Form(...)
-    Pcrime_Pstation:int=Form(...)
-    Crime_Number:str=Form(...)
-    Crime_Date:datetime
-    Pcrime_Sentence:str
-    Pcrime_Date:date
-    user_id:Optional[int]=Form(None)
+    """yellow card schema"""
+    Accused_Name:str
+    Accused_Age:int
+    state_id:int
+    district_id:int
+    PS_id:int
+    Accused_Bplace:str
+    Accused_Height:str
+    Accused_Bcomplexion:str
+    Accused_Btype:str
+    Accuse_Ecolur:str
+    Accused_Hcolur:str
+    Occupation_id:int
+    Accused_Imark:str
+    Scast_id:int
+    Accused_Education:str
+    Pstation_Rnumber:str
+    CRD_Number:str
+    Accused_Address:str
+    Accused_ImgPath:Optional[str]=None
+    Caddress_Saddress:str=None
+    Moment_Oinfo:str
+    Pofficer_who_Iaccused:str
+    Accused_Father_Name:str
+    Accused_Father_Age:int
+    Accused_Father_Address:str
+    Wife_or_Husband:str
+    user_id:int
+    @model_validator(mode='before')
+    @classmethod
+    def validate_to_json(cls, value):
+        if isinstance(value, str):
+            return cls(**json.loads(value))
+        return value 
 class Yellow_CardBaseGet(BaseModel):
     Accused_Name:str 
     Accused_Age:int
