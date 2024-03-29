@@ -187,46 +187,69 @@ async def state_region(current_user:Annotated[UserBase,Depends(get_current_activ
     region_exist=db.query(RegionModel).filter(RegionModel.State_id==state_id).all()
     return region_exist
 #--------head_office---------
-@router.post('/headoffice_create',response_model=HeadOfficeGet,tags=['Master_HeadOffice'])
+@router.post('/headoffice_create',response_model=HeadOfficeGet,tags=['head_office_api'])
 async def headoffice_create(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                             headoffice:HeadOfficeBase,db:Session=Depends(getdb)):
-    headoffice_exist = db.query(HeadOfficeModel).filter(HeadOfficeModel.HeadOffice==headoffice.HeadOffice).first()
-    if headoffice_exist:
-        raise HTTPException(detail=f'{headoffice.HeadOffice} already exist',status_code=400)
-    head_office = HeadOfficeModel(**headoffice.model_dump())
-    db.add(head_office)
-    db.commit()
-    db.refresh(head_office)
-    return head_office
-@router.get('/get_headoffice',response_model=list[HeadOfficeGet],tags=['Master_HeadOffice'])    
+    """
+     create head office
+    """
+    
+    try:
+        headoffice_exist = db.query(HeadOfficeModel).filter(HeadOfficeModel.HeadOffice==headoffice.HeadOffice).first()
+        if headoffice_exist:
+            raise HTTPException(detail=f'{headoffice.HeadOffice} already exist',status_code=400)
+        head_office = HeadOfficeModel(**headoffice.model_dump())
+        db.add(head_office)
+        db.commit()
+        db.refresh(head_office)
+        return head_office
+    except IntegrityError as e:#it's for  handle database error
+        raise HTTPException(detail=str(e.orig),status_code=status.HTTP_409_CONFLICT)
+    except Exception as e:
+        raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)
+
+   
+@router.get('/get_headoffice',response_model=list[HeadOfficeGet],tags=['head_office_api'])    
 async def get_headoffice(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                          db:Session=Depends(getdb)):
     all_headoffice=db.query(HeadOfficeModel).order_by(HeadOfficeModel.id.desc()).all()
     return all_headoffice
-@router.put('/update_headoffice/{headoffice_id}',response_model=HeadOfficeGet,tags=['Master_HeadOffice'])
+@router.put('/update_head_office/{headoffice_id}',response_model=HeadOfficeGet,tags=['head_office_api'])
 async def  update_headoffice(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                              headoffice_id:int,headoffice:HeadOfficeBase,db:Session=Depends(getdb)):
-    dupilicate_exist= db.query(HeadOfficeModel).filter(HeadOfficeModel.HeadOffice==headoffice.HeadOffice,HeadOfficeModel.id != headoffice_id).first()
+    dupilicate_exist= db.query(HeadOfficeModel).filter(HeadOfficeModel.HeadOffice==headoffice.HeadOffice,
+                                                       HeadOfficeModel.id != headoffice_id).first()
     if dupilicate_exist:
         raise HTTPException(detail=f' headoffice {headoffice.HeadOffice} already exist',status_code=400)
     headoffice_exist= db.query(HeadOfficeModel).filter(HeadOfficeModel.id == headoffice_id).first()
-    if headoffice_exist:
-        headoffice_exist.HeadOffice=headoffice.HeadOffice
-        headoffice_exist.State_id=headoffice.State_id
-        headoffice_exist.Region_id=headoffice.Region_id
-        headoffice_exist.Distric_id=headoffice.Distric_id      
-        db.commit()
-        db.refresh(headoffice_exist)
-        return headoffice_exist
+    try:
+        if headoffice_exist:
+            for field ,value  in headoffice.model_dump(exclude_unset=True).items():
+                setattr(headoffice_exist,field,value)
+                db.commit()
+                db.refresh(headoffice_exist)
+                return headoffice_exist
+    except IntegrityError as e:
+        raise HTTPException(detail='please check foreign key',status_code=status.HTTP_409_CONFLICT)        
+    except Exception as e:
+        raise HTTPException(detail=str(e))        
     raise HTTPException(detail=f'headoffice {headoffice_id} does not exist',status_code=400)
-@router.delete('/del_headoffice/{headoffice_id}',tags=['Master_HeadOffice'])
+@router.delete('/del_headoffice/{headoffice_id}',tags=['head_office_api'])
 async def del_headoffice(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                          headoffice_id:int,db:Session=Depends(getdb)):
+    """
+    delete headoffice record
+    """
     headoffice_exist=db.query(HeadOfficeModel).filter(HeadOfficeModel.id==headoffice_id).first()
-    if headoffice_exist:
-        db.delete(headoffice_exist)
-        db.commit()
-        return Response(content=f"headoffice id-{headoffice_id} has been deleted successfully",status_code=200)
+    try:
+        if headoffice_exist:
+            db.delete(headoffice_exist)
+            db.commit()
+            return Response(content=f"headoffice id-{headoffice_id} has been deleted successfully",status_code=200)
+    except IntegrityError:
+        raise HTTPException(detail="can not delete it is use in anather table",status_code=status.HTTP_409_CONFLICT)    
+    except Exception as e:
+        raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)    
     raise HTTPException(detail=f"headoffice id {headoffice_id} does not exist",status_code=400) 
 @router.get('/region_distric/{region_id}',response_model=list[RegionDistric],tags=['Master_HeadOffice'])
 async def region_distric(current_user:Annotated[UserBase,Depends(get_current_active_user)],
@@ -1891,19 +1914,29 @@ async def update_img(current_user:Annotated[UserBase,Depends(get_current_active_
 @router.get('/get_ycard',response_model=list[Yellow_CardBaseGet],tags=['Yellow_Card_Api'])
 async def get_ycard(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                     db:Session=Depends(getdb)):
-    list_yellowcard=db.query(YellowCardModel).filter(YellowCardModel.user_id==current_user.id).order_by(YellowCardModel.id.desc()).all()
-    return list_yellowcard
+    try:
+        list_yellowcard=db.query(YellowCardModel).filter(YellowCardModel.user_id==current_user.id).order_by(YellowCardModel.id.desc()).all()
+        return list_yellowcard
+    except Exception as e:
+        raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)
 @router.post('/create_yellow_card',response_model=Yellow_CardBase,tags=['Yellow_Card_Api'])
 async def create_yellow_card(current_user:Annotated[UserBase,Depends(get_current_user)],
                            yellow_card:Yellow_CardBase,file:UploadFile=File(None),db:Session=Depends(getdb)):
-    """create yellow card"""
+    """
+    create yellow card
+    current_user:currently authuntication user
+    yellow_card:detail of yellow card created
+    file:image:optional image file
+    db:database session
+
+    """
     accused_exist=db.query(YellowCardModel).filter(YellowCardModel.Accused_Name==yellow_card.Accused_Name).first()
     if accused_exist:
         raise HTTPException(detail=f"accused with name -{yellow_card.Accused_Name} already exist",
                             status_code=status.HTTP_400_BAD_REQUEST)
     try:
-        if image is None:
-            image_path=await imagestore(file,'yellow_card') 
+        if image is None:# when image is none value
+            image_path=await imagestore(file,'yellow_card') # imagestore(img,dir) store the image in specific dir
             setattr(yellow_card,'Accused_ImgPath',f"Static/Images/yellow_card/{image_path}")
         setattr(yellow_card,"user_id",current_user.id)
         yellow_card_item=YellowCardModel(**yellow_card.model_dump())
@@ -1911,11 +1944,18 @@ async def create_yellow_card(current_user:Annotated[UserBase,Depends(get_current
         db.commit()
         db.refresh(yellow_card_item)
         return yellow_card_item
+    except IntegrityError as e:# when error occured in database
+        error_msg="Database integrity error: Cannot add or update a child row"
+        raise HTTPException(detail=error_msg,status_code=status.HTTP_409_CONFLICT)
     except Exception as e:
         raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)
 @router.patch('/update_yellow_card/{ycard_id}',response_model=Yellow_CardBase,tags=['Yellow_Card_Api'])
 async def update_ycard(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                        ycard_id:int,yellow_card:Yellow_CardBase,db:Session=Depends(getdb)):
+    duplicate_yellow_card=db.query(YellowCardModel).filter(YellowCardModel.Accused_Name==yellow_card.Accused_Name,
+                                                           YellowCardModel.id != ycard_id).first()
+    if duplicate_yellow_card:
+        raise HTTPException(detail=f"accused name-{yellow_card.Accused_Name} already exist",status_code=status.HTTP_400_BAD_REQUEST)
     yellow_card_exist=db.query(YellowCardModel).filter(YellowCardModel.id==ycard_id).first()
     if yellow_card_exist:
         for field,value in yellow_card.model_dump(exclude={'Accused_ImgPath'},exclude_unset=True).items():

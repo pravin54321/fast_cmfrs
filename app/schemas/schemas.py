@@ -152,11 +152,9 @@ class RegionBase(BaseModel):
 class RegionGet(BaseModel):
     id: int
     Region:str
-    state:StateGet
     create_date: datetime = None
     update_date: datetime = None
-    class config:
-        orm_mode:True
+    state:StateGet   
 class StateRegion(BaseModel):
     id:int
     Region:str            
@@ -168,10 +166,11 @@ class DistricBase(BaseModel):
 class DistricGet(BaseModel):
     id:int
     Distric:str
-    # state:StateGet
-    region:RegionGet
     create_date: datetime = None
     update_date: datetime = None 
+    # state:StateGet
+    region:RegionGet
+   
     class config:
         orm_mode:True 
 class RegionDistric(BaseModel):# it is use for find destrict with the help of region id
@@ -188,8 +187,8 @@ class HeadOfficeGet(BaseModel):
     HeadOffice:str
     create_date:datetime = None
     update_date:datetime = None
-    state:StateGet
-    region:RegionGet
+    # state:StateGet
+    # region:RegionGet
     distric:DistricGet
     class config:
         orm_mode =True
@@ -208,9 +207,9 @@ class SubdivisionGet(BaseModel):
     Subdivision:str
     create_date:datetime=None
     update_date:datetime=None
-    state:StateGet
-    region:RegionGet
-    distric:DistricGet
+    # state:StateGet
+    # region:RegionGet
+    # distric:DistricGet
     headoffice:HeadOfficeGet
     class config:
         orm_mode=True
@@ -1191,9 +1190,10 @@ class Yellow_CardBase(BaseModel):
             return cls(**json.loads(value))
         return value 
 class Yellow_CardBaseGet(BaseModel):
+    """ yellow card response schema"""
     Accused_Name:str 
     Accused_Age:int
-    police_station:PoliceStation_only
+    police_station:outside_policestation
     Accused_Bplace:str
     Accused_Height:str
     Accused_Bcomplexion:str
@@ -1208,19 +1208,16 @@ class Yellow_CardBaseGet(BaseModel):
     CRD_Number:str
     Accused_Address:str
     Accused_ImgPath:str
-    Caddress_Saddress:str
-    Moment_Oinfo:str
+    Caddress_Saddress:str#current address and permanent address
+    Moment_Oinfo:str#movment information
     Pofficer_who_Iaccused:str
-    Relativ_Friends:str
-    Accused_Fdetails:str
-    Wife_Details:str
-    Apartner_MOBnumber:str
-    prv_pstation:PoliceStation_only
-    Crime_Number:str
-    Crime_Date:datetime
-    Pcrime_Sentence:str
-    Pcrime_Date:date
-      
+    Accused_Father_Name:str
+    Accused_Father_Age:int
+    Accused_Father_Address:str
+    Wife_or_Husband:str
+    create_date:datetime
+    update_date:datetime
+    
 #-------------------information_mode_model---------------
 
 
