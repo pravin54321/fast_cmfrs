@@ -1934,15 +1934,15 @@ async def get_ycard(current_user:Annotated[UserBase,Depends(get_current_active_u
         return list_yellowcard
     except Exception as e:
         raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)
-@router.post('/create_yellow_card',response_model=Yellow_CardBase,tags=['Yellow_Card_Api'])
+@router.post('/create_yellow_card',response_model=Yellow_CardBase,tags=['Yellow_Card_Api'],summary="create yellow card")
 async def create_yellow_card(current_user:Annotated[UserBase,Depends(get_current_user)],
                            yellow_card:Yellow_CardBase,file:UploadFile=File(None),db:Session=Depends(getdb)):
     """
-    create yellow card
-    current_user:currently authuntication user
-    yellow_card:detail of yellow card created
-    file:image:optional image file
-    db:database session
+    create yellow card item
+    - **current_user**:currently authuntication user
+    - **yellow_card**:detail of yellow card created
+    - **file**:upload image
+    - **db**:database session
 
     """
     accused_exist=db.query(YellowCardModel).filter(YellowCardModel.Accused_Name==yellow_card.Accused_Name).first()
