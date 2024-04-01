@@ -1135,6 +1135,12 @@ class accused_partner_schema(BaseModel):#criminal partner  they are involved in 
     address:str
     MOB_Number:str
     remark:str
+class accused_partner_get(accused_partner_schema):
+    """get request data  from accused parter in yellow card"""
+    id:int
+    create_date:datetime
+    update_date:datetime
+
 class friend_relative_schema(BaseModel):#accused relative_or_friend 
     """from yellow card"""
     yellow_card_id:int

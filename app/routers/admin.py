@@ -2024,6 +2024,11 @@ async def upd_ycard_img(current_user:Annotated[UserBase,Depends(get_current_acti
     except Exception as e:
         raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)        
     raise HTTPException(detail=f"id-{ycard_id} does not exist",status_code=status.HTTP_400_BAD_REQUEST)
+@router.post('/create_accused_partner/{yellow_card_id}',response_model=accused_partner_get,tags=['Yellow_Card_Api'])
+async def create_accused_partner(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                                 yellow_card_id:int,accused_partner:accused_partner_schema,db:Session=Depends(getdb)):
+    pass
+
 @router.post('/test_form')
 def submit(user_review:Rate=Body(), image:list[Any] = None):
         for i in user_review.id1:
