@@ -890,7 +890,7 @@ class Enquiry_Form_Base_01(BaseModel):
     Fater_Property_detail:Optional[str]=None
     Is_Mother_Alive:str
     Mother_Details:Optional[str]=None   
-    user_id:int  
+    user_id:Optional[int]=None  
 class Enquiry_Form_Get_01(BaseModel):
     id:int
     state_id:int
@@ -914,13 +914,13 @@ class Enquiry_Form_Get_01(BaseModel):
     Residence_Address:str
     Birth_Place:str
     Is_Father_Alive:str
-    Father_Name:str
-    Father_Address:str
-    Father_Occupation_id:int
-    Is_Father_Property:str
-    Fater_Property_detail:str
+    Father_Name:Optional[str]=None
+    Father_Address:Optional[str]=None
+    Father_Occupation_id:Optional[int]=None
+    Is_Father_Property:Optional[str]=None
+    Fater_Property_detail:Optional[str]=None
     Is_Mother_Alive:str
-    Mother_Details:str 
+    Mother_Details:Optional[str]=None 
 class Enquiry_Form_Base_02(BaseModel):
     Brother_or_Sister:str
     Brother_Sister_Details:str
