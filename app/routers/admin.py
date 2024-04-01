@@ -1949,37 +1949,65 @@ async def create_yellow_card(current_user:Annotated[UserBase,Depends(get_current
         raise HTTPException(detail=error_msg,status_code=status.HTTP_409_CONFLICT)
     except Exception as e:
         raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)
-@router.patch('/update_yellow_card/{ycard_id}',response_model=Yellow_CardBase,tags=['Yellow_Card_Api'])
+@router.put('/update_yellow_card/{ycard_id}',response_model=Yellow_CardBase,tags=['Yellow_Card_Api'])
 async def update_ycard(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                        ycard_id:int,yellow_card:Yellow_CardBase,db:Session=Depends(getdb)):
-    duplicate_yellow_card=db.query(YellowCardModel).filter(YellowCardModel.Accused_Name==yellow_card.Accused_Name,
-                                                           YellowCardModel.id != ycard_id).first()
-    if duplicate_yellow_card:
-        raise HTTPException(detail=f"accused name-{yellow_card.Accused_Name} already exist",status_code=status.HTTP_400_BAD_REQUEST)
+    "update the yellow card model"
     yellow_card_exist=db.query(YellowCardModel).filter(YellowCardModel.id==ycard_id).first()
     if yellow_card_exist:
-        for field,value in yellow_card.model_dump(exclude={'Accused_ImgPath'},exclude_unset=True).items():
-            setattr(yellow_card_exist,field,value)
-        db.commit()
-        db.refresh(yellow_card_exist)
-        return yellow_card_exist 
+        duplicate_yellow_card=db.query(YellowCardModel).filter(YellowCardModel.Accused_Name==yellow_card.Accused_Name,
+                                                            YellowCardModel.id != ycard_id).first()
+        if duplicate_yellow_card:
+            raise HTTPException(detail=f"accused name-{yellow_card.Accused_Name} already exist",status_code=status.HTTP_400_BAD_REQUEST)
+        try:
+            for field,value in yellow_card.model_dump(exclude={'Accused_ImgPath'},exclude_unset=True).items():
+                setattr(yellow_card_exist,field,value)
+            db.commit()
+            db.refresh(yellow_card_exist)
+            return yellow_card_exist
+        except IntegrityError as e:
+            raise HTTPException(detail="Database integrity error: Cannot add or update a child row",
+                                status_code=status.HTTP_409_CONFLICT)
+        except  Exception as e:
+            raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)
+    raise HTTPException(detail=f"id-{ycard_id} item does not exist",status_code=status.HTTP_400_BAD_REQUEST)
 @router.delete('/del_ycard/{ycard_id}',tags=['Yellow_Card_Api']) 
 async def del_ycard(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                     ycard_id:int,db:Session=Depends(getdb)):
-      ycard_exist=db.query(YellowCardModel).filter(YellowCardModel.id==ycard_id).first()
-      if ycard_exist:
-          db.delete(ycard_exist)
-          db.commit()
-          return Response(content=f"id-{ycard_id} has been deleted successfully",status_code=status.HTTP_200_OK)
-      raise HTTPException(detail=f"id-{ycard_id} does not exist",status_code=status.HTTP_400_BAD_REQUEST)   
+    """delete yellow_card record from database"""
+    ycard_exist=db.query(YellowCardModel).filter(YellowCardModel.id==ycard_id).first()
+    try:
+        if ycard_exist:
+            db.delete(ycard_exist)
+            db.commit()
+            return Response(content=f"id-{ycard_id} has been deleted successfully",status_code=status.HTTP_200_OK)
+    except IntegrityError as e:
+        raise HTTPException(detail='can not delete item.it is use in anather table',status_code=status.HTTP_409_CONFLICT)   
+    except Exception as e:
+        raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST) 
+    raise HTTPException(detail=f"id-{ycard_id} does not exist",status_code=status.HTTP_400_BAD_REQUEST)   
 
 @router.patch('/upd_ycard_img/{ycard_id}',response_model=Yellow_CardBase,tags=['Yellow_Card_Api'])
 async def upd_ycard_img(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                         ycard_id:int,file:UploadFile=File(),db:Session=Depends(getdb)):
-    file_path=await imagestore(file,'yellow_card')
-    ycard_exist=db.query(YellowCardModel).filter(YellowCardModel.id==ycard_id).update({'Accused_ImgPath':file_path})
-    if ycard_exist is 1:
-        return Response(content='image has been update successfully',status_code=status.HTTP_200_OK)
+    """
+    update image in yellow_card modeule
+    current_user:authuntication user
+    ycard_id:id which is update
+    file:new image
+    """
+    yellow_card_exist=db.query(YellowCardModel).filter(YellowCardModel.id==ycard_id).first()
+    old_img_path=yellow_card_exist.Accused_ImgPath
+    try:
+        if yellow_card_exist and file:
+            file_path=await imagestore(file,'yellow_card')#imagestor(img,dir) store image in specific dir
+            image_update=db.query(YellowCardModel).filter(YellowCardModel.id==ycard_id).\
+                update({'Accused_ImgPath':f"Static/Images/yellow_card/{file_path}"})
+            if image_update is 1:
+                await dlt_image(old_img_path)# dlt_image(img_path) dlt old image from yellow_card dir
+                return Response(content='image has been update successfully',status_code=status.HTTP_200_OK)
+    except Exception as e:
+        raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)        
     raise HTTPException(detail=f"id-{ycard_id} does not exist",status_code=status.HTTP_400_BAD_REQUEST)
 @router.post('/test_form')
 def submit(user_review:Rate=Body(), image:list[Any] = None):
