@@ -1816,6 +1816,11 @@ async def enqform(current_user:Annotated[UserBase,Depends(get_current_active_use
 @router.post('/crete_enquiry_form',response_model=Enquiry_Form_Get_01,tags=['Enquiry_Api'])
 async def create_enquiry_form(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                               enquiry_schema:Enquiry_Form_Base_01,db:Session=Depends(getdb)):
+    """create enquiry form
+       current_user:login authunticate user
+       enquiry_schema:enquiry_information(json data)
+       db:database session
+    """
     try:
         setattr(enquiry_schema,'user_id',current_user.id)
         enquiry_form_db=EnquiryFormModel(**enquiry_schema.model_dump())
@@ -1839,8 +1844,10 @@ async def create_enquiry_form_02(current_user:Annotated[UserBase,Depends(get_cur
             db.commit()
             db.refresh(enquiry_form_exist)
             return enquiry_form_exist
+    except IntegrityError as e:
+        raise HTTPException(detail="intigrity error:please check foreign key",status_code=status.HTTP_409_CONFLICT)
     except Exception as e:
-        raise HTTPException    
+        raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)    
     raise HTTPException(detail=f"id-{enquiry_form_id} itemdoes not exist",status_code=status.HTTP_400_BAD_REQUEST)
 @router.patch('/create_enquiry_form_03/{enquiry_form_id}',response_model=Enquiry_Form_Get_03,tags=['Enquiry_Api'])
 async def create_enquiry_form_03(current_user:Annotated[UserBase,Depends(get_current_active_user)],
@@ -1856,6 +1863,8 @@ async def create_enquiry_form_03(current_user:Annotated[UserBase,Depends(get_cur
             db.commit()
             db.refresh(enquiry_form_exist)
             return enquiry_form_exist
+        except IntegrityError as e:
+            raise HTTPException(detail="integrity error:please check foreign key",status_code=status.HTTP_409_CONFLICT)
         except Exception as e:
             raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)
     raise HTTPException(detail=f'id-{enquiry_form_id} item does not exist',status_code=status.HTTP_400_BAD_REQUEST)    
@@ -1871,6 +1880,8 @@ async def update_enqform(current_user:Annotated[UserBase,Depends(get_current_act
             db.commit()
             db.refresh(enqform_exist)
             return enqform_exist
+        except IntegrityError as e:
+            raise HTTPException(detail="intigrity error:please check foreign key",status_code=status.http_409) 
         except Exception as e:
             raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)
     raise HTTPException(detail=f'id-{enqform_id} does not exist',status_code=status.HTTP_400_BAD_REQUEST)
@@ -1885,6 +1896,8 @@ async def del_enqform(curremt_user:Annotated[UserBase,Depends(get_current_active
             db.delete(enqform_exist)
             db.commit()
             return Response(content=f"id-{enqform_id} has  been deleted successfully",status_code=status.HTTP_200_OK)
+    except IntegrityError as e:
+        raise HTTPException(detail='can not delete.it is use in anather table',status_code=status.HTTP_409_CONFLICT)    
     except Exception as e:
         raise HTTPException(detail=str(e))    
     raise HTTPException(detail=f"id-{enqform_id} does not exist",status_code=status.HTTP_400_BAD_REQUEST) 

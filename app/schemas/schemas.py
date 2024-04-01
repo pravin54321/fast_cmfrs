@@ -889,7 +889,7 @@ class Enquiry_Form_Base_01(BaseModel):
     Is_Father_Property:Optional[str]=None
     Fater_Property_detail:Optional[str]=None
     Is_Mother_Alive:str
-    Mother_Details:Optional[None]   
+    Mother_Details:Optional[str]=None   
     user_id:int  
 class Enquiry_Form_Get_01(BaseModel):
     id:int
