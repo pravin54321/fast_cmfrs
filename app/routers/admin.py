@@ -193,7 +193,6 @@ async def headoffice_create(current_user:Annotated[UserBase,Depends(get_current_
     """
      create head office
     """
-    
     try:
         headoffice_exist = db.query(HeadOfficeModel).filter(HeadOfficeModel.HeadOffice==headoffice.HeadOffice).first()
         if headoffice_exist:
@@ -257,40 +256,67 @@ async def region_distric(current_user:Annotated[UserBase,Depends(get_current_act
     list_distric=db.query(DistricModel).filter(DistricModel.Region_id==region_id).all()
     return list_distric
 #------subdivision----------------#
-@router.post('/crete_subdivision',response_model=SubdivisionGet,tags=['Master_Subdivision'])
+@router.post('/crete_subdivision',response_model=SubdivisionGet,tags=['subdivision_api'])
 async def create_subdivision(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                              subdivision:SubdivisionBase,db:Session=Depends(getdb)):
-    subdivision_exist=db.query(SubdivisionModel).filter(SubdivisionModel.Subdivision==subdivision.Subdivision).first()
-    if subdivision_exist:
-        raise HTTPException(detail=f'{subdivision.Subdivision} subdivision already exist',status_code=400)
-    subdivision=SubdivisionModel(**subdivision.model_dump())
-    db.add(subdivision)
-    db.commit()
-    db.refresh(subdivision)
-    return subdivision
-@router.get('/get_subdivision',response_model=list[SubdivisionGet],tags=['Master_Subdivision'])
+    """
+     create subdivision item
+     - **subdivision**:it is schema/object to create item 
+
+    """
+    try:
+        subdivision_exist=db.query(SubdivisionModel).filter(SubdivisionModel.Subdivision==subdivision.Subdivision).first()
+        if subdivision_exist:
+            return JSONResponse(content=f'{subdivision.Subdivision}-item already exist',status_code=400)
+        subdivision=SubdivisionModel(**subdivision.model_dump())
+        db.add(subdivision)
+        db.commit()
+        db.refresh(subdivision)
+        return subdivision
+    except IntegrityError as e:
+        return HTTPException(detail=f"{str(e.orig)}",status_code=status.HTTP_409_CONFLICT)
+    except Exception as e:
+        return HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)
+@router.get('/get_subdivision',response_model=list[SubdivisionGet],tags=['subdivision_api'])
 async def get_subdivision(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                           db:Session=Depends(getdb)):
     all_subdiviion=db.query(SubdivisionModel).order_by(SubdivisionModel.id.desc()).all()
     return all_subdiviion
-@router.put('/update_subdivision/{sudivision_id}',response_model=SubdivisionBase,tags=['Master_Subdivision'])
+@router.put('/update_subdivision/{sudivision_id}',response_model=SubdivisionBase,tags=['subdivision_api'])
 async def update_subdivision(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                              subdivision_id:int,subdivision:SubdivisionBase,db:Session=Depends(getdb)):
-    subdivision_duplicate=db.query(SubdivisionModel).filter(SubdivisionModel.Subdivision==subdivision.Subdivision,SubdivisionModel.id!=subdivision_id).first()
-    if subdivision_duplicate:
-        raise HTTPException(detail=f'{subdivision.Subdivision} subdivision already exist',status_code=400)
+    
+    """
+            Update subdivision item by ID.
+
+            Parameters:
+          
+            - **subdivision_id**: ID of the subdivision to update.
+            - **subdivision**: New data for the subdivision.
+
+            Returns:
+            - Updated subdivision item.
+    """
     subdivision_exist=db.query(SubdivisionModel).filter(SubdivisionModel.id==subdivision_id).first()
-    if subdivision_exist:
-       subdivision_exist.Subdivision=subdivision.Subdivision
-       subdivision_exist.State_id=subdivision.State_id
-       subdivision_exist.Region_id=subdivision.Region_id
-       subdivision_exist.Distric_id=subdivision.Distric_id
-       subdivision_exist.HeadOffice_id=subdivision.HeadOffice_id     
-       db.commit()
-       db.refresh(subdivision_exist)
-       return subdivision_exist   
-    raise HTTPException(detail=f'subdivision id {subdivision_id} does not exist',status_code=400) 
-@router.delete('/del_subdivision/{subdivision_id}',tags=['Master_Subdivision'])
+    if not subdivision_exist:
+         raise HTTPException(detail=f'subdivision id {subdivision_id} does not exist',status_code=400) 
+    subdivision_duplicate=db.query(SubdivisionModel).filter(SubdivisionModel.Subdivision==\
+                                                            subdivision.Subdivision,SubdivisionModel.id!=subdivision_id).first()
+    if subdivision_duplicate:
+        raise HTTPException(detail=f'{subdivision.Subdivision} item already exist',status_code=400)
+    try:
+        if subdivision_exist:
+            for field,value in subdivision.model_dump(exclude_unset=True).items():
+                setattr(subdivision_exist,field,value)
+            db.commit()
+            db.refresh(subdivision_exist)
+            return subdivision_exist   
+    except IntegrityError as e:
+        raise HTTPException(detail=str(e),status_code=status.HTTP_409_CONFLICT)
+    except Exception as e:
+        raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)    
+   
+@router.delete('/del_subdivision/{subdivision_id}',tags=['subdivision_api'])
 async def del_subdivision(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                           subdivision_id:int,db:Session=Depends(getdb)):
     subdivision_exit=db.query(SubdivisionModel).filter(SubdivisionModel.id==subdivision_id).first()
@@ -299,7 +325,7 @@ async def del_subdivision(current_user:Annotated[UserBase,Depends(get_current_ac
         db.commit()
         return Response(content=f'subdivision id {subdivision_id} has deleted successfully',status_code=200)
     raise HTTPException(detail=f'subdivision id {subdivision_id} does not exist',status_code=400)
-@router.get('/distric_headoffice/{distric_id}',response_model=list[DistricHeadoffice],tags=['Master_Subdivision'])
+@router.get('/distric_headoffice/{distric_id}',response_model=list[DistricHeadoffice],tags=['subdivision_api'])
 async def distric_headoffice(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                              distric_id:int,db:Session=Depends(getdb)):
     list_headoffice=db.query(HeadOfficeModel).filter(HeadOfficeModel.Distric_id==distric_id).all()
@@ -2024,10 +2050,27 @@ async def upd_ycard_img(current_user:Annotated[UserBase,Depends(get_current_acti
     except Exception as e:
         raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)        
     raise HTTPException(detail=f"id-{ycard_id} does not exist",status_code=status.HTTP_400_BAD_REQUEST)
-@router.post('/create_accused_partner/{yellow_card_id}',response_model=accused_partner_get,tags=['Yellow_Card_Api'])
+@router.post('/create_accused_partner',response_model=accused_partner_get,tags=['Yellow_Card_Api'])
 async def create_accused_partner(current_user:Annotated[UserBase,Depends(get_current_active_user)],
-                                 yellow_card_id:int,accused_partner:accused_partner_schema,db:Session=Depends(getdb)):
-    pass
+                                 accused_partner:accused_partner_schema,db:Session=Depends(getdb)):
+    """
+    create accused partner item this belong to yellow card
+    - **accused_partner**:it is shema use for creating item
+    - **yellow_card_id**:it is yellow card model id
+    """
+    yellow_card_exist=db.query(YellowCardModel).filter(YellowCardModel.id\
+                                                       ==accused_partner.yellow_card_id).first()
+    try:
+        if yellow_card_exist:
+            db_instance=accused_partner_model(**accused_partner.model_dump())
+            db.add(db_instance)
+            db.commit()
+            db.refresh(db_instance)
+            return db_instance
+    
+    except Exception as e:
+        raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)    
+    raise HTTPException(detail=f"id-{accused_partner.yellow_card_id} item does not exist",status_code=status.HTTP_400_BAD_REQUEST)
 
 @router.post('/test_form')
 def submit(user_review:Rate=Body(), image:list[Any] = None):

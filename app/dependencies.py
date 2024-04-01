@@ -1,10 +1,12 @@
 from fastapi import FastAPI,Depends,HTTPException,UploadFile,File,Form,Query,status,Response,Body
+from fastapi.exceptions import ResponseValidationError,RequestValidationError
 from .schemas.schemas import *
 from .models.models import *
 from sqlalchemy.orm import Session
 from .database import getdb
 from pydantic import ValidationError
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse,PlainTextResponse
+from starlette.exceptions import HTTPException as StarletteHTTPException
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.exc import IntegrityError
 import os
