@@ -1823,6 +1823,8 @@ async def create_enquiry_form(current_user:Annotated[UserBase,Depends(get_curren
         db.commit()
         db.refresh(enquiry_form_db)
         return enquiry_form_db
+    except IntegrityError as e:
+         raise HTTPException(detail=f"integrity error:please check foreign key",status_code=status.HTTP_409_CONFLICT)
     except Exception as e:
         raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)
 @router.patch('/create_enquiry_form_02/{enqury_form_id}',response_model=Enquiry_Form_Get_02,tags=['Enquiry_Api'])
