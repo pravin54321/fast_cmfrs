@@ -929,10 +929,10 @@ class Enquiry_Form_Base_02(BaseModel):
     Is_Own_Property:Optional[str]=None
     Own_Property_Details:Optional[str]=None
     Is_Education:Optional[str]=None
-    Education_Details:Optional[str]
-    Is_Married:Optional[str]
-    Wife_or_Husband_Details:Optional[str]
-    How_long_Current_Address:Optional[str]
+    Education_Details:Optional[str]=None
+    Is_Married:Optional[str]=None
+    Wife_or_Husband_Details:Optional[str]=None
+    How_long_Current_Address:Optional[str]=None
     Who_Knows_You:Optional[str]=None
     Know_Other_Than_Relative:Optional[str]=None
     Proffession_Before_Coming:Optional[str]=None
@@ -947,69 +947,69 @@ class Enquiry_Form_Base_02(BaseModel):
     PO_Emp:Optional[str]=None
     Is_commited_Crime_Before:Optional[str]=None
     Reason_Commited_Crime:Optional[str]=None
-    Started_Crime:Optional[str]
-    Gang_or_Group:Optional[str]
-    Crime_to_Other_Gang:Optional[str]
-    Where_Crime_Commited:Optional[str]  
+    Started_Crime:Optional[str]=None
+    Gang_or_Group:Optional[str]=None
+    Crime_to_Other_Gang:Optional[str]=None
+    Where_Crime_Commited:Optional[str]=None  
 class Enquiry_Form_Get_02(BaseModel):
-    id:int
-    state_id:int
-    distric_id:int
-    Police_Station_id:int
-    Accused_Name:str
-    Nick_Name:str
-    Father_or_Wife_Name:str
-    Age:int
-    Mob_Number:str
-    Height:str
-    Body_Complexion:str
-    Body_Type:str
-    Eyes_Colur:str
-    Hair_Colur:str
-    Langues_id:int
-    Identification_Mark:str
-    Subcast_id:int
-    Occupation_id:int
-    Address:str
-    Residence_Address:str
-    Birth_Place:str
-    Is_Father_Alive:str
-    Father_Name:str
-    Father_Address:str
-    Father_Occupation_id:int
-    Is_Father_Property:str
-    Fater_Property_detail:str
-    Is_Mother_Alive:str
-    Mother_Details:str 
-    Brother_or_Sister:str
-    Brother_Sister_Details:str
-    Relative_or_Friends:str
-    Relative_Friends_Details:str
-    Is_Own_Property:str
-    Own_Property_Details:str
-    Is_Education:str
-    Education_Details:str
-    Is_Married:str
-    Wife_or_Husband_Details:str
-    How_long_Current_Address:str
-    Who_Knows_You:str
-    Know_Other_Than_Relative:str
-    Proffession_Before_Coming:str
-    Arrested_Before:str 
-    Is_Sentence_before:str
-    Sentence_Details:str
-    is_CommitedCrime_Arrested_anyone:str
-    Details_Anyone:str
-    Stolen_Goodes_Sized_From:str
-    PO_Details_Accused:str
-    Stay_Other_Place:str
-    PO_Emp:str
-    Is_commited_Crime_Before:str
-    Reason_Commited_Crime:str
-    Started_Crime:str
-    Gang_or_Group:str
-    Crime_to_Other_Gang:str
-    Where_Crime_Commited:str   
+    id:Optional[int]=None
+    state_id:Optional[int]=None
+    distric_id:Optional[int]=None
+    Police_Station_id:Optional[int]=None
+    Accused_Name:Optional[str]=None
+    Nick_Name:Optional[str]=None
+    Father_or_Wife_Name:Optional[str]=None
+    Age:Optional[int]=None
+    Mob_Number:Optional[str]=None
+    Height:Optional[str]=None
+    Body_Complexion:Optional[str]=None
+    Body_Type:Optional[str]=None
+    Eyes_Colur:Optional[str]=None
+    Hair_Colur:Optional[str]=None
+    Langues_id:Optional[int]=None
+    Identification_Mark:Optional[str]=None
+    Subcast_id:Optional[int]=None
+    Occupation_id:Optional[int]=None
+    Address:Optional[str]=None
+    Residence_Address:Optional[str]=None
+    Birth_Place:Optional[str]=None
+    Is_Father_Alive:Optional[str]=None
+    Father_Name:Optional[str]=None
+    Father_Address:Optional[str]=None
+    Father_Occupation_id:Optional[int]=None
+    Is_Father_Property:Optional[str]=None
+    Fater_Property_detail:Optional[str]=None
+    Is_Mother_Alive:Optional[str]=None
+    Mother_Details:Optional[str]=None 
+    Brother_or_Sister:Optional[str]=None
+    Brother_Sister_Details:Optional[str]=None
+    Relative_or_Friends:Optional[str]=None
+    Relative_Friends_Details:Optional[str]=None
+    Is_Own_Property:Optional[str]=None
+    Own_Property_Details:Optional[str]=None
+    Is_Education:Optional[str]=None
+    Education_Details:Optional[str]=None
+    Is_Married:Optional[str]=None
+    Wife_or_Husband_Details:Optional[str]=None
+    How_long_Current_Address:Optional[str]=None
+    Who_Knows_You:Optional[str]=None
+    Know_Other_Than_Relative:Optional[str]=None
+    Proffession_Before_Coming:Optional[str]=None
+    Arrested_Before:Optional[str]=None 
+    Is_Sentence_before:Optional[str]=None
+    Sentence_Details:Optional[str]=None
+    is_CommitedCrime_Arrested_anyone:Optional[str]=None
+    Details_Anyone:Optional[str]=None
+    Stolen_Goodes_Sized_From:Optional[str]=None
+    PO_Details_Accused:Optional[str]=None
+    Stay_Other_Place:Optional[str]=None
+    PO_Emp:Optional[str]=None
+    Is_commited_Crime_Before:Optional[str]=None
+    Reason_Commited_Crime:Optional[str]=None
+    Started_Crime:Optional[str]=None
+    Gang_or_Group:Optional[str]=None
+    Crime_to_Other_Gang:Optional[str]=None
+    Where_Crime_Commited:Optional[str]=None   
 class Enquiry_Form_Base_03(BaseModel):
     DoYouKnow_OtherCriminal:Optional[str]=None
     HowMuch_MonyStolen:Optional[str]=None
@@ -1047,8 +1047,8 @@ class Enquiry_Form_Get_03(BaseModel):
     # distric_id:int
     police_station:Optional[outside_policestation]=None
     Accused_Name:Optional[str]=None
-    Nick_Name:Optional[str]
-    Father_or_Wife_Name:Optional[str]
+    Nick_Name:Optional[str]=None
+    Father_or_Wife_Name:Optional[str]=None
     Age:Optional[int]=None
     Mob_Number:Optional[str]=None
     Height:Optional[str]=None
@@ -1068,7 +1068,7 @@ class Enquiry_Form_Get_03(BaseModel):
     Father_Address:Optional[str]=None
     father_occupation:Optional[OccupationGet]=None
     Is_Father_Property:Optional[str]=None
-    Fater_Property_detail:Optional[str]
+    Fater_Property_detail:Optional[str]=None
     Is_Mother_Alive:Optional[str]=None
     Mother_Details:Optional[str]=None 
     Brother_or_Sister:Optional[str]=None 
