@@ -110,8 +110,8 @@ class StateModel(Base):
     # distric=relationship('DistricModel',back_populates='state',cascade='all,delete')
     # headoffices= relationship('HeadOfficeModel',back_populates='state',cascade='all,delete')
     # subdivision=relationship('SubdivisionModel',back_populates='state',cascade='all,delete')
-    taluka=relationship('TalukaModel',back_populates='state',cascade='all,delete')
-    policestation=relationship('PoliceStationModel',back_populates='state',cascade='all,delete')
+    # taluka=relationship('TalukaModel',back_populates='state',cascade='all,delete')
+    # policestation=relationship('PoliceStationModel',back_populates='state',cascade='all,delete')
     post=relationship('PostModel',back_populates='state',cascade='all,delete')
 
 class RegionModel(Base):
@@ -125,8 +125,8 @@ class RegionModel(Base):
     # distric=relationship('DistricModel',back_populates='region',cascade='all,delete')
     # headoffices= relationship('HeadOfficeModel',back_populates='region',cascade='all,delete') 
     # subdivision=relationship('SubdivisionModel',back_populates='region',cascade='all,delete')
-    taluka=relationship('TalukaModel',back_populates='region',cascade='all,delete')
-    policestation=relationship('PoliceStationModel',back_populates='region',cascade='all,delete')
+    # taluka=relationship('TalukaModel',back_populates='region',cascade='all,delete')
+    # policestation=relationship('PoliceStationModel',back_populates='region',cascade='all,delete')
     post=relationship('PostModel',back_populates='region',cascade='all,delete')  
 
 class DistricModel(Base):
@@ -141,8 +141,8 @@ class DistricModel(Base):
     region=relationship('RegionModel',backref='region')
     # headoffices = relationship('HeadOfficeModel',back_populates='distric',cascade='all,delete')   
     # subdivision=relationship('SubdivisionModel',back_populates='distric',cascade='all,delete')
-    taluka=relationship('TalukaModel',back_populates='distric',cascade='all,delete')
-    policestation=relationship('PoliceStationModel',back_populates='distric',cascade='all,delete')
+    # taluka=relationship('TalukaModel',back_populates='distric',cascade='all,delete')
+    # policestation=relationship('PoliceStationModel',back_populates='distric',cascade='all,delete')
     post=relationship('PostModel',back_populates='distric',cascade='all,delete')
 class HeadOfficeModel(Base):
     __tablename__='headoffice'
@@ -157,8 +157,8 @@ class HeadOfficeModel(Base):
     # region = relationship('RegionModel',back_populates='headoffices')
     distric = relationship('DistricModel',backref='distric')
     # subdivision=relationship('SubdivisionModel',back_populates='headoffice',cascade='all,delete')
-    taluka=relationship('TalukaModel',back_populates='headoffice',cascade='all,delete')
-    policestation=relationship('PoliceStationModel',back_populates='headoffice',cascade='all,delete')
+    # taluka=relationship('TalukaModel',back_populates='headoffice',cascade='all,delete')
+    # policestation=relationship('PoliceStationModel',back_populates='headoffice',cascade='all,delete')
     post=relationship('PostModel',back_populates='headoffice',cascade='all,delete')
 class SubdivisionModel(Base):
     __tablename__='subdivision'
@@ -174,8 +174,8 @@ class SubdivisionModel(Base):
     # region=relationship('RegionModel',back_populates='subdivision')
     # distric=relationship('DistricModel',back_populates='subdivision')
     headoffice=relationship('HeadOfficeModel',backref='headoffice')
-    taluka=relationship('TalukaModel',back_populates='subdivision',cascade='all,delete')
-    policestation=relationship('PoliceStationModel',back_populates='subdivision',cascade='all,delete')
+    # taluka=relationship('TalukaModel',back_populates='subdivision')
+    # policestation=relationship('PoliceStationModel',back_populates='subdivision',cascade='all,delete')
     post=relationship('PostModel',back_populates='subdivision',cascade='all,delete')
 class TalukaModel(Base):
     __tablename__='taluka'
@@ -188,12 +188,12 @@ class TalukaModel(Base):
     Subdivision_id=Column(Integer,ForeignKey('subdivision.id'),nullable=False) 
     create_date=Column(DateTime,default=get_current_time)
     update_date=Column(DateTime,default=get_current_time,onupdate=func.now())
-    state=relationship('StateModel',back_populates='taluka')
-    region=relationship('RegionModel',back_populates='taluka')  
-    distric=relationship('DistricModel',back_populates='taluka') 
-    headoffice=relationship('HeadOfficeModel',back_populates='taluka')
-    subdivision=relationship('SubdivisionModel',back_populates='taluka')
-    policestation=relationship('PoliceStationModel',back_populates='taluka',cascade='all,delete')
+    # state=relationship('StateModel',back_populates='taluka')
+    # region=relationship('RegionModel',back_populates='taluka')  
+    # distric=relationship('DistricModel',back_populates='taluka') 
+    # headoffice=relationship('HeadOfficeModel',back_populates='taluka')
+    subdivision=relationship('SubdivisionModel',backref='subdivision')
+    # policestation=relationship('PoliceStationModel',back_populates='taluka',cascade='all,delete')
     post=relationship('PostModel',back_populates='taluka',cascade='all,delete')
 class PoliceStationModel(Base):
     __tablename__='policestation'
@@ -207,12 +207,12 @@ class PoliceStationModel(Base):
     Taluka_id=Column(Integer,ForeignKey('taluka.id'),nullable=False)
     create_date=Column(DateTime,default=get_current_time)
     update_date=Column(DateTime,default=get_current_time,onupdate=func.now())
-    state=relationship('StateModel',back_populates='policestation')
-    region=relationship('RegionModel',back_populates='policestation')
-    distric=relationship('DistricModel',back_populates='policestation')
-    headoffice=relationship('HeadOfficeModel',back_populates='policestation')
-    subdivision=relationship('SubdivisionModel',back_populates='policestation')
-    taluka=relationship('TalukaModel',back_populates='policestation')
+    # state=relationship('StateModel',back_populates='policestation')
+    # region=relationship('RegionModel',back_populates='policestation')
+    # distric=relationship('DistricModel',back_populates='policestation')
+    # headoffice=relationship('HeadOfficeModel',back_populates='policestation')
+    # subdivision=relationship('SubdivisionModel',back_populates='policestation')
+    taluka=relationship('TalukaModel',backref='taluka')
     policestation_login=relationship('PoliceStationLogineModel',back_populates='policestation',cascade='delete,all')
     post=relationship('PostModel',back_populates='policestation',cascade='all,delete')
     complaint=relationship('ComplaintModel',back_populates='policestation',cascade="all,delete")

@@ -211,8 +211,7 @@ class SubdivisionGet(BaseModel):
     # region:RegionGet
     # distric:DistricGet
     headoffice:HeadOfficeGet
-    class config:
-        orm_mode=True
+   
 class HodSubdivision(BaseModel):
     id:int
     Subdivision:str        
@@ -229,18 +228,20 @@ class TalukaGet(BaseModel):
     Taluka:str
     create_date:datetime=None
     update_date:datetime=None
-    state:StateGet
-    region:RegionGet
-    distric:DistricGet
-    headoffice:HeadOfficeGet
+    # state:StateGet
+    # region:RegionGet
+    # distric:DistricGet
+    # headoffice:HeadOfficeGet
     subdivision:SubdivisionGet
-    class config:
-        orm_mode=True 
+    
 class SubdivisionTaluka(BaseModel):
     id:int
     Taluka:str              
 #_____police_station_________
 class PoliceStationBase(BaseModel):
+    """
+       this schema  use to create/update new policestation
+    """
     PoliceStation:str
     State_id:int
     Region_id:int
@@ -249,18 +250,19 @@ class PoliceStationBase(BaseModel):
     Subdivision_id:int
     Taluka_id:int  
 class PoliceStationGet(BaseModel):
+    """
+          this schema use to get response post/put/delete 
+    """
     id:int
     PoliceStation:str
     create_date:datetime=None
     update_date:datetime=None
-    state:StateGet
-    region:RegionGet
-    distric:DistricGet
-    headoffice:HeadOfficeGet
-    subdivision:SubdivisionGet
+    # state:StateGet
+    # region:RegionGet
+    # distric:DistricGet
+    # headoffice:HeadOfficeGet
+    # subdivision:SubdivisionGet
     taluka:TalukaGet
-    class config:
-        orm_mode=True
 class TalukaPolicestation(BaseModel):
     id:int
     PoliceStation:str 

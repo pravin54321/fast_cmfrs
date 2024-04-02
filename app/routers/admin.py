@@ -260,8 +260,11 @@ async def region_distric(current_user:Annotated[UserBase,Depends(get_current_act
 async def create_subdivision(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                              subdivision:SubdivisionBase,db:Session=Depends(getdb)):
     """
-     create subdivision item
-     - **subdivision**:it is schema/object to create item 
+     create new  subdivision item
+     Parameters:
+     - **subdivision**:it is schema/object to create new  item
+     Response:
+     - created subdivision items 
 
     """
     try:
@@ -319,12 +322,29 @@ async def update_subdivision(current_user:Annotated[UserBase,Depends(get_current
 @router.delete('/del_subdivision/{subdivision_id}',tags=['subdivision_api'])
 async def del_subdivision(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                           subdivision_id:int,db:Session=Depends(getdb)):
-    subdivision_exit=db.query(SubdivisionModel).filter(SubdivisionModel.id==subdivision_id).first()
-    if subdivision_exit:
-        db.delete(subdivision_exit)
+    """ 
+            Delete subdivision item by using subdivision_id,
+            
+            Parameters:
+            - **subdivision_id**:subdivision id to delete
+            
+            
+            Returns:
+            - successfull msg status code 200
+
+    """
+    exist_subdivision=db.query(SubdivisionModel).filter(SubdivisionModel.id==subdivision_id).first()
+    if not exist_subdivision:
+        raise HTTPException(detail=f'subdivision id {subdivision_id} does not exist',status_code=400)
+    try:
+        db.delete(exist_subdivision)
         db.commit()
         return Response(content=f'subdivision id {subdivision_id} has deleted successfully',status_code=200)
-    raise HTTPException(detail=f'subdivision id {subdivision_id} does not exist',status_code=400)
+    except IntegrityError as e:
+        raise HTTPException(detail="can not delte.it use in anather table",status_code=status.HTTP_409_CONFLICT)
+    except Exception as e:
+        raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)
+ 
 @router.get('/distric_headoffice/{distric_id}',response_model=list[DistricHeadoffice],tags=['subdivision_api'])
 async def distric_headoffice(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                              distric_id:int,db:Session=Depends(getdb)):
@@ -335,45 +355,96 @@ async def distric_headoffice(current_user:Annotated[UserBase,Depends(get_current
 @router.post('/create_taluka',response_model=TalukaGet,tags=['Master_Taluka'])
 async def create_taluka(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                         taluka:TalukaBase,db:Session=Depends(getdb)):
-    taluka_exit=db.query(TalukaModel).filter(TalukaModel.Taluka==taluka.Taluka).first()
-    if taluka_exit:
+    """
+        Create taluka item.
+
+        Parameters:
+        - **taluka**: shema/object  for create  new  taluka item
+
+        Return:
+        - new taluka item
+    """
+    exist_talukat=db.query(TalukaModel).filter(TalukaModel.Taluka==taluka.Taluka).first()
+    if exist_talukat:
         raise HTTPException(detail=f'{taluka.Taluka} taluka already exist',status_code=400)
-    taluka_item=TalukaModel(**taluka.model_dump())
-    db.add(taluka_item)
-    db.commit()
-    db.refresh(taluka_item) 
-    return taluka_item
+    try:
+        taluka_item=TalukaModel(**taluka.model_dump())
+        db.add(taluka_item)
+        db.commit()
+        db.refresh(taluka_item) 
+        return taluka_item
+    except IntegrityError as e:
+        raise HTTPException(detail=f"intigrity error:{str(e.orig)}",status_code=status.HTTP_409_CONFLICT)
+    except Exception as e:
+        raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)
 @router.get('/get_taluka',response_model=list[TalukaGet],tags=['Master_Taluka'])
 async def get_taluka(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                      db:Session=Depends(getdb)):
+    """
+         Fetch list of all taluka items
+
+         Returns:
+         - list of all taluka items by desc order status code 200
+
+    """
     all_taluka=db.query(TalukaModel).order_by(TalukaModel.id.desc()).all()
     return all_taluka
 @router.put('/update_taluka/{taluka_id}',response_model=TalukaGet,tags=['Master_Taluka'])
 async def update_taluka(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                         taluka_id:int,taluka:TalukaBase,db:Session=Depends(getdb)):
-    duplicate_taluka=db.query(TalukaModel).filter(TalukaModel.Taluka==taluka.Taluka,TalukaModel.id!=taluka_id).first()
+    """
+              Update taluka item by id
+
+              Parameters:
+              - **taluka_id**:Id  use to update existing taluka items
+
+              Returns:
+              - updated taluka items(status code:200)
+    """
+    exist_taluka=db.query(TalukaModel).filter(TalukaModel.id==taluka_id).first()
+    if not exist_taluka:
+        raise HTTPException(detail=f"id-{taluka_id} item does not exist",\
+                            status_code=status.HTTP_400_BAD_REQUEST)
+    duplicate_taluka=db.query(TalukaModel).filter(TalukaModel.Taluka==taluka.Taluka,\
+                                                  TalukaModel.id!=taluka_id).first()
     if duplicate_taluka:
         raise HTTPException(detail=f'{taluka.Taluka} already exist',status_code=400)
-    taluka_exist=db.query(TalukaModel).filter(TalukaModel.id==taluka_id).first()
-    if taluka_exist:
-        taluka_exist.Taluka=taluka.Taluka
-        taluka_exist.State_id=taluka.State_id
-        taluka_exist.Region_id=taluka.Region_id
-        taluka_exist.Distric_id=taluka.Distric_id
-        taluka_exist.HeadOffice_id=taluka.HeadOffice_id
-        taluka_exist.Subdivision_id=taluka.Subdivision_id
-        db.commit()
-        db.refresh(taluka_exist)
-        return taluka_exist
+    try:
+        for field ,value in taluka.model_dump(exclude_unset=True).items():
+            setattr(exist_taluka,field,value)
+        db.commit() 
+        db.refresh(exist_taluka)
+        return exist_taluka   
+    except IntegrityError as e:
+        raise HTTPException(detail=f"integrity error:{str(e.orig)}",status_code=status.HTTP_409_CONFLICT)
+    except Exception as e:
+        raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)
 @router.delete('/del_taluka/{taluka_id}',tags=['Master_Taluka'])
 async def del_taluka(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                      taluka_id:int,db:Session=Depends(getdb)):
-    taluka_exist=db.query(TalukaModel).filter(TalukaModel.id==taluka_id).first()
-    if taluka_exist:
-        db.delete(taluka_exist)
+    """
+         Delete taluka item by id
+
+         parameters:
+         - **taluka_id**:use id to delete taluka item
+
+         Return:
+         - success response (status code-200)
+
+    """
+    exist_taluka=db.query(TalukaModel).filter(TalukaModel.id==taluka_id).first()
+    if not exist_taluka:
+          raise HTTPException(detail=f'taluka id {taluka_id} does not exist',status_code=status.HTTP_400_BAD_REQUEST) 
+
+    try:
+        db.delete(exist_taluka)
         db.commit()
         return Response(content=f'taluka id {taluka_id} has been deleted successfully',status_code=200)
-    raise HTTPException(detail=f'tauka id {taluka_id} does not exist') 
+    except IntegrityError as e:
+        raise HTTPException(detail=f"Intigrity error: can not delete.it is use in anather table",status_code=status.HTTP_409_CONFLICT)
+    except Exception as e:
+        raise HTTPException(detail=str(e.args),status_code=status.HTTP_400_BAD_REQUEST)
+    
 @router.get('/headoffice_subdivision/{headoffice_id}',response_model=list[HodSubdivision],tags=['Master_Taluka'])
 async def hod_subdivision(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                           headoffice_id:int,db:Session=Depends(getdb)):
@@ -384,14 +455,29 @@ async def hod_subdivision(current_user:Annotated[UserBase,Depends(get_current_ac
 @router.post('/create_policestation',response_model=PoliceStationGet,tags=['Master_Policestation'])
 async def create_policestation(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                                policestation:PoliceStationBase,db:Session=Depends(getdb)):
-    policestation_exist=db.query(PoliceStationModel).filter(PoliceStationModel.PoliceStation==policestation.PoliceStation).first()
-    if policestation_exist:
+    """
+          Create new  police_station item.
+
+          Parameters:
+          - **policestation**:  schema/object to create new  policestation
+
+          Returns:
+          - created new policestation item (status_code:200)  
+    """
+    duplicate_policestation=db.query(PoliceStationModel).filter(PoliceStationModel.PoliceStation==\
+                                                            policestation.PoliceStation).first()
+    if duplicate_policestation:
         raise HTTPException(detail=f'{policestation.PoliceStation} police station already exists',status_code=400)
-    policestation_item=PoliceStationModel(**policestation.model_dump())
-    db.add(policestation_item)
-    db.commit()
-    db.refresh(policestation_item)
-    return policestation_item
+    try:
+        policestation_item=PoliceStationModel(**policestation.model_dump())
+        db.add(policestation_item)
+        db.commit()
+        db.refresh(policestation_item)
+        return policestation_item
+    except IntegrityError as e:
+        raise HTTPException(detail=f"intigrity error-{str(e.orig)}",status_code=status.HTTP_409_CONFLICT)
+    except Exception as e:
+        raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)
 @router.get('/get_policestation',response_model=list[PoliceStationGet],tags=['Master_Policestation'])
 async def get_policestation(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                             db:Session=Depends(getdb)):
@@ -2050,12 +2136,24 @@ async def upd_ycard_img(current_user:Annotated[UserBase,Depends(get_current_acti
     except Exception as e:
         raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)        
     raise HTTPException(detail=f"id-{ycard_id} does not exist",status_code=status.HTTP_400_BAD_REQUEST)
+#------------accused_partner in yellow card-----------------------------
+@router.post('/get_accused_partner',response_model=list[accused_partner_get],tags=["Yellow_Card_Api"])
+async def get_accused_partner(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                              db:Session=Depends(getdb)):
+    """
+            Fetch list of all accused_partner data.
+
+            Returns:
+            - list of all items in desc order.
+    """
+    list_accused_partner=db.query(accused_partner_model).order_by(accused_partner_model.id.desc()).all()
+    return list_accused_partner
 @router.post('/create_accused_partner',response_model=accused_partner_get,tags=['Yellow_Card_Api'])
 async def create_accused_partner(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                                  accused_partner:accused_partner_schema,db:Session=Depends(getdb)):
     """
     create accused partner item this belong to yellow card
-    - **accused_partner**:it is shema use for creating item
+    - **accused_partner**:it is schema use for creating item
     - **yellow_card_id**:it is yellow card model id
     """
     yellow_card_exist=db.query(YellowCardModel).filter(YellowCardModel.id\
@@ -2067,10 +2165,64 @@ async def create_accused_partner(current_user:Annotated[UserBase,Depends(get_cur
             db.commit()
             db.refresh(db_instance)
             return db_instance
-    
+    except IntegrityError as e:
+        raise HTTPException(detail=f"intigrity error:{str(e)}",status_code=status.HTTP_409_CONFLICT)
     except Exception as e:
         raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)    
     raise HTTPException(detail=f"id-{accused_partner.yellow_card_id} item does not exist",status_code=status.HTTP_400_BAD_REQUEST)
+@router.put('/update_accused_partner/{item_id}',response_model=accused_partner_get,tags=["Yellow_Card_Api"])
+async def update_accused_partner(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                                 item_id:int,accused_partner:accused_partner_schema,
+                                 db:Session=Depends(getdb)):
+    """
+            Update accused_partner item by ID.
+
+            Parameters:
+          
+            - **item_id**: ID of the accused_partner to update.
+            - **accused_partner**: New data for the accused_partner.
+
+            Returns:
+            - Updated accused_partner item.
+    """
+    accused_partner_exist=db.query(accused_partner_model).filter(accused_partner_model.id==item_id).first()
+    if not accused_partner_exist:
+        raise HTTPException(detail=f"id-{item_id} item does not exist",status_code=status.HTTP_400_BAD_REQUEST)
+    duplicate_exist=db.query(accused_partner_model).filter(accused_partner_model.name==accused_partner.name,
+                                                           accused_partner_model.yellow_card_id==accused_partner.yellow_card_id,
+                                                           accused_partner_model.id != item_id).first()
+    if duplicate_exist:
+        raise HTTPException(detail=f"{accused_partner.name} name already exist",status_code=status.HTTP_400_BAD_REQUEST)
+    try:
+        for field,value in accused_partner.model_dump(exclude_unset=True).items():
+            setattr(accused_partner_exist,field,value)
+        db.commit()
+        return accused_partner_exist
+    except IntegrityError as e:
+        raise HTTPException(detail=f"untegrity error:{str(e.orig)}",status_code=status.HTTP_409_CONFLICT)
+    except Exception as e:
+        raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)    
+@router.put("dlt_accused_partner/{item_id}",tags=["Yellow_Card_Api"]) 
+async def dlt_accused_partner(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                              item_id:int,db:Session=Depends(getdb)):
+    """
+    Delete yellow card accused partner by id.
+
+    Parameters:
+    - **item_id**:Id of the accused_partner to delete
+    """
+    accused_partner_exist=db.query(accused_partner_model).filter(accused_partner_model.id==item_id).first()
+    if  not accused_partner_model:
+        raise HTTPException(detail=f'id-{item_id} item does not exist',status_code=status.HTTP_400_BAD_REQUEST)
+    try:
+        db.delete(accused_partner_exist)
+        db.commit()
+        return Response(content="item has been deleted successfully",status_code=status.HTTP_200_OK)
+    except IntegrityError as e:
+        raise HTTPException(detail=f"you can not delete.it is use in anather table",status_code=status.HTTP_409_CONFLICT) 
+    except Exception as e:
+        raise HTTPException(detail=f"{str(e)}",status_code=status.HTTP_400_BAD_REQUEST)   
+    
 
 @router.post('/test_form')
 def submit(user_review:Rate=Body(), image:list[Any] = None):
