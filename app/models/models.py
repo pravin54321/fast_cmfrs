@@ -214,7 +214,7 @@ class PoliceStationModel(Base):
     # subdivision=relationship('SubdivisionModel',back_populates='policestation')
     taluka=relationship('TalukaModel',backref='taluka')
     policestation_login=relationship('PoliceStationLogineModel',back_populates='policestation',cascade='delete,all')
-    post=relationship('PostModel',back_populates='policestation',cascade='all,delete')
+    # post=relationship('PostModel',back_populates='policestation')
     complaint=relationship('ComplaintModel',back_populates='policestation',cascade="all,delete")
     ncr=relationship('NCRModel',back_populates='police_station',cascade='delete,all')
     # fir=relationship('FIRModel',back_populates='police_station',foreign_keys='FIRModel.P_Station')
@@ -240,7 +240,7 @@ class PostModel(Base):
     headoffice=relationship('HeadOfficeModel',back_populates='post')
     subdivision=relationship('SubdivisionModel',back_populates='post')
     taluka=relationship('TalukaModel',back_populates='post')
-    policestation=relationship('PoliceStationModel',back_populates='post')
+    policestation_info=relationship('PoliceStationModel',backref='policestation_info')
    
 
 class ReligionModel(Base):
@@ -799,11 +799,19 @@ class criminal_history_model(Base):#this table refer to yellow card accused
     police_station_id=Column(Integer,ForeignKey('policestation.id'))
     crime_number=Column(String(256))
     punishment=Column(Text)
-    act_id=Column(Integer,ForeignKey('kalam.id'))
-    section=Column(Text)
     remark=Column(Text)
+    criminal_act=relationship("criminal_history_act_model",backref='criminal_act')
     create_date=Column(DateTime,default=get_current_time)
     update_date=Column(DateTime,default=get_current_time,onupdate=func.now())
+class criminal_history_act_model(Base):
+    __tablename__="criminal_history_act"
+    """act and section from  criminal history model"""
+    id=Column(Integer,primary_key=True,index=True,autoincrement=True)
+    criminal_history_id=Column(Integer,ForeignKey("ycard_crime_info.id"))
+    act=Column(Integer,ForeignKey("kalam.id")) 
+    section=Column(Text)
+    create_date=Column(DateTime,default=get_current_time)
+    update_date=Column(DateTime,default=get_current_time,onupdate=func.now())   
    
 
 

@@ -452,7 +452,7 @@ async def hod_subdivision(current_user:Annotated[UserBase,Depends(get_current_ac
     return list_subdivision   
 
 #--------police_station-----------
-@router.post('/create_policestation',response_model=PoliceStationGet,tags=['Master_Policestation'])
+@router.post('/create_policestation',response_model=PoliceStationGet,tags=['police_station_api'])
 async def create_policestation(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                                policestation:PoliceStationBase,db:Session=Depends(getdb)):
     """
@@ -467,7 +467,7 @@ async def create_policestation(current_user:Annotated[UserBase,Depends(get_curre
     duplicate_policestation=db.query(PoliceStationModel).filter(PoliceStationModel.PoliceStation==\
                                                             policestation.PoliceStation).first()
     if duplicate_policestation:
-        raise HTTPException(detail=f'{policestation.PoliceStation} police station already exists',status_code=400)
+        raise HTTPException(detail=f'{policestation.PoliceStation}  already exists',status_code=400)
     try:
         policestation_item=PoliceStationModel(**policestation.model_dump())
         db.add(policestation_item)
@@ -478,39 +478,68 @@ async def create_policestation(current_user:Annotated[UserBase,Depends(get_curre
         raise HTTPException(detail=f"intigrity error-{str(e.orig)}",status_code=status.HTTP_409_CONFLICT)
     except Exception as e:
         raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)
-@router.get('/get_policestation',response_model=list[PoliceStationGet],tags=['Master_Policestation'])
+@router.get('/get_policestation',response_model=list[PoliceStationGet],tags=['police_station_api'])
 async def get_policestation(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                             db:Session=Depends(getdb)):
     all_policestation=db.query(PoliceStationModel).order_by(PoliceStationModel.id.desc()).all()
     return all_policestation
-@router.put('/update_policestation/{policestation_id}',response_model=PoliceStationGet,tags=['Master_Policestation'])
+@router.put('/update_policestation/{policestation_id}',response_model=PoliceStationGet,tags=['police_station_api'])
 async def update_policestation(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                                policestation_id:int,policestation:PoliceStationBase,db:Session=Depends(getdb)):
-    policestation_duplicate=db.query(PoliceStationModel).filter(PoliceStationModel.PoliceStation==policestation.PoliceStation,PoliceStationModel.id!=policestation_id).first()
-    if policestation_duplicate:
-        raise HTTPException(detail=f'{policestation.PoliceStation} policestation already exist',status_code=400)
-    policestation_exit=db.query(PoliceStationModel).filter(PoliceStationModel.id==policestation_id).first()
-    if policestation_exit:
-        policestation_exit.PoliceStation=policestation.PoliceStation
-        policestation_exit.State_id=policestation.State_id
-        policestation_exit.Region_id=policestation.Region_id
-        policestation_exit.Distric_id=policestation.Distric_id
-        policestation_exit.HeadOffice_id=policestation.HeadOffice_id
-        policestation_exit.Subdivision_id=policestation.Subdivision_id
-        policestation_exit.Taluka_id=policestation.Taluka_id
+    """
+          update policestation by using Id
+
+          Parameters:
+          - **policestation_id**:Id use to update police_station model.
+          - **policestation**:it is schema  to  update existing policestation
+
+          Return:
+          - updated policestation in json formate (status_code:200)
+
+    """
+    try:
+        exist_police_station=db.query(PoliceStationModel).filter(PoliceStationModel.id==policestation_id).first()
+        if exist_police_station is None:
+            return JSONResponse(content=f"id-{policestation_id} item does not exist",status_code=status.HTTP_400_BAD_REQUEST)
+        duplicate_policestation=db.query(PoliceStationModel).filter(PoliceStationModel.PoliceStation==policestation.PoliceStation,
+                                                                    PoliceStationModel.id!=policestation_id).first()
+        if duplicate_policestation:
+            return JSONResponse(content=f'{policestation.PoliceStation}  already exist',status_code=400)
+        for field,value in policestation.model_dump(exclude_unset=True).items():
+            setattr(exist_police_station,field,value)
         db.commit()
-        db.refresh(policestation_exit)
-        return policestation_exit
-@router.delete('/del_policestation/{policestation_id}',tags=['Master_Policestation'])
+        db.refresh(exist_police_station) 
+        return exist_police_station
+    except IntegrityError as e:
+        raise HTTPException(detail=f"Integrity error:{str(e.orig)}",status_code=status.HTTP_409_CONFLICT) 
+    except Exception as e:
+        raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)  
+@router.delete('/del_policestation/{policestation_id}',tags=['police_station_api'])
 async def del_policestation(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                             policestation_id:int,db:Session=Depends(getdb)):
-    policestation_exist=db.query(PoliceStationModel).filter(PoliceStationModel.id==policestation_id).first()  
-    if policestation_exist: 
-        db.delete(policestation_exist)
+    """"
+            delete  item in police_station model by using Id.
+
+            Parameters:
+            - **policestation_id**:it is use to delete item in police_station_model
+
+            Return:
+            - successfull msg in json formate(status_code=200)
+
+    """
+    try:
+        exist_police_station=db.query(PoliceStationModel).filter(PoliceStationModel.id==policestation_id).first() 
+        if exist_police_station is None:
+            return JSONResponse(content=f'police id {policestation_id} ddoes not exist', status_code=400) 
+        db.delete(exist_police_station)
         db.commit()
         return Response(content=f' police station id {policestation_id}  has been deleted successfully',status_code=200) 
-    raise HTTPException(detail=f'police id {policestation_id} ddoes not exist', status_code=400)
-@router.get('/subdivision_taluka/{subdivision_id}',response_model=list[SubdivisionTaluka],tags=['Master_Policestation'])
+    except IntegrityError as e:
+        raise HTTPException(detail=f"Intigrit_error:can not delete.it is use in anather table",status_code=status.HTTP_409_CONFLICT)
+    except Exception as e:
+        raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)
+   
+@router.get('/subdivision_taluka/{subdivision_id}',response_model=list[SubdivisionTaluka],tags=['police_station_api'])
 async def subdivision_taluka(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                              subdivision_id:int,db:Session=Depends(getdb)):
     list_taluka=db.query(TalukaModel).filter(TalukaModel.Subdivision_id==subdivision_id).all()
@@ -2223,7 +2252,149 @@ async def dlt_accused_partner(current_user:Annotated[UserBase,Depends(get_curren
     except Exception as e:
         raise HTTPException(detail=f"{str(e)}",status_code=status.HTTP_400_BAD_REQUEST)   
     
+#--------------friend relative from yellow_card----------------
+@router.get('/get_relatives_friend',response_model=list[friend_relative_get],tags=["Yellow_Card_Api"])
+async def dlt_relatives_friend(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                               db:Session=Depends(getdb)):
+    """
+             list of all items from relative_friend  model
 
+             Response:
+             - list of all items from friend relative model(status_code:200)
+    """
+    item_list=db.query(friend_relative_model).order_by(friend_relative_model.id.desc()).all()
+    return item_list
+@router.post('/create_friends_relative',response_model=friend_relative_get,tags=['Yellow_Card_Api'])
+async def create_friends_relative(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                                  item_schema:friend_relative_schema,db:Session=Depends(getdb)):
+    """
+         create accused friends and relatives items ------> yellow card
+
+         Parameters:
+         - **item_schema**:schema is used to create new item
+
+         Retuens:
+         - created new item 
+    """
+    
+    duplicate_entry=db.query(friend_relative_model).filter(friend_relative_model.name==item_schema.name,
+                                                           friend_relative_model.yellow_card_id==item_schema.yellow_card_id).\
+                                                           first()
+    if duplicate_entry:
+        raise HTTPException(detail=f"{item_schema.name} already exist ",status_code=status.HTTP_400_BAD_REQUEST)
+    try:
+        friends_relatives_db=friend_relative_model(**item_schema.model_dump())
+        db.add(friends_relatives_db)
+        db.commit()
+        db.refresh(friends_relatives_db)
+        return friends_relatives_db
+    except IntegrityError as e:
+        raise HTTPException(detail=f"Intigrity_error:{str(e.orig)}",status_code=status.HTTP_409_CONFLICT)
+    except Exception as e:
+        return HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)
+@router.put('/update_friend_relative/{item_id}',response_model=friend_relative_get,tags=['Yellow_Card_Api'])
+async def update_friends_relative(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                                  item_id:int,
+                                  item_schema:friend_relative_schema,db:Session=Depends(getdb)):
+    """
+            update accused friend and relatives accused from yellow card by using id
+
+            Parameters:
+            - **item_schema**: shema to update items
+            - **item_id**: ID used to update item()
+
+            Returns:
+            - updated item 
+    """ 
+    exist_friend_relative=db.query(friend_relative_model).filter(friend_relative_model.id==item_id).first()
+    if  not exist_friend_relative:
+        raise HTTPException(detail=f"id-{item_id} item does not exist",status_code=status.HTTP_400_BAD_REQUEST)   
+    try:
+        duplicate_entry=db.query(friend_relative_model).filter(friend_relative_model.name==item_schema.name,
+                                                                friend_relative_model.yellow_card_id==item_schema.yellow_card_id,
+                                                                friend_relative_model.id != item_id).first()
+        if duplicate_entry:
+            return JSONResponse(content=f"{item_schema.name} already exist",status_code=status.HTTP_400_BAD_REQUEST)
+    
+        for field ,value in item_schema.model_dump(exclude_unset=True).items():
+            setattr(exist_friend_relative,field,value)
+        db.commit()
+        db.refresh(exist_friend_relative)
+        return exist_friend_relative
+    except IntegrityError as e:
+        raise HTTPException(detail=f"Integrity_error:{str(e.orig)}",status_code=status.HTTP_409_CONFLICT)
+    except Exception as e:
+        raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)   
+@router.delete('/dlt_friend_relative/{item_id}',tags=['Yellow_Card_Api'])
+async def  dlt_friend_relative(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                               item_id:int,db:Session=Depends(getdb)):
+    """
+          delete accused friend relative item accused from yellow card by using id
+
+          Parameter:
+          - **item_id**: Id used to delete item
+          
+          Returns:
+          -successfull response(status_code:200)
+    """
+    try:
+            exist_relative_friends=db.query(friend_relative_model).filter(friend_relative_model.id==item_id).first()
+            if not exist_relative_friends:
+                return Response(content=f"id-{item_id} item does not exist",status_code=status.HTTP_400_BAD_REQUEST)
+            db.delete(exist_relative_friends)
+            db.commit()
+            return JSONResponse(content=f"item has been deleted successfully",status_code=status.HTTP_200_OK)
+    except IntegrityError as e:
+        raise HTTPException(detail=f"Intigrity_error:{str(e.orig)}",status_code=status.HTTP_409_CONFLICT)
+    except Exception as e:
+        raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)
+#--------------------------criminal history from yellow_card-----------------
+@router.post("/create_criminal_history",response_model=criminal_history_get,tags=["yellow_Card_Api"])
+async def create_criminal_history(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                                  item_schema:criminal_history_schema,db:Session=Depends(getdb)):
+    """
+        create criminal history this belong to accused yellow card
+
+        Parameter:
+        -**item_schema**:schema use to crate new criminal history
+
+        Returns:
+        - created criminal history in json formate(status_code:200)
+
+    """ 
+    try:
+        criminal_history_data={
+            "yellow_card_id":item_schema.yellow_card_id,
+            "state_id":item_schema.state_id,
+            "district_id":item_schema.district_id,
+            "police_station_id":item_schema.police_station_id,
+            "crime_number":item_schema.crime_number,
+            "punishment":item_schema.punishment,
+            "remark":item_schema.remark
+        }
+        criminal_history_instance=criminal_history_model(**criminal_history_data)
+        db.add(criminal_history_instance)
+        db.commit()
+        if criminal_history_instance.id and item_schema.act is not None:
+            act_data=[{
+                "criminal_history_id":criminal_history_instance.id,
+                "act":act_item.act,
+                "section":json.dumps(act_item.section)
+
+            } for act_item in item_schema.act]
+            act_instance=[criminal_history_act_model(**data) for data in act_data]
+            db.add_all(act_instance)
+            db.commit()
+        return criminal_history_instance   
+    except IntegrityError as e:
+        raise HTTPException(detail=f"Integrity_error:{str(e.orig)}",status_code=status.HTTP_409_CONFLICT)
+    except Exception as e:
+        raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)    
+    
+
+    
+
+    
 @router.post('/test_form')
 def submit(user_review:Rate=Body(), image:list[Any] = None):
         for i in user_review.id1:

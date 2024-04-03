@@ -1144,13 +1144,42 @@ class accused_partner_get(accused_partner_schema):
     update_date:datetime
 
 class friend_relative_schema(BaseModel):#accused relative_or_friend 
-    """from yellow card"""
+    """
+    friens and relative model shema it belong to yellow card model
+    """
     yellow_card_id:int
     name:str
     age:int
     address:str
     relation:str
     remark:str  
+class friend_relative_get(friend_relative_schema):
+    """
+    it is use to create responce to friend_relative_scheama
+    """ 
+    id:int
+    create_date:datetime
+    update_date:datetime
+class criminal_history_act_schema(BaseModel):
+    """act_section  is use to create act and section for the criminal_history_schema"""
+    act:Optional[int]=None
+    section:Optional[list[str]]=None    
+class criminal_history_act_get(BaseModel):
+    """it is criminal_history_act response schema"""
+    act:int
+    section:list[str] 
+    create_date:datetime
+    update_date:datetime 
+    @validator('section',pre=True)
+    def parse_section(cls,v):
+        if isinstance(v,str):
+            try:
+                return json.loads(v)
+            except json.JSONDecodeError:
+                #raise ValidationError('invalid JSON string for section field')
+                return[v]
+        return v             
+       
 class criminal_history_schema(BaseModel):# accused crime history
     """from yellow_card"""
     yellow_card_id:int
@@ -1159,9 +1188,24 @@ class criminal_history_schema(BaseModel):# accused crime history
     police_station_id:int
     crime_number:str
     punishment:str
-    act_id:int
-    section:list[str]
     remark:str
+    act:Optional[list[criminal_history_act_schema]]=None
+class criminal_history_get(BaseModel):
+    """
+    response schema for criminal_history_schema
+    """ 
+    id:int
+    yellow_card_id:int
+    state_id:int
+    district_id:int
+    police_station_id:int
+    crime_number:str
+    punishment:str
+    remark:str
+    create_date:datetime
+    update_date:datetime 
+    criminal_act:list[criminal_history_act_get]
+    
 class Yellow_CardBase(BaseModel):
     """yellow card schema"""
     Accused_Name:str
