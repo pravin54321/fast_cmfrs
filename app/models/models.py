@@ -757,9 +757,12 @@ class YellowCardModel(Base):
     user_id=Column(Integer)
     create_date=Column(DateTime,default=get_current_time)
     update_date=Column(DateTime,default=get_current_time,onupdate=func.now())
-    police_station=relationship(PoliceStationModel,foreign_keys=[PS_id],backref='police_station')
+    ycard_police_station=relationship(PoliceStationModel,backref='ycard_police_station')
     occupation=relationship(OccupationModel,backref='occupation')
     ycard_subcast=relationship(SubcastModel,backref='ycard_subcast')
+    friend_relative=relationship("friend_relative_model",backref="friend_relative",cascade="all,delete")
+    partner=relationship("accused_partner_model",backref='partner',cascade='all,delete')
+    criminal_history=relationship("criminal_history_model",backref='criminal_history',cascade="all,delete")
 class friend_relative_model(Base):
     """
     friend and relative information  of accused from yellow card
@@ -800,7 +803,7 @@ class criminal_history_model(Base):#this table refer to yellow card accused
     crime_number=Column(String(256))
     punishment=Column(Text)
     remark=Column(Text)
-    criminal_act=relationship("criminal_history_act_model",backref='criminal_act')
+    criminal_act=relationship("criminal_history_act_model",backref='criminal_act',cascade="all,delete")
     create_date=Column(DateTime,default=get_current_time)
     update_date=Column(DateTime,default=get_current_time,onupdate=func.now())
 class criminal_history_act_model(Base):

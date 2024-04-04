@@ -57,11 +57,15 @@ class DesignationGet(BaseModel):
     Designation:str
     create_date:datetime=None
     update_date:datetime=None 
+    class config:
+        orm_mode=True
 class District_only(BaseModel):
     id:int
     Distric:str
     create_date:datetime
-    update_date:datetime           
+    update_date:datetime 
+    class config:
+        orm_mode=True          
         
 class TokenData(BaseModel):
     username : Union[str,None] = None
@@ -233,6 +237,8 @@ class TalukaGet(BaseModel):
     # distric:DistricGet
     # headoffice:HeadOfficeGet
     subdivision:SubdivisionGet
+    class config:
+        orm_mode=True   
     
 class SubdivisionTaluka(BaseModel):
     id:int
@@ -249,6 +255,8 @@ class PoliceStationBase(BaseModel):
     HeadOffice_id:int
     Subdivision_id:int
     Taluka_id:int  
+    class config:
+        orm_mode=True   
 class PoliceStationGet(BaseModel):
     """
           this schema use to get response post/put/delete 
@@ -263,6 +271,8 @@ class PoliceStationGet(BaseModel):
     # headoffice:HeadOfficeGet
     # subdivision:SubdivisionGet
     taluka:TalukaGet
+    class config:
+        orm_mode=True   
 class TalukaPolicestation(BaseModel):
     id:int
     PoliceStation:str 
@@ -271,8 +281,11 @@ class outside_policestation(BaseModel):
     PoliceStation:str
     create_date:datetime=None
     update_date:datetime=None
-    state:StateGet
-    distric:District_only
+    taluka:TalukaGet
+    # state:StateGet
+    # distric:District_only
+    class config:
+        orm_mode=True   
     
            
 #_______post_________
@@ -1245,7 +1258,7 @@ class Yellow_CardBaseGet(BaseModel):
     """ yellow card response schema"""
     Accused_Name:str 
     Accused_Age:int
-    police_station:outside_policestation
+    ycard_police_station:Optional[outside_policestation]=None
     Accused_Bplace:str
     Accused_Height:str
     Accused_Bcomplexion:str
@@ -1269,6 +1282,11 @@ class Yellow_CardBaseGet(BaseModel):
     Wife_or_Husband:str
     create_date:datetime
     update_date:datetime
+    friend_relative:Optional[friend_relative_get]=None
+    partner:Optional[accused_partner_get]=None
+    criminal_history:Optional[criminal_history_get]=None
+    class Config:
+        orm_mode:True
     
 #-------------------information_mode_model---------------
 

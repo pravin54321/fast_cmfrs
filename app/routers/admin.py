@@ -2349,7 +2349,19 @@ async def  dlt_friend_relative(current_user:Annotated[UserBase,Depends(get_curre
     except Exception as e:
         raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)
 #--------------------------criminal history from yellow_card-----------------
-@router.post("/create_criminal_history",response_model=criminal_history_get,tags=["yellow_Card_Api"])
+@router.get('/get_criminal_history',response_model=list[criminal_history_get],tags=["Yellow_Card_Api"])
+async def get_criminal_history(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                               db:Session=Depends(getdb)):
+    """
+            get list of get_criminal_history
+
+            Response:
+            - list of all items from get_criminal_history
+
+    """
+    list_criminal_history=db.query(criminal_history_model).order_by(criminal_history_model.id.desc()).all()
+    return list_criminal_history
+@router.post("/create_criminal_history",response_model=criminal_history_get,tags=["Yellow_Card_Api"])
 async def create_criminal_history(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                                   item_schema:criminal_history_schema,db:Session=Depends(getdb)):
     """
@@ -2389,7 +2401,85 @@ async def create_criminal_history(current_user:Annotated[UserBase,Depends(get_cu
     except IntegrityError as e:
         raise HTTPException(detail=f"Integrity_error:{str(e.orig)}",status_code=status.HTTP_409_CONFLICT)
     except Exception as e:
+        raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST) 
+
+     
+@router.put("/update_criminal_history/{item_id}",response_model=criminal_history_get,tags=['Yellow_Card_Api']) 
+async def update_criminal_history(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                                  item_id:int,item_schema:criminal_history_schema,db:Session=Depends(getdb)):
+    """
+           Update  accused criminal history model(accused from yellow card)
+
+           Parameters:
+           - **item_id**:it's use to update model
+           - **item_schema**: it,s  schema/data to update item/model
+
+           Returns:
+           - Updated item in json formate(status_code:200)
+
+    """
+    try:
+        exist_criminal_history=db.query(criminal_history_model).filter(criminal_history_model.id==item_id).first()
+        if exist_criminal_history is None:
+            return JSONResponse(content=f"id-{item_id} does not exist",status_code=status.HTTP_400_BAD_REQUEST)
+        criminal_history_data={
+                "yellow_card_id":item_schema.yellow_card_id,
+                "state_id":item_schema.state_id,
+                "district_id":item_schema.district_id,
+                "police_station_id":item_schema.police_station_id,
+                "crime_number":item_schema.crime_number,
+                "punishment":item_schema.punishment,
+                "remark":item_schema.punishment
+        }
+        for field,value in criminal_history_data.items():
+            setattr(exist_criminal_history,field,value)
+        db.commit()
+        exist_criminal_history_act=db.query(criminal_history_act_model).filter\
+        (criminal_history_act_model.criminal_history_id==item_id).all()
+        if exist_criminal_history_act:
+            list(map(db.delete, exist_criminal_history_act))
+            db.commit()
+        if item_schema.act is not None:
+            item_data=[{
+                    "criminal_history_id":item_id,
+                    "act":act_data.act,
+                    "section":json.dumps(act_data.section)
+                    }for act_data in item_schema.act]  
+            db_instance = list(map(lambda data: criminal_history_act_model(**data), item_data))# use lambada and map function
+            # db_instance=[criminal_history_act_model(**data) for data in item_data]
+            db.add_all(db_instance)
+            db.commit()
+        return exist_criminal_history
+    except IntegrityError as e:
+        raise HTTPException(detail=f"Integrity_error:{str(e)}",status_code=status.HTTP_409_CONFLICT)
+    except Exception as e:
         raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)    
+@router.delete('/dlt_criminal_history/{item_id}',tags=['Yellow_Card_Api'])
+async def dlt_criminal_history(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                               item_id:int,db:Session=Depends(getdb)):
+    """
+           Delete  accused criminal history model/item by Id
+
+           Paremeters:
+           - **item_id**: Id use to delete criminal history item
+
+           Return:
+           - successfull msg in json format(status_code:200)
+    """
+    try:
+        exist_criminal_history=db.query(criminal_history_model).filter(criminal_history_model.id==item_id).first()
+        if exist_criminal_history is  None:
+            return JSONResponse(content=f"id-{item_id} item does not exist",status_code=status.HTTP_400_BAD_REQUEST)
+        db.delete(exist_criminal_history)
+        db.commit()
+        return JSONResponse(content=f"item has been deleted successfully",status_code=status.HTTP_200_OK)
+    except IntegrityError as e:
+        raise HTTPException(detail=f"Integrity_error-{str(e.orig)}",status_code=status.HTTP_409_CONFLICT)
+    except Exception as e:
+        raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)
+
+
+
     
 
     
