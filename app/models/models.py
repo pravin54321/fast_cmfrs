@@ -641,7 +641,6 @@ class EnquiryFormModel(Base):
     Body_Type=Column(String(200))
     Eyes_Colur=Column(String(100))
     Hair_Colur=Column(String(100))
-    Langues_id=Column(Integer,ForeignKey('langues.id'))
     Identification_Mark=Column(Text)
     Subcast_id=Column(Integer,ForeignKey('subcast.id'))
     Occupation_id=Column(Integer,ForeignKey('Occupation.id'))
@@ -717,10 +716,22 @@ class EnquiryFormModel(Base):
     update_date=Column(DateTime,default=get_current_time,onupdate=func.now()) 
     police_station=relationship("PoliceStationModel",backref='policestation')
     subcast=relationship("SubcastModel",backref='subcast')
-    accuse_langues=relationship(LanguesModel,foreign_keys=[Langues_id],backref='accuse_langues')
+    accuse_langues=relationship("accused_langues_model",backref='accuse_langues',cascade="all,delete")
     crime_langues=relationship(LanguesModel,foreign_keys=[Which_langues_use_Crime],backref='crime_langues')
     accused_occupation=relationship(OccupationModel,foreign_keys=[Occupation_id],backref='accused_occupation')
     father_occupation=relationship(OccupationModel,foreign_keys=[Father_Occupation_id],backref='father_occupation')
+#------------------accused known langues--------------------
+class accused_langues_model(Base):
+    """this langues model refer enquiry table.
+    how many langues known by accused""" 
+    __tablename__="langues_from_enq"
+    id=Column(Integer,primary_key=True,autoincrement=True,index=True)
+    enq_form_id=Column(Integer,ForeignKey("enquiry_form.id"),nullable=False)
+    langues_id=Column(Integer,ForeignKey("langues.id"))
+    accused_langues=relationship(LanguesModel,backref='accused_langues')
+    create_date=Column(DateTime,default=get_current_time)
+    update_date=Column(DateTime,default=get_current_time,onupdate=func.now())
+
 #--------------------Accused_name----------------------------------------------
 class YellowCardModel(Base):
     """
@@ -804,6 +815,7 @@ class criminal_history_model(Base):#this table refer to yellow card accused
     punishment=Column(Text)
     remark=Column(Text)
     criminal_act=relationship("criminal_history_act_model",backref='criminal_act',cascade="all,delete")
+    criminal_history_police_station=relationship(PoliceStationModel,backref="criminal_history_police_station")
     create_date=Column(DateTime,default=get_current_time)
     update_date=Column(DateTime,default=get_current_time,onupdate=func.now())
 class criminal_history_act_model(Base):

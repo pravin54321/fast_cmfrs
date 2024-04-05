@@ -1956,21 +1956,32 @@ async def enqform(current_user:Annotated[UserBase,Depends(get_current_active_use
     return list_enqform
 @router.post('/crete_enquiry_form',response_model=Enquiry_Form_Get_01,tags=['Enquiry_Api'])
 async def create_enquiry_form(current_user:Annotated[UserBase,Depends(get_current_active_user)],
-                              enquiry_schema:Enquiry_Form_Base_01,db:Session=Depends(getdb)):
-    """create enquiry form
-       current_user:login authunticate user
-       enquiry_schema:enquiry_information(json data)
-       db:database session
+                              enquiry_schema:Enquiry_Form_Base_01,langues_schema:list[langues_from_enq_form_schema],
+                              db:Session=Depends(getdb)):
+    """
+         cretate enquiry form
+         enquiry form create in three part.it's first part
+
+         Parameter:
+         - **enquiry_shema**: it's data/schema to create item
     """
     try:
         setattr(enquiry_schema,'user_id',current_user.id)
         enquiry_form_db=EnquiryFormModel(**enquiry_schema.model_dump())
         db.add(enquiry_form_db)
         db.commit()
-        db.refresh(enquiry_form_db)
+        # db.refresh(enquiry_form_db)
+        if langues_schema is not None:
+            item_data=[{
+                "langues_id":item.langues_id,
+                "enq_form_id":enquiry_form_db.id
+            } for item in langues_schema]
+            db_instance = map(lambda data: accused_langues_model(**data), item_data)
+            db.add_all(db_instance)
+            db.commit()
         return enquiry_form_db
     except IntegrityError as e:
-         raise HTTPException(detail=f"integrity error:please check foreign key",status_code=status.HTTP_409_CONFLICT)
+         raise HTTPException(detail=f"{str(e.orig)}",status_code=status.HTTP_409_CONFLICT)
     except Exception as e:
         raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)
 @router.patch('/create_enquiry_form_02/{enqury_form_id}',response_model=Enquiry_Form_Get_02,tags=['Enquiry_Api'])
@@ -2063,6 +2074,96 @@ async def update_img(current_user:Annotated[UserBase,Depends(get_current_active_
     except Exception as e:
         raise HTTPException(detail=str(e))    
     raise HTTPException(detail=f"id-{enqform_id} does not exist",status_code=status.HTTP_400_BAD_REQUEST)
+#------------------additional table for enquiry form--------------------------
+#----------accused langues table----------
+@router.post('/accused_known_langues/{enq_form_id}',response_model=langues_from_enq_form_get,tags=['enq_form_api'])
+async def accused_known_langues(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                                enq_form_id:int,langues_schema:langues_from_enq_form_schema,
+                                db:Session=Depends(getdb)):
+    """
+        create langues model/item.which are know to accused in enquiry_form
+
+        Parameter:
+        - **enq_form_id**: Id used to create langues model/item to perticular accused
+        - **langues_schema**:new information of langues
+
+        Return:
+        - created new langues with json formate(status_code=200)
+    """
+    try:
+        duplicate_langues=db.query(accused_langues_model).filter(accused_langues_model.langues_id==langues_schema.langues_id,
+                                                                 accused_langues_model.enq_form_id==enq_form_id).first()
+        if duplicate_langues:
+            return JSONResponse(content=f"langues already exist",status_code=status.HTTP_400_BAD_REQUEST)
+        langues_instance={
+            "langues_id":langues_schema.langues_id,
+            "enq_form_id":enq_form_id
+        }
+        langues_db=accused_langues_model(**langues_instance)
+        db.add(langues_db)
+        db.commit()
+        return langues_db
+    except IntegrityError as e:
+        raise HTTPException(detail=f"Intigrity_error-{e.orig}",status_code=status.HTTP_409_CONFLICT)
+    except Exception as e:
+        raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)
+@router.put('/update_accused_known_langues/{item_id}',response_model=langues_from_enq_form_get,tags=["enq_form_api"])
+async def update_accused_known_langues(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                                       item_id:int,item_schema:langues_from_enq_form_schema,
+                                       db:Session=Depends(getdb)):
+    """
+        update langues which is known to accused  from enq_form 
+
+        Parameter:
+        - **item_id**:it is used to update perticular id data/item
+        - **item_schema**: it's infirmation to update item
+
+        Recived:
+        - updated item in json format(status_code=200)
+    """
+    try:
+        exist_item=db.query(accused_langues_model).filter(accused_langues_model.id==item_id).first()
+        if exist_item is None:
+            return JSONResponse(content=f"{item_id} item does not exist",status_code=status.HTTP_400_BAD_REQUEST)
+        data={
+            "langues_id":item_schema.langues_id,
+            "enq_form_id":exist_item.enq_form_id
+        }
+        for field,value in data.items():
+            setattr(exist_item,field,value)
+        db.commit()
+        db.refresh(exist_item)
+        return exist_item
+    except IntegrityError as e:
+         raise HTTPException(detail=f"Intigrity_error-{str(e.orig)}",status_code=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)   
+@router.delete('/dlt_accused_known_langues/{item_id}',tags=["enq_form_api"])
+async def dlt_accused_known_langues(current_user:Annotated[UserBase,Depends(get_current_user)],
+                                    item_id:int,db:Session=Depends(getdb)):
+    """
+          dlt accused known langueses
+
+          Parameter:
+          -**item_id**:it is  use to delete specific item
+
+          Return:
+          - successfull json response(status_code=200)
+    """ 
+    try: 
+            exist_item=db.query(accused_langues_model).filter(accused_langues_model.id==item_id).first()
+            if exist_item is None:
+                return JSONResponse(content=f"id-{item_id} item does not exist",status_code=status.HTTP_400_BAD_REQUEST)
+            db.delete(exist_item)
+            db.commit()
+            return JSONResponse(content=f"item has been deleted successfully",status_code=status.HTTP_200_OK)
+    except IntegrityError as e:
+        raise HTTPException(detail=f"{str(e.orig)}",status_code=status.HTTP_409_CONFLICT)
+    except Exception as e:
+        raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)
+
+     
+            
 
    
     

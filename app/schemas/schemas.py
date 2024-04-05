@@ -265,12 +265,13 @@ class PoliceStationGet(BaseModel):
     PoliceStation:str
     create_date:datetime=None
     update_date:datetime=None
+    taluka:TalukaGet
     # state:StateGet
     # region:RegionGet
     # distric:DistricGet
     # headoffice:HeadOfficeGet
     # subdivision:SubdivisionGet
-    taluka:TalukaGet
+   
     class config:
         orm_mode=True   
 class TalukaPolicestation(BaseModel):
@@ -876,6 +877,17 @@ class ChargeSheetBaseGet(BaseModel):
     update_date:datetime
 
 #Enquiry_Namuna_Form
+class langues_from_enq_form_schema(BaseModel):#input schema
+    """ Input schema representing the language ID spoken by the accused."""
+    langues_id:int
+class langues_from_enq_form_get(BaseModel):#output schema
+    """
+        Output schema representing details of the accused's spoken language from the enquiry table.
+    """
+    id:int
+    accused_langues:LanguesGet
+    create_date:datetime
+    update_date:datetime   
 class Enquiry_Form_Base_01(BaseModel):
     state_id:int
     distric_id:int
@@ -890,7 +902,6 @@ class Enquiry_Form_Base_01(BaseModel):
     Body_Type:str
     Eyes_Colur:str
     Hair_Colur:str
-    Langues_id:int
     Identification_Mark:str
     Subcast_id:int
     Occupation_id:int
@@ -921,7 +932,6 @@ class Enquiry_Form_Get_01(BaseModel):
     Body_Type:str
     Eyes_Colur:str
     Hair_Colur:str
-    Langues_id:int
     Identification_Mark:str
     Subcast_id:int
     Occupation_id:int
@@ -936,6 +946,7 @@ class Enquiry_Form_Get_01(BaseModel):
     Fater_Property_detail:Optional[str]=None
     Is_Mother_Alive:str
     Mother_Details:Optional[str]=None 
+    accuse_langues:Optional[list[langues_from_enq_form_get]]=None
 class Enquiry_Form_Base_02(BaseModel):
     Brother_or_Sister:Optional[str]=None
     Brother_Sister_Details:Optional[str]=None
@@ -1211,7 +1222,7 @@ class criminal_history_get(BaseModel):
     yellow_card_id:int
     state_id:int
     district_id:int
-    police_station_id:int
+    criminal_history_police_station:Optional[PoliceStationGet]=None
     crime_number:str
     punishment:str
     remark:str
@@ -1247,7 +1258,7 @@ class Yellow_CardBase(BaseModel):
     Accused_Father_Age:int
     Accused_Father_Address:str
     Wife_or_Husband:str
-    user_id:int
+    user_id:Optional[int]=None
     @model_validator(mode='before')
     @classmethod
     def validate_to_json(cls, value):
@@ -1256,6 +1267,7 @@ class Yellow_CardBase(BaseModel):
         return value 
 class Yellow_CardBaseGet(BaseModel):
     """ yellow card response schema"""
+    id:int
     Accused_Name:str 
     Accused_Age:int
     ycard_police_station:Optional[outside_policestation]=None
@@ -1282,11 +1294,10 @@ class Yellow_CardBaseGet(BaseModel):
     Wife_or_Husband:str
     create_date:datetime
     update_date:datetime
-    friend_relative:Optional[friend_relative_get]=None
-    partner:Optional[accused_partner_get]=None
-    criminal_history:Optional[criminal_history_get]=None
-    class Config:
-        orm_mode:True
+    friend_relative:Optional[list[friend_relative_get]]=None# show data from friend  reletive model
+    partner:Optional[list[accused_partner_get]]=None
+    criminal_history:Optional[list[criminal_history_get]]=None
+  
     
 #-------------------information_mode_model---------------
 

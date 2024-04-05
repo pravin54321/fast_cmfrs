@@ -76,7 +76,7 @@ def logine_for_acess_token(form_data : Annotated[OAuth2PasswordRequestForm, Depe
          
     
     
-    
+
   
 #-----------------user_activate_deactivate----------------------------
 @router.post('/dactivate_user/{user_id}',tags=['Authentication'])
