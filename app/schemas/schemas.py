@@ -890,12 +890,36 @@ class langues_from_enq_form_get(BaseModel):#output schema
     update_date:datetime  
 class enq_accused_relatives_shema(BaseModel):
     """it's accused realative shema.which is link to enquiry_table""" 
+    enq_form_id:int
     name:str
     age:int
     mobile_number:str
     address:str
     relation:str
     remark:str  
+class enq_accused_relatives_get(enq_accused_relatives_shema):
+    id:int
+    create_date:datetime
+    update_date:datetime 
+class enq_accused_known_schema(BaseModel):
+    """
+    it's represent person data.who are identified/known to enquiry_form accused
+    """
+    enq_form_id:int
+    name:str
+    age:int
+    mobile_number:str
+    address:str
+    relation:str
+    remark:str
+class enq_accused_known_get(enq_accused_known_schema):
+    """
+        response schema represent above schema
+    """ 
+    id:int
+    create_date:datetime
+    update_date:datetime  
+
 class Enquiry_Form_Base_01(BaseModel):
     state_id:int
     distric_id:int
@@ -957,9 +981,7 @@ class Enquiry_Form_Get_01(BaseModel):
     accuse_langues:Optional[list[langues_from_enq_form_get]]=None
 class Enquiry_Form_Base_02(BaseModel):
     Brother_or_Sister:Optional[str]=None
-    Brother_Sister_Details:Optional[str]=None
     Relative_or_Friends:Optional[str]=None
-    Relative_Friends_Details:Optional[str]=None
     Is_Own_Property:Optional[str]=None
     Own_Property_Details:Optional[str]=None
     Is_Education:Optional[str]=None
@@ -1016,9 +1038,7 @@ class Enquiry_Form_Get_02(BaseModel):
     Is_Mother_Alive:Optional[str]=None
     Mother_Details:Optional[str]=None 
     Brother_or_Sister:Optional[str]=None
-    Brother_Sister_Details:Optional[str]=None
     Relative_or_Friends:Optional[str]=None
-    Relative_Friends_Details:Optional[str]=None
     Is_Own_Property:Optional[str]=None
     Own_Property_Details:Optional[str]=None
     Is_Education:Optional[str]=None
@@ -1292,7 +1312,7 @@ class Yellow_CardBaseGet(BaseModel):
     Pstation_Rnumber:str
     CRD_Number:str
     Accused_Address:str
-    Accused_ImgPath:str
+    Accused_ImgPath:Optional[str]=None
     Caddress_Saddress:str#current address and permanent address
     Moment_Oinfo:str#movment information
     Pofficer_who_Iaccused:str

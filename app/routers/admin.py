@@ -548,14 +548,26 @@ async def subdivision_taluka(current_user:Annotated[UserBase,Depends(get_current
 @router.post('/create_post',response_model=PostGet,tags=['Master_Post'])
 async def post_create(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                       post:PostBase,db:Session=Depends(getdb)):
-    post_exist=db.query(PostModel).filter(PostModel.Post==post.Post).first()
-    if post_exist:
-        raise HTTPException(detail=f'{post.Post} post already exist',status_code=400)
-    post_item=PostModel(**post.model_dump())
-    db.add(post_item)
-    db.commit()
-    db.refresh(post_item)
-    return post_item
+    """
+         Create a post(police station post) item.
+         Parameters:
+         - **post**: schema/data use to create new post
+         Returns:
+         - created post in json format(response_code=200)
+    """
+    try:
+        exist_post=db.query(PostModel).filter(PostModel.Post==post.Post).first()
+        if exist_post:
+            return JSONResponse(content=f'{post.Post} already exist',status_code=status.HTTP_400_BAD_REQUEST)
+        post_item=PostModel(**post.model_dump())
+        db.add(post_item)
+        db.commit()
+        db.refresh(post_item)
+        return post_item
+    except IntegrityError as e:
+        raise HTTPException(detail=f"Integrity_error-{e.args}",status_code=status.HTTP_409_CONFLICT)
+    except Exception as e:
+        raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)
 @router.get('/get_post',response_model=list[PostGet],tags=['Master_Post'])
 async def get_post(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                    db:Session=Depends(getdb)):
@@ -564,23 +576,29 @@ async def get_post(current_user:Annotated[UserBase,Depends(get_current_active_us
 @router.put('/update/{post_id}',response_model=PostGet,tags=['Master_Post'])
 async def update_post(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                       post_id:int,post:PostBase,db:Session=Depends(getdb)):
-    post_duplicate=db.query(PostModel).filter(PostModel.Post==post.Post,PostModel.id!=post_id).first()
-    if post_duplicate:
-        raise HTTPException(detail=f"{post.Post} post already exist",status_code=400)
-    post_exit=db.query(PostModel).filter(PostModel.id==post_id).first()
-    if post_exit:
-        post_exit.Post=post.Post
-        post_exit.State_id=post.State_id
-        post_exit.Region_id=post.Region_id
-        post_exit.Distric_id=post.Distric_id
-        post_exit.HeadOffice_id=post.HeadOffice_id
-        post_exit.Subdivision_id=post.Subdivision_id
-        post_exit.Taluka_id=post.Subdivision_id
-        post_exit.PoliceStation_id=post.PoliceStation_id
-        db.commit()
-        db.refresh(post_exit)
-        return post_exit
-    raise HTTPException(detail=f'{post_id} id does not exist',status_code=status.HTTP_404_NOT_FOUND)
+    """
+          update post model by  using item_id.
+          Parameters:
+          - **post_id**: ID used to update perticular item
+          - **post**: schema/data used to update item/post
+          Retuens:
+          - updated items in json formate(status_code:200)
+    """
+    try:
+            exist_post=db.query(PostModel).filter(PostModel.id==post_id).first()
+            if exist_post is None:
+                return JSONResponse(content=f"id-{post_id} item does not exist",status_code=status.HTTP_400_BAD_REQUEST)
+            post_duplicate=db.query(PostModel).filter(PostModel.Post==post.Post,PostModel.id!=post_id).first()
+            if post_duplicate:
+                   return JSONResponse(content=f"{post.Post} item already exist",status_code=400)
+            for field,value in post.model_dump(exclude_unset=True).items():
+                setattr(exist_post,field,value)
+            db.commit()
+            db.refresh(exist_post)
+            return exist_post
+    except IntegrityError as e:
+        raise HTTPException(detail=f"Intigrity_error:{str(e.orig)}",status_code=status.HTTP_400_BAD_REQUEST)
+   
 @router.delete('/del_post/{post_id}',tags=['Master_Post'])
 async def del_post(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                   post_id:int,db:Session=Depends(getdb)):
@@ -2145,7 +2163,7 @@ async def dlt_accused_known_langues(current_user:Annotated[UserBase,Depends(get_
           dlt accused known langueses
 
           Parameter:
-          -**item_id**:it is  use to delete specific item
+          - **item_id**:it is  use to delete specific item
 
           Return:
           - successfull json response(status_code=200)
@@ -2161,7 +2179,91 @@ async def dlt_accused_known_langues(current_user:Annotated[UserBase,Depends(get_
         raise HTTPException(detail=f"{str(e.orig)}",status_code=status.HTTP_409_CONFLICT)
     except Exception as e:
         raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)
+@router.get('/get_enq_accused_relatives',response_model=List[enq_accused_relatives_get],tags=['enq_form_api'])
+async def get_enq_accused_relatives(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                                    db:Session=Depends(getdb)):
+    """
+           Fetch list of items from accused_relatives model(enquiry_form).
+           Return:
+           - list of all item from accused_relatives model(enquiry_form)
+           
+    """
+    list_items=db.query(enq_form_relative_details_model).order_by(enq_form_relative_details_model.id.desc()).all()
+    return list_items    
+@router.post("/create_enq_accused_relatives",response_model=enq_accused_relatives_get,tags=["enq_form_api"])
+async def create_enq_accused_relatives(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                                       item_schema:enq_accused_relatives_shema,db:Session=Depends(getdb)):
+    """
+           Create accused relatives which is belong to enquiry form.
+           Parameter:
+           - **item_schema**: new information to create item
+           Return:
+           - created item in json formate(status_code:200)
+    """
+    try:
+        dunplicate_entry=db.query(enq_form_relative_details_model).\
+            filter(enq_form_relative_details_model.name==item_schema.name,
+                   enq_form_relative_details_model.relation==item_schema.relation,
+                   enq_form_relative_details_model.enq_form_id==item_schema.enq_form_id).first()
+        if dunplicate_entry:
+            return JSONResponse(content=f"{item_schema.name} already exist",status_code=status.HTTP_400_BAD_REQUEST)
+        item_db=enq_form_relative_details_model(**item_schema.model_dump())
+        db.add(item_db)
+        db.commit()
+        db.refresh(item_db)
+        return item_db
+    except IntegrityError as e:
+        raise HTTPException(detail=f"integrity_error:{str(e.orig)}",status_code=status.HTTP_409_CONFLICT)
+    except Exception as e:
+        raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)
+@router.put("/update_enq_accused_relatives/{item_id}",response_model=enq_accused_relatives_get,tags=['enq_form_api'])  
+async def update_enq_accused_relatives(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                                       item_id:int,item_schema:enq_accused_relatives_shema,
+                                       db:Session=Depends(getdb)):
+    try:
+        exist_item=db.query(enq_form_relative_details_model).filter(enq_form_relative_details_model.id==item_id).first()
+        if exist_item is None:
+            return JSONResponse(content=f"id-{item_id} item does not exist",status_code=status.HTTP_400_BAD_REQUEST)
+        duplicate_entry=db.query(enq_form_relative_details_model).\
+        filter(enq_form_relative_details_model.name==item_schema.name,
+            enq_form_relative_details_model.relation==item_schema.relation,
+            enq_form_relative_details_model.id != item_id).first()  
+        if duplicate_entry:
+            return JSONResponse(content=f"{item_schema.name} already exist",status_code=status.HTTP_400_BAD_REQUEST)
+        for field,value in item_schema.model_dump(exclude_unset=True).items():
+            setattr(exist_item,field,value)
+        db.commit()
+        return exist_item
+    except IntegrityError as e:
+        raise HTTPException(detail=f"integrity_error:{str(e.orig)}",status_code=status.HTTP_409_CONFLICT)
+    except Exception as e:
+        raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)
+@router.delete('/dlt_enq_accused_relatives/{item_id}',tags=['enq_form_api'])
+async def dlt_enq_accused_relatives(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                                    item_id:int,db:Session=Depends(getdb)):
+    """
+           delete accused relatives item by id
 
+           Parameter:
+           - **item_id**: delete item using item_id
+
+           Return:
+           -success msg in json formate(status_code:200)
+    """
+    try:
+        exist_item=db.query(enq_form_relative_details_model).filter(enq_form_relative_details_model.id==item_id).first()
+        if exist_item is None:
+            return JSONResponse(content=f"id-{item_id} item does not exist",status_code=status.HTTP_400_BAD_REQUEST)  
+        db.delete(exist_item)
+        db.commit()
+        return Response(content=f"item has been deleted successfully",status_code=status.HTTP_200_OK)
+    except IntegrityError as e:
+        raise HTTPException(detail=f"Intigrity_error:{str(e.orig)}",status_code=status.HTTP_409_CONFLICT)
+    except Exception as e:
+        raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)  
+        
+            
+                                                                          
      
             
 
@@ -2176,7 +2278,7 @@ async def get_ycard(current_user:Annotated[UserBase,Depends(get_current_active_u
         return list_yellowcard
     except Exception as e:
         raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)
-@router.post('/create_yellow_card',response_model=Yellow_CardBase,tags=['Yellow_Card_Api'],summary="create yellow card")
+@router.post('/create_yellow_card',response_model=Yellow_CardBaseGet,tags=['Yellow_Card_Api'],summary="create yellow card")
 async def create_yellow_card(current_user:Annotated[UserBase,Depends(get_current_user)],
                            yellow_card:Yellow_CardBase,file:UploadFile=File(None),db:Session=Depends(getdb)):
     """

@@ -657,9 +657,7 @@ class EnquiryFormModel(Base):
     Mother_Details=Column(Text)
     #_________form_01________
     Brother_or_Sister=Column(String(50))
-    Brother_Sister_Details=Column(Text)
     Relative_or_Friends=Column(String(50))
-    Relative_Friends_Details=Column(Text)
     Is_Own_Property=Column(String(50))
     Own_Property_Details=Column(Text)
     Is_Education=Column(String(20))
@@ -731,10 +729,12 @@ class accused_langues_model(Base):
     accused_langues=relationship(LanguesModel,backref='accused_langues')
     create_date=Column(DateTime,default=get_current_time)
     update_date=Column(DateTime,default=get_current_time,onupdate=func.now())
-class relative_details_model(Base):
+#------------accused relatives/family members details-------------------    
+class enq_form_relative_details_model(Base):
     """
-        this table store all information of accused ralative.
-        whose are belong to enquiry form
+       #Model
+       accused relatives/family_members/friends information.
+       this accused from enquiry_table
 
     """ 
     __tablename__="enq_accused_relative"
@@ -747,7 +747,24 @@ class relative_details_model(Base):
     relation=Column(String(200))
     remark=Column(Text)
     create_date=Column(DateTime,default=get_current_time)
-    update_date=Column(DateTime,default=get_current_time,onupdate=func.now())   
+    update_date=Column(DateTime,default=get_current_time,onupdate=func.now())  
+#-------------------whose person know to accused---------------
+class enq_known_accused_model(Base):
+    """
+        Represent details of individuals known_or_identified to accused party
+        storing information about person who are known or identified to accused
+    """
+    __tablename__="enq_know_accused"
+    id=Column(Integer,primary_key=True,autoincrement=True,index=True,nullable=False)
+    enq_form_id=Column(Integer,ForeignKey("enquiry_form.id"))
+    name=Column(String(200))
+    age=Column(Integer)
+    mobile_number=Column(String(200))
+    address=Column(Text)
+    relation=Column(Text)
+    remark=Column(Text)
+    create_date=Column(DateTime,default=get_current_time)
+    update_date=Column(DateTime,default=get_current_time,onupdate=func.now()) 
 
 #--------------------Accused_name----------------------------------------------
 class YellowCardModel(Base):
