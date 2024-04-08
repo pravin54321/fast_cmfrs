@@ -292,12 +292,12 @@ class outside_policestation(BaseModel):
 #_______post_________
 class PostBase(BaseModel):
     Post:str
-    State_id:int
-    Region_id:int
-    Distric_id:int
-    HeadOffice_id:int
-    Subdivision_id:int
-    Taluka_id:int
+    # State_id:int
+    # Region_id:int
+    # Distric_id:int
+    # HeadOffice_id:int
+    # Subdivision_id:int
+    # Taluka_id:int
     PoliceStation_id:int    
 class PostGet(BaseModel):
     id:int
@@ -887,7 +887,15 @@ class langues_from_enq_form_get(BaseModel):#output schema
     id:int
     accused_langues:LanguesGet
     create_date:datetime
-    update_date:datetime   
+    update_date:datetime  
+class enq_accused_relatives_shema(BaseModel):
+    """it's accused realative shema.which is link to enquiry_table""" 
+    name:str
+    age:int
+    mobile_number:str
+    address:str
+    relation:str
+    remark:str  
 class Enquiry_Form_Base_01(BaseModel):
     state_id:int
     distric_id:int

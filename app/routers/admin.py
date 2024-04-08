@@ -2267,7 +2267,7 @@ async def upd_ycard_img(current_user:Annotated[UserBase,Depends(get_current_acti
         raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)        
     raise HTTPException(detail=f"id-{ycard_id} does not exist",status_code=status.HTTP_400_BAD_REQUEST)
 #------------accused_partner in yellow card-----------------------------
-@router.post('/get_accused_partner',response_model=list[accused_partner_get],tags=["Yellow_Card_Api"])
+@router.get('/get_accused_partner',response_model=list[accused_partner_get],tags=["Yellow_Card_Api"])
 async def get_accused_partner(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                               db:Session=Depends(getdb)):
     """
@@ -2332,7 +2332,7 @@ async def update_accused_partner(current_user:Annotated[UserBase,Depends(get_cur
         raise HTTPException(detail=f"untegrity error:{str(e.orig)}",status_code=status.HTTP_409_CONFLICT)
     except Exception as e:
         raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)    
-@router.put("dlt_accused_partner/{item_id}",tags=["Yellow_Card_Api"]) 
+@router.delete("/dlt_accused_partner/{item_id}",tags=["Yellow_Card_Api"]) 
 async def dlt_accused_partner(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                               item_id:int,db:Session=Depends(getdb)):
     """
