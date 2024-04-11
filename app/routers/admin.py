@@ -1496,64 +1496,111 @@ async def create_ncr_from_complaint(current_user:Annotated[UserBase,Depends(get_
     except Exception as e:
         raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)
     
-            
 @router.post('/create_ncr',response_model=NCRBaseGet,tags=['NCR_API'])
 async def create_ncr(current_user:Annotated[UserBase,Depends(get_current_active_user)],
-                     ncr:NCRBase,address_schema:Com_address_Schema,image:UploadFile=File(),db:Session=Depends((getdb))):
-    user_id=[current_user.id if current_user.id else None]
-    ncr.user_id=user_id[0]
-    file_path=await imagestore(image,'ncr/complainant_img')
-    setattr(ncr,'Complainant_imgpath',f"Static/Images/ncr/complainant_img/{file_path}")
-    ncr_item=NCRModel(**ncr.model_dump())
-    db.add(ncr_item)
-    db.commit()
-    if ncr_item.id:
-        address_data=[{
-            "Address_Type": comp_address.Address_Type,
-            "Address": comp_address.Address,
-            "NCR_id": ncr_item.id
-        } for comp_address in address_schema.com_address
-        ]
-        address_instance=[Complainat_AddressModel(**data) for data in address_data]
-        print(address_instance)
-        db.add_all(address_instance)
-        db.commit()
-        return ncr_item
-    return Response(content=f"warning:{ncr.Name_Complainant} address does not add",status_code=status.HTTP_200_OK)
+                     ncr:NCRBase,address_schema:Com_address_Schema,image:UploadFile=File(None),db:Session=Depends((getdb))):
+    """
+          Create ncr items.
+
+          Parameters:
+          - **ncr**:new information schema  use to create item
+          - **address_schema**:it is  address schema
+          - **image**:image file
+
+          Return:
+          created item in json format
+    """
+    try:
+            if image is not None:
+                file_path=await imagestore(image,'ncr/complainant_img')
+                setattr(ncr,'Complainant_imgpath',f"Static/Images/ncr/complainant_img/{file_path}")
+            setattr(ncr,"user_id",current_user.id)        
+            ncr_item=NCRModel(**ncr.model_dump())
+            db.add(ncr_item)
+            db.commit()
+            if ncr_item.id:
+                address_data=[{
+                    "Address_Type": comp_address.Address_Type,
+                    "Address": comp_address.Address,
+                    "NCR_id": ncr_item.id
+                } for comp_address in address_schema.com_address
+                ]
+                address_instance=[Complainat_AddressModel(**data) for data in address_data]
+                db.add_all(address_instance)
+                db.commit()
+            return ncr_item
+    except IntegrityError as e:
+        raise HTTPException(detail=f"integrity_error:{str(e.orig)}",status_code=status.HTTP_409_CONFLICT)
+    except Exception as e:
+        raise HTTPException(detail=str(e),status=status.HTTP_400_BAD_REQUEST)
+
+  
 @router.put('/update_ncr/{ncr_id}',response_model=NCRBaseGet,tags=['NCR_API'])
 def update_ncr(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                ncr_id:int,ncr_item:NCRBase,comp_addresses:list[CompAddressBase],
                db:Session=Depends(getdb)):
-    ncr_exist=db.query(NCRModel).filter(NCRModel.id==ncr_id).first()
-    if ncr_exist:
-            if ncr_exist:
-                for field ,value in ncr_item.model_dump(exclude_unset=True).items():
-                    setattr(ncr_exist,field,value)
+    """
+         update ncr item by using Id.
+
+         Parameter:
+         -**ncr_id**:it is used to update item 
+         -**ncr_item**:it is schema used to update
+
+         Returns:
+         -updated item in json format
+    """
+    try:
+            ncr_exist=db.query(NCRModel).filter(NCRModel.id==ncr_id).first()
+            if ncr_exist is None:
+                return JSONResponse(content=f"id-{ncr_id} item does not exist",status_code=status.HTTP_400_BAD_REQUEST)
+      
+            for field ,value in ncr_item.model_dump(exclude_unset=True).items():
+                setattr(ncr_exist,field,value)
+            db.commit()
+            comp_address_exist=db.query(Complainat_AddressModel).filter(Complainat_AddressModel.NCR_id==ncr_id).all()    
+            if comp_address_exist:
+                [db.delete(dlt_address) for dlt_address in comp_address_exist]
                 db.commit()
-                comp_address_exist=db.query(Complainat_AddressModel).filter(Complainat_AddressModel.NCR_id==ncr_id).all()    
-                if comp_address_exist:
-                    [db.delete(dlt_address) for dlt_address in comp_address_exist]
-                    db.commit()
-                address_data=[{
-                     "Address_Type": address.Address_Type,
-                      "Address": address.Address,
-                      "NCR_id":ncr_id
-                } for address in comp_addresses]  
-                address_instance=[Complainat_AddressModel(**data) for data in address_data]
-                db.add_all(address_instance)
-                db.commit()
-                # db.refresh(ncr_exist)  
+            address_data=[{
+                "Address_Type": address.Address_Type,
+                "Address": address.Address,
+                "NCR_id":ncr_id
+            } for address in comp_addresses]  
+            address_instance=[Complainat_AddressModel(**data) for data in address_data]
+            db.add_all(address_instance)
+            db.commit()
+            db.refresh(ncr_exist)  
             return ncr_exist
-    raise HTTPException(detail=f'{ncr_id} does not exist',status_code=status.HTTP_404_NOT_FOUND)
+    except IntegrityError as e:
+        raise HTTPException(detail=f"integrity_error:{str(e.orig)}",status_code=status.HTTP_409_CONFLICT)
+    except Exception as e:
+        raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)
+
 @router.delete('/del_ncr/{ncr_id}',tags=['NCR_API'])
 async def del_ncr(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                   ncr_id:int,db:Session=Depends(getdb)):
-    ncr_exist=db.query(NCRModel).filter(NCRModel.id==ncr_id).first()
-    if ncr_exist:
+    """
+        Delete ncr items by id
+
+        Parameters:
+        - **ncr_id**:it used to delete id records
+        
+        Recived:
+        success msg in json format(status_code:200)
+    """
+    try:
+        ncr_exist=db.query(NCRModel).filter(NCRModel.id==ncr_id).first()
+        if ncr_exist is None:
+             return JSONResponse(content=f'id-{ncr_id} does not exist',status_code=status.HTTP_404_NOT_FOUND)
+     
         db.delete(ncr_exist)
         db.commit()
         return Response(content=f'id-{ncr_id} has been deleted successfully',status_code=status.HTTP_200_OK)
-    raise HTTPException(detail=f'id-{ncr_id} does not exist',status_code=status.HTTP_404_NOT_FOUND)
+    except IntegrityError as e:
+        raise HTTPException(detail=f"Integrity_Error:{e.orig}",status_code=status.HTTP_409_CONFLICT)
+    except Exception as e:
+        raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)
+
 #_____________ncr_accuse_________________________________________
 @router.get('/get_ncr_accused',response_model=list[AccusedBaseGet],tags=['NCR_Accused'])
 async def get_ncr_accused(current_user:Annotated[UserBase,Depends(get_current_active_user)],
@@ -1995,31 +2042,51 @@ async def enqform(current_user:Annotated[UserBase,Depends(get_current_active_use
                                          db:Session=Depends(getdb)):
     list_enqform=db.query(EnquiryFormModel).filter(EnquiryFormModel.user_id==current_user.id).order_by(EnquiryFormModel.id.desc()).all()
     return list_enqform
-@router.post('/crete_enquiry_form',response_model=Enquiry_Form_Get_01,tags=['Enquiry_Api'])
+@router.post('/crete_enquiry_form',response_model=enq_form_01_get,tags=['Enquiry_Api'])
 async def create_enquiry_form(current_user:Annotated[UserBase,Depends(get_current_active_user)],
-                              enquiry_schema:Enquiry_Form_Base_01,langues_schema:list[langues_from_enq_form_schema],
+                              enquiry_schema:enq_form_01_schema,langues_schema:list[langues_from_enq_form_schema],
+                              address_shema:list[enq_form_01_address_schema],
                               db:Session=Depends(getdb)):
     """
-         cretate enquiry form
+         cretate enquiry form_01
          enquiry form create in three part.it's first part
 
          Parameter:
          - **enquiry_shema**: it's data/schema to create item
+         - **langues_schema**:it use to create accused langues items
+         - **address_schema**:it is use to create address items
+
+         Returns:
+         creted items in json format(status_code:200)
     """
     try:
+        duplicate_exist=db.query(enq_form_basic_model).filter(enq_form_basic_model.accused_name==enquiry_schema.accused_name,
+                                                              enq_form_basic_model.mob_number==enquiry_schema.mob_number).first()
+        if duplicate_exist is not None:
+            return JSONResponse(content=f"{enquiry_schema.accused_name} already exist",status_code=status.HTTP_400_BAD_REQUEST)
         setattr(enquiry_schema,'user_id',current_user.id)
-        enquiry_form_db=EnquiryFormModel(**enquiry_schema.model_dump())
+        enquiry_form_db=enq_form_basic_model(**enquiry_schema.model_dump())
         db.add(enquiry_form_db)
         db.commit()
         db.refresh(enquiry_form_db)
-        if langues_schema is not None:
-            item_data=[{
-                "langues_id":item.langues_id,
-                "enq_form_id":enquiry_form_db.id
-            } for item in langues_schema]
-            db_instance = map(lambda data: accused_langues_model(**data), item_data)
-            db.add_all(db_instance)
-            db.commit()
+        if enquiry_form_db.id:
+            if langues_schema is not None:
+                item_data=[{
+                    "langues_id":item.langues_id,
+                    "enq_form_id":enquiry_form_db.id
+                } for item in langues_schema]
+                db_instance = map(lambda data: accused_langues_model(**data), item_data)
+                db.add_all(db_instance)
+                db.commit()
+            if address_shema is not None:
+                address_data=[{
+                    "enq_form_01_id":enquiry_form_db.id,
+                    "Type":address.Type,
+                    "address":address.address
+                } for address in address_shema] 
+                address_db=map(lambda item_data:enq_form_01_address_model(**item_data),address_data)
+                db.add_all(address_db)
+                db.commit()   
         return enquiry_form_db
     except IntegrityError as e:
          raise HTTPException(detail=f"{str(e.orig)}",status_code=status.HTTP_409_CONFLICT)
@@ -2405,7 +2472,7 @@ async def create_yellow_card(current_user:Annotated[UserBase,Depends(get_current
         raise HTTPException(detail=f"accused with name -{yellow_card.Accused_Name} already exist",
                             status_code=status.HTTP_400_BAD_REQUEST)
     try:
-        if image is None:# when image is none value
+        if image is not None:# when image is none value
             image_path=await imagestore(file,'yellow_card') # imagestore(img,dir) store the image in specific dir
             setattr(yellow_card,'Accused_ImgPath',f"Static/Images/yellow_card/{image_path}")
         setattr(yellow_card,"user_id",current_user.id)

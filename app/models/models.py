@@ -714,18 +714,63 @@ class EnquiryFormModel(Base):
     update_date=Column(DateTime,default=get_current_time,onupdate=func.now()) 
     police_station=relationship("PoliceStationModel",backref='policestation')
     subcast=relationship("SubcastModel",backref='subcast')
-    accuse_langues=relationship("accused_langues_model",backref='accuse_langues',cascade="all,delete")
+    # accuse_langues=relationship("accused_langues_model",backref='accuse_langues',cascade="all,delete")
     accused_relatives=relationship("enq_form_relative_details_model",backref="accused_relatives",cascade="all,delete")
     crime_langues=relationship(LanguesModel,foreign_keys=[Which_langues_use_Crime],backref='crime_langues')
     accused_occupation=relationship(OccupationModel,foreign_keys=[Occupation_id],backref='accused_occupation')
     father_occupation=relationship(OccupationModel,foreign_keys=[Father_Occupation_id],backref='father_occupation')
+class enq_form_basic_model(Base):
+    """
+       enq_form_model_01 basic_information of accused
+    """
+    __tablename__="enq_form_01"
+    id=Column(Integer,primary_key=True,autoincrement=True,index=True)
+    state_id=Column(Integer,ForeignKey('state.id'))
+    distric_id=Column(Integer,ForeignKey('distric.id'))
+    Police_Station_id=Column(Integer,ForeignKey('policestation.id'))
+    accused_name=Column(String(200))  
+    aliase=Column(String(200))
+    age=Column(Integer)
+    mob_number=Column(String(12))
+    height=Column(String(12))
+    body_complexion=Column(Text)
+    body_type=Column(String(200))
+    eyes_color=Column(String(200))
+    hair_color=Column(String(200))
+    identification_mark=Column(Text)
+    subcast_id=Column(Integer,ForeignKey("subcast.id"))
+    occupation_id=Column(Integer,ForeignKey("Occupation.id"))  
+    How_long_Current_Address=Column(String(20))
+    birth_place=Column(Text)
+    education=Column(String(200))
+    own_property_details=Column(Text)
+    is_drink_alcohol=Column(String(50))
+    entertainment_media=Column(Text)
+    user_id=Column(Integer,nullable=False)
+    create_date=Column(DateTime,default=get_current_time)
+    update_date=Column(DateTime,default=get_current_time,onupdate=func.now())
+    enq_policestation=relationship(PoliceStationModel,backref="enq_policestation")
+    enq_accused_langues=relationship("accused_langues_model",backref="enq_accused_langues",cascade="all,delete")
+    accused_address=relationship("enq_form_01_address_model",backref="accused_address",cascade="all,delete")
+class enq_form_01_address_model(Base):
+    """
+        address model from enq_form_01
+    """
+    __tablename__="address_from_01"
+    id=Column(Integer,primary_key=True,autoincrement=True,index=True)
+    enq_form_01_id=Column(Integer,ForeignKey("enq_form_01.id"))
+    Type=Column(String(200))
+    address=Column(Text)
+    create_date=Column(DateTime,default=get_current_time)
+    update_date=Column(DateTime,default=get_current_time,onupdate=func.now())    
+
 #------------------accused known langues--------------------
 class accused_langues_model(Base):
     """this langues model refer enquiry table.
     how many langues known by accused""" 
     __tablename__="langues_from_enq"
     id=Column(Integer,primary_key=True,autoincrement=True,index=True)
-    enq_form_id=Column(Integer,ForeignKey("enquiry_form.id"),nullable=False)
+    enq_form_id=Column(Integer,ForeignKey("enq_form_01.id"),nullable=False)
     langues_id=Column(Integer,ForeignKey("langues.id"))
     accused_langues=relationship(LanguesModel,backref='accused_langues')
     create_date=Column(DateTime,default=get_current_time)

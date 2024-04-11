@@ -1331,6 +1331,66 @@ class Yellow_CardBaseGet(BaseModel):
   
     
 #-------------------information_mode_model---------------
+class enq_form_01_address_schema(BaseModel):
+    """
+       adddress schema link to enq_form_01
+    """
+    Type:str
+    address:str
+class enq_form_01_address_get(enq_form_01_address_schema):
+    id:int
+    create_date:datetime
+    update_date:datetime    
+class enq_form_01_schema(BaseModel):
+    """
+         enq_form_01_schema basic info off accused
+    """
+    state_id:int
+    distric_id:int
+    Police_Station_id:int
+    accused_name:str  
+    aliase:str
+    age:int
+    mob_number:str
+    height:str
+    body_complexion:str
+    body_type:str
+    eyes_color:str
+    hair_color:str
+    identification_mark:str
+    subcast_id:int
+    occupation_id:int
+    How_long_Current_Address:str
+    birth_place:str
+    education:str
+    own_property_details:str
+    is_drink_alcohol:str
+    entertainment_media:str
+    user_id:int
+class enq_form_01_get(BaseModel):
+    enq_policestation:PoliceStationGet
+    accused_name:str  
+    aliase:str
+    age:int
+    mob_number:str
+    height:str
+    body_complexion:str
+    body_type:str
+    eyes_color:str
+    hair_color:str
+    identification_mark:str
+    subcast_id:int
+    occupation_id:int
+    How_long_Current_Address:str
+    birth_place:str
+    education:str
+    own_property_details:str
+    is_drink_alcohol:str
+    entertainment_media:str
+    enq_accused_langues:list[langues_from_enq_form_get]
+    accused_address:list[enq_form_01_address_get]
+  
+
 
 
 class AnyForm(BaseModel):
