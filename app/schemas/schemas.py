@@ -800,6 +800,7 @@ class fir_accused_Get(BaseModel):
            
 class FirBaseGet(BaseModel):
     id:int
+    Fir_No:str
     police_station:outside_policestation
     Year: Optional[conint(ge=1900, le=2100)]=None # type: ignore
     Day:Optional[str]=None
@@ -1178,8 +1179,10 @@ class Enquiry_Form_Get_03(BaseModel):
     Where_Sleep_Night:Optional[str]=None 
     Where_Take_Shelter:Optional[str]=None 
     Image_Path:Optional[str]=None 
-    create_date:datetime
-    update_date:datetime    
+    accused_relatives:Optional[list[enq_accused_relatives_get]]=None
+    accuse_langues:Optional[list[langues_from_enq_form_get]]=None
+    # create_date:datetime
+    # update_date:datetime    
 #---------------yellow card----------------  
 class accused_partner_schema(BaseModel):#criminal partner  they are involved in crimme
     """ from yellow_card"""

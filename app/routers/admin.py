@@ -4,6 +4,7 @@ from ..models.models import *
 from ..schemas.schemas import *
 from .authentication import *
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import joinedload
 router = APIRouter()
 
 #---------------master--------------------------
@@ -1428,26 +1429,43 @@ async def get_ncr_from_complaint(current_user:Annotated[UserBase,Depends(get_cur
 @router.post('/create_ncr_from_complaint/{complaint_id}',response_model=NCRBaseGet,tags=['NCR_API'])
 async def create_ncr_from_complaint(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                                     complaint_id:int,db:Session=Depends(getdb)):
-    complaint_exist=db.query(ComplaintModel).filter(ComplaintModel.id==complaint_id).first()
-    if complaint_exist:
-        ncr_db=NCRModel(police_station_id=complaint_exist.Station_id,
-                        Complaint_id=complaint_exist.id,
-                        info_recive=complaint_exist.Complaint_Date,
-                        Occurrence_Date_Time=complaint_exist.Occurance_date_time,
-                        Place_Occurrence=complaint_exist.Place_Occurance,
-                        Name_Complainant=complaint_exist.Complainant_Name,
-                        Complainant_Mob_Number=complaint_exist.Mob_Number,
-                        Complainant_Age=complaint_exist.Complainant_Age,
-                        Complainant_imgpath=complaint_exist.Complainant_Imgpath,
-                        Complainant_Description=complaint_exist.Complaint_Desc,
-                        complaint_or_Ncr=0,user_id=current_user.id)
-        db.add(ncr_db)
-        db.commit()
-        db.refresh(complaint_exist)
-        if ncr_db.id:
-            ncr_address_db=Complainat_AddressModel(NCR_id=ncr_db.id,Address=complaint_exist.Address)
-            db.add(ncr_address_db)
+    """
+        create ncr items(Non-Cognizable Report)
+
+        Parameters:
+        - **complint_id**:it's used to create ncr from complaint model
+
+        Request:
+        -created ncr in json formate(status_code:200)
+    """
+    try:
+            complaint_exist=db.query(ComplaintModel).filter(ComplaintModel.id==complaint_id).first()
+            if complaint_exist is None:
+                    return JSONResponse(content=f"{complaint_id} item does not exist",status_code=status.HTTP_400_BAD_REQUEST)
+        
+            ncr_data={
+                        "police_station_id":complaint_exist.Station_id,
+                        "Complaint_id":complaint_exist.id,
+                        "info_recive":complaint_exist.Complaint_Date,
+                        "Occurrence_Date_Time":complaint_exist.Occurance_date_time,
+                        "Place_Occurrence":complaint_exist.Place_Occurance,
+                        "Name_Complainant":complaint_exist.Complainant_Name,
+                        "Complainant_Mob_Number":complaint_exist.Mob_Number,
+                        "Complainant_Age":complaint_exist.Complainant_Age,
+                        "Complainant_imgpath":complaint_exist.Complainant_Imgpath,
+                        "Complainant_Description":complaint_exist.Complaint_Desc,
+                        "complaint_or_Ncr":0,
+                        "user_id":current_user.id
+                        }
+            ncr_db=NCRModel(**ncr_data)
+            db.add(ncr_db)
             db.commit()
+            db.refresh(ncr_db)
+            if ncr_db.id:
+                if complaint_exist.Address:
+                    ncr_address_db=Complainat_AddressModel(NCR_id=ncr_db.id,Address=complaint_exist.Address)
+                    db.add(ncr_address_db)
+                    db.commit()
             complaint_accused_exist=db.query(ComAccused_Model).filter(ComAccused_Model.complaint_id==complaint_id).all()
             if complaint_accused_exist:
                 for accused in complaint_accused_exist:
@@ -1472,8 +1490,12 @@ async def create_ncr_from_complaint(current_user:Annotated[UserBase,Depends(get_
                         ncr_accused_address_db=[Accused_AddressModel(**data) for data in ncr_accused_address_instance]
                         db.add_all(ncr_accused_address_db)
                         db.commit()
-        return ncr_db 
-    raise HTTPException(detail=f"id-{complaint_id} item does not exist in complaint table",status_code=status.HTTP_400_BAD_REQUEST)  
+            return ncr_db 
+    except IntegrityError as e:
+        raise HTTPException(detail=f"Integrity_error-{e.orig}",status_code=status.HTTP_409_CONFLICT)
+    except Exception as e:
+        raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)
+    
             
 @router.post('/create_ncr',response_model=NCRBaseGet,tags=['NCR_API'])
 async def create_ncr(current_user:Annotated[UserBase,Depends(get_current_active_user)],
@@ -1521,7 +1543,7 @@ def update_ncr(current_user:Annotated[UserBase,Depends(get_current_active_user)]
                 db.add_all(address_instance)
                 db.commit()
                 # db.refresh(ncr_exist)  
-                return ncr_exist
+            return ncr_exist
     raise HTTPException(detail=f'{ncr_id} does not exist',status_code=status.HTTP_404_NOT_FOUND)
 @router.delete('/del_ncr/{ncr_id}',tags=['NCR_API'])
 async def del_ncr(current_user:Annotated[UserBase,Depends(get_current_active_user)],
@@ -1876,7 +1898,7 @@ async def dlt_fir_act(current_user:Annotated[UserBase,Depends(get_current_active
 #------------charge_sheet__form---------------------
 @router.get('/get_chargesheet',response_model=list[ChargeSheetBaseGet],tags=['ChargeSheet_Api'])
 async def get_chargesheet(current_user:Annotated[UserBase,Depends(get_current_active_user)],db:Session=Depends(getdb)):
-    list_chargesheet=db.query(ChargeSheetModel).filter(ChargeSheetModel.user_id==current_user.id).order_by(ChargeSheetModel.id.desc())
+    list_chargesheet=db.query(ChargeSheetModel).filter(ChargeSheetModel.user_id==current_user.id).order_by(ChargeSheetModel.id.desc()).all()
     return list_chargesheet
 @router.post('/create_sheet_from_fir/{fir_id}',response_model=ChargeSheetBaseGet,tags=["ChargeSheet_Api"])
 async def charge_sheet_from_fir(current_user:Annotated[UserBase,Depends(get_current_active_user)],
@@ -1895,7 +1917,8 @@ async def charge_sheet_from_fir(current_user:Annotated[UserBase,Depends(get_curr
                "Name_IO":complaint_exist.Investing_Officer if complaint_exist else None,
                "IO_Rank":complaint_exist.io_designation_id if complaint_exist else  None,
                "Name_Complainant":complaint_exist.Complainant_Name if complaint_exist else None,
-               "Father_Name":complaint_exist.Complainant_Father_Name if complaint_exist else None
+               "Father_Name":complaint_exist.Complainant_Father_Name if complaint_exist else None,
+               "user_id":current_user.id
            }
            charge_sheet_db=ChargeSheetModel(**charge_sheet_fir_instance)
            db.add(charge_sheet_db)
@@ -1988,7 +2011,7 @@ async def create_enquiry_form(current_user:Annotated[UserBase,Depends(get_curren
         enquiry_form_db=EnquiryFormModel(**enquiry_schema.model_dump())
         db.add(enquiry_form_db)
         db.commit()
-        # db.refresh(enquiry_form_db)
+        db.refresh(enquiry_form_db)
         if langues_schema is not None:
             item_data=[{
                 "langues_id":item.langues_id,
@@ -2179,7 +2202,7 @@ async def dlt_accused_known_langues(current_user:Annotated[UserBase,Depends(get_
         raise HTTPException(detail=f"{str(e.orig)}",status_code=status.HTTP_409_CONFLICT)
     except Exception as e:
         raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)
-@router.get('/get_enq_accused_relatives',response_model=List[enq_accused_relatives_get],tags=['enq_form_api'])
+@router.get('/get_enq_accused_relatives',response_model=List[enq_accused_relatives_get],tags=['relatives_from_enq_form'])
 async def get_enq_accused_relatives(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                                     db:Session=Depends(getdb)):
     """
@@ -2190,7 +2213,7 @@ async def get_enq_accused_relatives(current_user:Annotated[UserBase,Depends(get_
     """
     list_items=db.query(enq_form_relative_details_model).order_by(enq_form_relative_details_model.id.desc()).all()
     return list_items    
-@router.post("/create_enq_accused_relatives",response_model=enq_accused_relatives_get,tags=["enq_form_api"])
+@router.post("/create_enq_accused_relatives",response_model=enq_accused_relatives_get,tags=["relatives_from_enq_form"])
 async def create_enq_accused_relatives(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                                        item_schema:enq_accused_relatives_shema,db:Session=Depends(getdb)):
     """
@@ -2216,7 +2239,7 @@ async def create_enq_accused_relatives(current_user:Annotated[UserBase,Depends(g
         raise HTTPException(detail=f"integrity_error:{str(e.orig)}",status_code=status.HTTP_409_CONFLICT)
     except Exception as e:
         raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)
-@router.put("/update_enq_accused_relatives/{item_id}",response_model=enq_accused_relatives_get,tags=['enq_form_api'])  
+@router.put("/update_enq_accused_relatives/{item_id}",response_model=enq_accused_relatives_get,tags=['relatives_from_enq_form'])  
 async def update_enq_accused_relatives(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                                        item_id:int,item_schema:enq_accused_relatives_shema,
                                        db:Session=Depends(getdb)):
@@ -2238,7 +2261,7 @@ async def update_enq_accused_relatives(current_user:Annotated[UserBase,Depends(g
         raise HTTPException(detail=f"integrity_error:{str(e.orig)}",status_code=status.HTTP_409_CONFLICT)
     except Exception as e:
         raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)
-@router.delete('/dlt_enq_accused_relatives/{item_id}',tags=['enq_form_api'])
+@router.delete('/dlt_enq_accused_relatives/{item_id}',tags=['relatives_from_enq_form'])
 async def dlt_enq_accused_relatives(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                                     item_id:int,db:Session=Depends(getdb)):
     """
@@ -2261,7 +2284,95 @@ async def dlt_enq_accused_relatives(current_user:Annotated[UserBase,Depends(get_
         raise HTTPException(detail=f"Intigrity_error:{str(e.orig)}",status_code=status.HTTP_409_CONFLICT)
     except Exception as e:
         raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)  
-        
+@router.get('/get-list-known-accused',response_model=list[enq_accused_known_get],tags=["known_to_accused_from_enq_form"])
+async def get_list_known_accused(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                                 db:Session=Depends(getdb)):
+    list_items=db.query(enq_known_accused_model).order_by(enq_known_accused_model.id.desc()).all()
+    return list_items    
+@router.post("/create-known-accused",response_model=enq_accused_known_get,tags=["known_to_accused_from_enq_form"])   
+async def create_known_accused(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                               item_schema:enq_accused_known_schema,db:Session=Depends(getdb)):
+    """
+         create items of those people whose are identified/known to accused(from enquiry_form).
+
+         Parameters:
+         - **item_schema**: information of newly creat item_or_models
+
+         Returns:
+         - created item in json_format(status_code:200)
+
+    """ 
+    try:
+        duplicate_entry=db.query(enq_known_accused_model).filter(enq_known_accused_model.enq_form_id==item_schema.enq_form_id,
+                                                                 enq_known_accused_model.name==item_schema.name).first()
+        if duplicate_entry:
+            return JSONResponse(content=f"{item_schema.name} already exist",status_code=status.HTTP_400_BAD_REQUEST)
+        item_db=enq_known_accused_model(**item_schema.model_dump())
+        db.add(item_db)
+        db.commit()
+        db.refresh(item_db)
+        return item_db
+    except IntegrityError as e:
+      raise HTTPException(detail=f"Integrity_error:{str(e.orig)}",status_code=status.HTTP_409_CONFLICT)
+    except Exception as e:
+      raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)
+@router.put("/update-known-accused/{item_id}",response_model=enq_accused_known_get,tags=["known_to_accused_from_enq_form"])
+async def update_known_accused(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                               item_id:int,item_schema:enq_accused_known_schema,db:Session=Depends(getdb)):
+    """
+         update item those people known  to criminal by id.
+
+         Parameter:
+         - **item_id**:used to update perticular item
+         - **item_schema**:new info for  update ite
+
+         Returns:
+         updaed items in json formate(status_code:200)
+
+    """
+    try:
+        exist_item=db.query(enq_known_accused_model).filter(enq_known_accused_model.id==item_id).first()
+        if exist_item is None:
+            return JSONResponse(content=f"id-{item_id} item does not exist",status_code=status.HTTP_400_BAD_REQUEST)
+        duplicate_entry=db.query(enq_known_accused_model).filter(enq_known_accused_model.enq_form_id==item_schema.enq_form_id,
+                                                                enq_known_accused_model.name==item_schema.name,
+                                                                enq_known_accused_model.id !=item_id).first()
+        if duplicate_entry:
+            return JSONResponse(content=f"{item_schema.name} already exist",status_code=status.HTTP_400_BAD_REQUEST)
+        for field,value in item_schema.model_dump(exclude_unset=True).items():
+            setattr(exist_item,field,value)
+        db.commit()
+        db.refresh(exist_item)
+        return exist_item
+    except IntegrityError as e:
+        raise HTTPException(detail=f"{str(e.orig)}",status_code=status.HTTP_409_CONFLICT)
+    except Exception as e:
+        raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)
+@router.delete('dlt-known-accused/{item_id}',response_model=enq_accused_known_get,tags=["known_to_accused_from_enq_form"]) 
+async def  dlt_known_accused(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                             item_id:int,db:Session=Depends(getdb)):
+    """ 
+          delete item(those people identified/known to accused).
+          -**item**:used to delete specific item
+          Returns:
+          successfull msg(status_code:200)
+
+    """  
+    try:
+         exist_item=db.query(enq_known_accused_model).filter(enq_known_accused_model.id==item_id).first()
+         if exist_item is None:
+             return JSONResponse(content=f"id-{item_id} item does not exist") 
+         db.delete(exist_item)
+         db.commit()
+         return Response(content="Item has been deleted successfully",status_code=status.HTTP_200_OK)
+    except IntegrityError as e:
+        raise HTTPException(detail=f"Integrity_error:{(e.orig)}",status_code=status.HTTP_409_CONFLICT)
+    except Exception as e:
+        raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)
+     
+
+
+            
             
                                                                           
      
