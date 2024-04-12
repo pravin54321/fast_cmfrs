@@ -813,6 +813,30 @@ class enq_known_accused_model(Base):
     remark=Column(Text)
     create_date=Column(DateTime,default=get_current_time)
     update_date=Column(DateTime,default=get_current_time,onupdate=func.now()) 
+class enq_form_02_model(Base):#criminal history of accused whose accused from enquiry form
+    id=Column(Integer,primary_key=True,autoincrement=True,index=True)
+    occupation_before_criminal_id=Column(Integer,ForeignKey("Occupation.id"))
+    where_arrested_before=Column(Text)
+    was_arrested_before=Column(Text)
+    sentence_details=Column(Text)
+    from_where_stolen_goods_sized=Column(Text,comment="from where were stolen goods sized")
+    po_details_sized=Column(Text,comment="police officer details who was sized")
+    are_staying_another_place=Column(Text,comment="are you staying in another place")
+    po_details=Column(Text,comment="po details from where you staying in another place")
+    did_commite_crime_before=Column(Text,comment="did_you_commite a crime_before")
+    reason_commited_crime=Column(Text,comment="reason for commited crime")
+    when_started_crime=Column(Text,comment="when you have started crime")
+    have_gang_group=Column(Text,comment="have you a gang or group")
+    have_commited_crime_another_gang=Column(Text,comment="have you commited crime with any gang")
+    where_commited_crime=Column(Text,comment="which place you have commited crime")
+    how_much_money_was_stolen=Column(Text,comment="how much money was stolen")
+    where_did_go_before_crime=Column(Text,comment="where did you go before commited crime")
+    where_did_stop_ofter_crime=Column(Text,comment="where did you stop ofter commited crime")
+    who_sold_stolen_assest=Column(Text,comment="who_sold stolen assest")
+
+
+
+
 
 #--------------------Accused_name----------------------------------------------
 class YellowCardModel(Base):
