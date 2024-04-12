@@ -2037,12 +2037,13 @@ async def dlt_chargesheet(current_user:Annotated[UserBase,Depends(get_current_ac
             raise HTTPException(detail=f"{str(e)}",status_code=status.HTTP_400_BAD_REQUEST)    
         raise HTTPException(detail=f'{sheet_id} does not exist',status_code=status.HTTP_400_BAD_REQUEST) 
 #_____________________inquiry_form_____________________________
-@router.get('/get_enqform',response_model=list[Enquiry_Form_Get_03],tags=['Enquiry_Api'])
+@router.get('/get_enqform',response_model=list[enq_form_01_get],tags=['enq_form_01'])
 async def enqform(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                                          db:Session=Depends(getdb)):
-    list_enqform=db.query(EnquiryFormModel).filter(EnquiryFormModel.user_id==current_user.id).order_by(EnquiryFormModel.id.desc()).all()
+    list_enqform=db.query(enq_form_basic_model).filter(enq_form_basic_model.user_id==current_user.id).\
+        order_by(enq_form_basic_model.id.desc()).all()
     return list_enqform
-@router.post('/crete_enquiry_form',response_model=enq_form_01_get,tags=['Enquiry_Api'])
+@router.post('/crete_enquiry_form',response_model=enq_form_01_get,tags=['enq_form_01'])
 async def create_enquiry_form(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                               enquiry_schema:enq_form_01_schema,langues_schema:list[langues_from_enq_form_schema],
                               address_shema:list[enq_form_01_address_schema],
@@ -2092,23 +2093,90 @@ async def create_enquiry_form(current_user:Annotated[UserBase,Depends(get_curren
          raise HTTPException(detail=f"{str(e.orig)}",status_code=status.HTTP_409_CONFLICT)
     except Exception as e:
         raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)
-@router.patch('/create_enquiry_form_02/{enqury_form_id}',response_model=Enquiry_Form_Get_02,tags=['Enquiry_Api'])
+@router.put('/update_enquiry_form_01/{enqury_form_id}',response_model=enq_form_01_get,tags=['enq_form_01'])
 async def create_enquiry_form_02(current_user:Annotated[UserBase,Depends(get_current_active_user)],
-                                 enquiry_form_id:int,enquiry_form_shema_02:Enquiry_Form_Base_02,
+                                 enquiry_form_id:int,enquiry_form_shema_01:enq_form_01_schema,
+                                 langues_schema:list[langues_from_enq_form_schema],
+                                 address_shema:list[enq_form_01_address_schema],
                                  db:Session=Depends(getdb)):
-    enquiry_form_exist=db.query(EnquiryFormModel).filter(EnquiryFormModel.id==enquiry_form_id).first()
+    """
+        update enquiry form_01
+
+        Parameter:
+        - **enquiry_id**:it is use to update item
+        - **enquiry_form_schema_01**:it's schema/info to update enq_form items
+        - **lngues_schema**:it's schema_or_info to update accused langues items
+        - **address_schema**:it's schema_or_info  use to update multipale accused address items
+
+        Return:
+        - updatd item in json formate(status_code:200)
+    """
     try:
-        if enquiry_form_exist:
-            for field,value in enquiry_form_shema_02.model_dump(exclude_unset=True).items():
-                setattr(enquiry_form_exist,field,value)
+        enquiry_form_exist=db.query(enq_form_basic_model).filter(enq_form_basic_model.id==enquiry_form_id).first()
+        if enquiry_form_exist is None:
+            return JSONResponse(content=f"id-{enquiry_form_id} item does not exist",status_code=status.HTTP_400_BAD_REQUEST)
+        duplicate_entry=db.query(enq_form_basic_model).filter(enq_form_basic_model.accused_name==enquiry_form_shema_01.accused_name,
+                                                              enq_form_basic_model.mob_number==enquiry_form_shema_01.mob_number,
+                                                              enq_form_basic_model.id != enquiry_form_id).first()
+        if duplicate_entry is not None:
+            return JSONResponse(content=f"{enquiry_form_shema_01.accused_name} already exist",status_code=status.HTTP_400_BAD_REQUEST)
+        for field,value in enquiry_form_shema_01.model_dump(exclude_unset=True).items():
+            setattr(enquiry_form_exist,field,value)
+        db.commit()
+        db.refresh(enquiry_form_exist)
+        exist_addresses=db.query(enq_form_01_address_model).filter\
+            (enq_form_01_address_model.enq_form_01_id==enquiry_form_id).all()
+        if exist_addresses:
+           list( map(lambda data:db.delete(data),exist_addresses))
+           db.commit()
+        if address_shema is not None:   
+            addresses_data=[{
+                "Type":address_item.Type,
+                "address":address_item.address,
+                "enq_form_01_id":enquiry_form_id
+            } for address_item in address_shema] 
+            db.bulk_insert_mappings(enq_form_01_address_model, addresses_data)
             db.commit()
-            db.refresh(enquiry_form_exist)
-            return enquiry_form_exist
+        exist_langues=db.query(accused_langues_model).filter(accused_langues_model.enq_form_id==enquiry_form_id).all()
+        if exist_langues:
+            list(map(lambda data:db.delete(data),exist_langues))
+            db.commit()
+        if langues_schema is not None:    
+            langues_data=[{
+                "langues_id":langues_item.langues_id,
+                "enq_form_id":enquiry_form_id
+
+            } for langues_item in  langues_schema]
+            db.bulk_insert_mappings(accused_langues_model,langues_data)   
+            db.commit() 
+        return enquiry_form_exist
     except IntegrityError as e:
         raise HTTPException(detail="intigrity error:please check foreign key",status_code=status.HTTP_409_CONFLICT)
     except Exception as e:
-        raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)    
-    raise HTTPException(detail=f"id-{enquiry_form_id} itemdoes not exist",status_code=status.HTTP_400_BAD_REQUEST)
+        raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)  
+@router.delete('/dlt_enqform/{enqform_id}',tags=['enq_form_01']) 
+async def del_enqform(curremt_user:Annotated[UserBase,Depends(get_current_active_user)],
+                      enqform_id:int,db:Session=Depends(getdb)):
+    """
+       Delete enquiry form by using item Id
+
+       Parameter:
+       - **enquform_id**:Id used to delete specific record_items from model
+
+       Returns:
+       - successfull msg in  json format
+    """
+    try:
+        enqform_exist=db.query(enq_form_basic_model).filter(enq_form_basic_model.id==enqform_id).first()
+        if enqform_exist is None:
+            return JSONResponse(content=f"id-{enqform_id} does not exist",status_code=status.HTTP_400_BAD_REQUEST)       
+        db.delete(enqform_exist)
+        db.commit()
+        return Response(content=f"id-{enqform_id} has  been deleted successfully",status_code=status.HTTP_200_OK)
+    except IntegrityError as e:
+        raise HTTPException(detail='can not delete.it is use in anather table',status_code=status.HTTP_409_CONFLICT)    
+    except Exception as e:
+        raise HTTPException(detail=str(e))    
 @router.patch('/create_enquiry_form_03/{enquiry_form_id}',response_model=Enquiry_Form_Get_03,tags=['Enquiry_Api'])
 async def create_enquiry_form_03(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                                  enquiry_form_id:int,enquiry_form_schema_03:Enquiry_Form_Base_03,
@@ -2145,22 +2213,7 @@ async def update_enqform(current_user:Annotated[UserBase,Depends(get_current_act
         except Exception as e:
             raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)
     raise HTTPException(detail=f'id-{enqform_id} does not exist',status_code=status.HTTP_400_BAD_REQUEST)
-@router.delete('/dlt_enqform/{enqform_id}',tags=['Enquiry_Api']) 
-async def del_enqform(curremt_user:Annotated[UserBase,Depends(get_current_active_user)],
-                      enqform_id:int,db:Session=Depends(getdb)):
-    """delete the enquiry_form recode from database"""
-    enqform_exist=db.query(EnquiryFormModel).filter(EnquiryFormModel.id==enqform_id).first()
-    try:
-        if enqform_exist:
-            await dlt_image(enqform_exist.Image_Path)#dlt_image(ima_path)  it's function use for delete image from folder
-            db.delete(enqform_exist)
-            db.commit()
-            return Response(content=f"id-{enqform_id} has  been deleted successfully",status_code=status.HTTP_200_OK)
-    except IntegrityError as e:
-        raise HTTPException(detail='can not delete.it is use in anather table',status_code=status.HTTP_409_CONFLICT)    
-    except Exception as e:
-        raise HTTPException(detail=str(e))    
-    raise HTTPException(detail=f"id-{enqform_id} does not exist",status_code=status.HTTP_400_BAD_REQUEST) 
+
 @router.put('/update_image/{enqform_id}',tags=['Enquiry_Api'])
 async def update_img(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                      enqform_id:int,image:UploadFile=File(...),

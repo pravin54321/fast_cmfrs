@@ -1387,6 +1387,8 @@ class enq_form_01_get(BaseModel):
     own_property_details:str
     is_drink_alcohol:str
     entertainment_media:str
+    create_date:datetime
+    update_date:datetime
     enq_accused_langues:list[langues_from_enq_form_get]
     accused_address:list[enq_form_01_address_get]
   
