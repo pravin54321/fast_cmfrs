@@ -790,6 +790,8 @@ class enq_form_relative_details_model(Base):
     age=Column(Integer)
     mobile_number=Column(String(12))
     address=Column(Text)
+    status=Column(Text,comment="father&Mother live_or_dead")
+    occupation_id=Column(Integer,ForeignKey("Occupation.id"))
     relation=Column(String(200))
     remark=Column(Text)
     create_date=Column(DateTime,default=get_current_time)

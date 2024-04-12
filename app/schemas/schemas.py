@@ -892,12 +892,14 @@ class langues_from_enq_form_get(BaseModel):#output schema
 class enq_accused_relatives_shema(BaseModel):
     """it's accused realative shema.which is link to enquiry_table""" 
     enq_form_id:int
-    name:str
-    age:int
-    mobile_number:str
-    address:str
-    relation:str
-    remark:str  
+    name:Optional[str]=None
+    age:Optional[int]=None
+    mobile_number:Optional[str]=None
+    address:Optional[str]=None
+    status:Optional[str]=None
+    occupation_id:Optional[int]=None
+    relation:Optional[str]=None
+    remark:Optional[str]=None  
 class enq_accused_relatives_get(enq_accused_relatives_shema):
     id:int
     create_date:datetime

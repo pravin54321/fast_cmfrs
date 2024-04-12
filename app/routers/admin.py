@@ -2333,28 +2333,35 @@ async def get_enq_accused_relatives(current_user:Annotated[UserBase,Depends(get_
     """
     list_items=db.query(enq_form_relative_details_model).order_by(enq_form_relative_details_model.id.desc()).all()
     return list_items    
-@router.post("/create_enq_accused_relatives",response_model=enq_accused_relatives_get,tags=["relatives_from_enq_form"])
+@router.post("/create_enq_accused_relatives",response_model=list[enq_accused_relatives_get],tags=["relatives_from_enq_form"])
 async def create_enq_accused_relatives(current_user:Annotated[UserBase,Depends(get_current_active_user)],
-                                       item_schema:enq_accused_relatives_shema,db:Session=Depends(getdb)):
+                                       item_schema:List[enq_accused_relatives_shema],db:Session=Depends(getdb)):
     """
            Create accused relatives which is belong to enquiry form.
+
            Parameter:
            - **item_schema**: new information to create item
+
            Return:
            - created item in json formate(status_code:200)
     """
     try:
-        dunplicate_entry=db.query(enq_form_relative_details_model).\
-            filter(enq_form_relative_details_model.name==item_schema.name,
-                   enq_form_relative_details_model.relation==item_schema.relation,
-                   enq_form_relative_details_model.enq_form_id==item_schema.enq_form_id).first()
-        if dunplicate_entry:
-            return JSONResponse(content=f"{item_schema.name} already exist",status_code=status.HTTP_400_BAD_REQUEST)
-        item_db=enq_form_relative_details_model(**item_schema.model_dump())
-        db.add(item_db)
-        db.commit()
-        db.refresh(item_db)
-        return item_db
+        dbs=[enq_form_relative_details_model(**item.model_dump())\
+            for item in item_schema
+            if not db.query(enq_form_relative_details_model).\
+                filter(enq_form_relative_details_model.name==item.name,
+                    enq_form_relative_details_model.relation==item.relation,
+                    enq_form_relative_details_model.enq_form_id==item.enq_form_id).first()]
+      
+      
+        if dbs:
+            db.add_all(dbs)
+            db.commit()
+            [db.refresh(item_db) for item_db in dbs]
+            return dbs
+        else:
+            return JSONResponse(content="warning:All items already exist,so do not add in the model", 
+                                status_code=status.HTTP_400_BAD_REQUEST)
     except IntegrityError as e:
         raise HTTPException(detail=f"integrity_error:{str(e.orig)}",status_code=status.HTTP_409_CONFLICT)
     except Exception as e:
@@ -2363,6 +2370,16 @@ async def create_enq_accused_relatives(current_user:Annotated[UserBase,Depends(g
 async def update_enq_accused_relatives(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                                        item_id:int,item_schema:enq_accused_relatives_shema,
                                        db:Session=Depends(getdb)):
+    """
+          update  accused_relatives model by id
+
+          Parameters:
+          - **item_id**:it is used to delete specific item
+          - **item_schema**:it is schema_or_info to update item
+
+          Returns:
+          - updated item in  json formate(status_code=200) 
+    """
     try:
         exist_item=db.query(enq_form_relative_details_model).filter(enq_form_relative_details_model.id==item_id).first()
         if exist_item is None:
@@ -2388,7 +2405,7 @@ async def dlt_enq_accused_relatives(current_user:Annotated[UserBase,Depends(get_
            delete accused relatives item by id
 
            Parameter:
-           - **item_id**: delete item using item_id
+           - **item_id**: it used to delete perticular item from the model
 
            Return:
            -success msg in json formate(status_code:200)
@@ -2409,9 +2426,9 @@ async def get_list_known_accused(current_user:Annotated[UserBase,Depends(get_cur
                                  db:Session=Depends(getdb)):
     list_items=db.query(enq_known_accused_model).order_by(enq_known_accused_model.id.desc()).all()
     return list_items    
-@router.post("/create-known-accused",response_model=enq_accused_known_get,tags=["known_to_accused_from_enq_form"])   
+@router.post("/create-known-accused",response_model=list[enq_accused_known_get],tags=["known_to_accused_from_enq_form"])   
 async def create_known_accused(current_user:Annotated[UserBase,Depends(get_current_active_user)],
-                               item_schema:enq_accused_known_schema,db:Session=Depends(getdb)):
+                               item_schema:List[enq_accused_known_schema],db:Session=Depends(getdb)):
     """
          create items of those people whose are identified/known to accused(from enquiry_form).
 
@@ -2423,15 +2440,19 @@ async def create_known_accused(current_user:Annotated[UserBase,Depends(get_curre
 
     """ 
     try:
-        duplicate_entry=db.query(enq_known_accused_model).filter(enq_known_accused_model.enq_form_id==item_schema.enq_form_id,
-                                                                 enq_known_accused_model.name==item_schema.name).first()
-        if duplicate_entry:
-            return JSONResponse(content=f"{item_schema.name} already exist",status_code=status.HTTP_400_BAD_REQUEST)
-        item_db=enq_known_accused_model(**item_schema.model_dump())
-        db.add(item_db)
-        db.commit()
-        db.refresh(item_db)
-        return item_db
+        item_dbs=[enq_known_accused_model(**item.model_dump()) for item in item_schema\
+                   if not db.query(enq_known_accused_model).filter(enq_known_accused_model.enq_form_id==item.enq_form_id,
+                                                                 enq_known_accused_model.name==item.name,
+                                                                 enq_known_accused_model.mobile_number==item.mobile_number,
+                                                                 enq_known_accused_model.relation==item.relation).first()]
+        if item_dbs:
+            db.add_all(item_dbs)
+            db.commit()
+            [db.refresh(item_db) for item_db in item_dbs]
+            return item_dbs
+        else:
+            return JSONResponse(content=f"warning:items already exist so this items do not add in the model",
+                                status_code=status.HTTP_400_BAD_REQUEST)
     except IntegrityError as e:
       raise HTTPException(detail=f"Integrity_error:{str(e.orig)}",status_code=status.HTTP_409_CONFLICT)
     except Exception as e:
@@ -2456,6 +2477,7 @@ async def update_known_accused(current_user:Annotated[UserBase,Depends(get_curre
             return JSONResponse(content=f"id-{item_id} item does not exist",status_code=status.HTTP_400_BAD_REQUEST)
         duplicate_entry=db.query(enq_known_accused_model).filter(enq_known_accused_model.enq_form_id==item_schema.enq_form_id,
                                                                 enq_known_accused_model.name==item_schema.name,
+                                                                enq_known_accused_model.mobile_number==item_schema.mobile_number,
                                                                 enq_known_accused_model.id !=item_id).first()
         if duplicate_entry:
             return JSONResponse(content=f"{item_schema.name} already exist",status_code=status.HTTP_400_BAD_REQUEST)
