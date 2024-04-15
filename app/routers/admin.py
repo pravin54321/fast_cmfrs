@@ -1024,16 +1024,31 @@ async def dlt_crimety(
 @router.post('/policestation_login',response_model=Pstation_loginBase,tags=["Policestation_Logine"])
 async def policestation_logine(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                                police_logine:Pstation_loginBase,db:Session=Depends(getdb)):
-    email_exist=db.query(UserModel).filter(UserModel.UserEmail==police_logine.UserEmail).first()
-    if email_exist:
-        raise HTTPException(detail=f"{police_logine.UserEmail} already exist",status_code=status.HTTP_400_BAD_REQUEST)
-    hash_password_01= get_password_hash(police_logine.UserPassword)
-    setattr(police_logine,'UserPassword',hash_password_01)
-    plogine_item=UserModel(**police_logine.model_dump())
-    db.add(plogine_item)
-    db.commit()
-    db.refresh(plogine_item)
-    return plogine_item
+    """
+         Create policeStation Logine.
+
+         Parameters:
+         -**police_logine**:it is schema/Info to create item
+
+         Returns:
+         - create item in json format
+    """
+    try:
+        email_exist=db.query(UserModel).filter(UserModel.UserEmail==police_logine.UserEmail).first()
+        if email_exist:
+            return JSONResponse(content="{police_logine.UserEmail} email Id already exist",
+                                status_code=status.HTTP_400_BAD_REQUEST)
+        hash_password_01= get_password_hash(police_logine.UserPassword)
+        setattr(police_logine,'UserPassword',hash_password_01)
+        plogine_item=UserModel(**police_logine.model_dump())
+        db.add(plogine_item)
+        db.commit()
+        db.refresh(plogine_item)
+        return plogine_item
+    except IntegrityError as e:
+        raise HTTPException(detail=f"Integrity_error{str(e.orig)}",status_code=status.HTTP_409_CONFLICT)
+    except Exception as e:
+        raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)
 @router.get('/get_station_login',response_model=list[Pstation_loginBaseGet],tags=['Policestation_Logine'])
 async def get_station_login(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                             db:Session=Depends(getdb)):
@@ -1043,20 +1058,27 @@ async def get_station_login(current_user:Annotated[UserBase,Depends(get_current_
 async def update_policelogin(current_user:Annotated[UserBase,Depends(get_current_user)],
                              login_id:int,
                              police_logine:Pstation_loginBase,db:Session=Depends(getdb)):
-    email_exist=db.query(UserModel).filter(UserModel.UserEmail==police_logine.UserEmail,UserModel.id!=login_id).first()
-    if email_exist:
-        raise HTTPException(detail=f'{police_logine.UserEmail} email already exist',status_code=status.HTTP_400_BAD_REQUEST)
-    policestation_exist=db.query(UserModel).filter(UserModel.Pstation_id==police_logine.Pstation_id,UserModel.id!=login_id).first()
-    if policestation_exist:
-        raise HTTPException(detail=f'{police_logine.Pstation_id} policestation already exist',status_code=status.HTTP_400_BAD_REQUEST)
-    user_exist=db.query(UserModel).filter(UserModel.id==login_id).first()  
-    if user_exist:
+    try:
+        user_exist=db.query(UserModel).filter(UserModel.id==login_id).first() 
+        if user_exist is None:
+            return JSONResponse(content=f'id-{login_id} does not exist',status_code=status.HTTP_404_NOT_FOUND) 
+        duplicate_email=db.query(UserModel).filter(UserModel.UserEmail==police_logine.UserEmail,UserModel.id!=login_id).first()
+        if duplicate_email:
+            return JSONResponse(content=f'{police_logine.UserEmail} email already exist',
+                                status_code=status.HTTP_400_BAD_REQUEST)
+        policestation_exist=db.query(UserModel).filter(UserModel.Pstation_id==police_logine.Pstation_id,UserModel.id!=login_id).first()
+        if policestation_exist:
+            return JSONResponse(content=f'{police_logine.Pstation_id} policestation already exist',status_code=status.HTTP_400_BAD_REQUEST)
         for field, value in police_logine.model_dump(exclude={"UserPassword"},exclude_unset=True).items():
-          setattr(user_exist, field, value)
-        db.commit()
-        db.refresh(user_exist)
-        return user_exist 
-    raise HTTPException(detail=f'id-{login_id} does not exist',status_code=status.HTTP_404_NOT_FOUND)
+            setattr(user_exist, field, value)
+            db.commit()
+            db.refresh(user_exist)
+            return user_exist 
+    except IntegrityError as e:
+        raise HTTPException(detail=f"{str(e.orig)}",status_code=status.HTTP_409_CONFLICT)
+    except Exception as e:
+        raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)    
+        
 @router.delete("/del_stationlog/{station_id}",tags=['Policestation_Logine'])
 async def del_stationlog(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                          station_id:int,db:Session=Depends(getdb)):

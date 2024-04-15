@@ -814,7 +814,9 @@ class enq_known_accused_model(Base):
     create_date=Column(DateTime,default=get_current_time)
     update_date=Column(DateTime,default=get_current_time,onupdate=func.now()) 
 class enq_form_02_model(Base):#criminal history of accused whose accused from enquiry form
+    __tablename__="enq_form_02"
     id=Column(Integer,primary_key=True,autoincrement=True,index=True)
+    enq_form_id=Column(Integer,ForeignKey("enq_form_01.id"))
     occupation_before_criminal_id=Column(Integer,ForeignKey("Occupation.id"))
     where_arrested_before=Column(Text)
     was_arrested_before=Column(Text)

@@ -532,6 +532,8 @@ class ComplaintBase(BaseModel):
 
 class ComplaintGet(BaseModel):
    id:int
+#   state_id:int    those values take from  policestation
+#   distric_id:int
    policestation:outside_policestation
    Complaint_uid:str
    Complainant_Name:str
@@ -922,6 +924,7 @@ class enq_accused_known_get(enq_accused_known_schema):
     id:int
     create_date:datetime
     update_date:datetime  
+
 
 class Enquiry_Form_Base_01(BaseModel):
     state_id:int
@@ -1333,6 +1336,27 @@ class Yellow_CardBaseGet(BaseModel):
   
     
 #-------------------information_mode_model---------------
+class enq_form_02_schema(BaseModel):
+    enq_form_id:int
+    occupation_before_criminal_id:int
+    where_arrested_before:str
+    was_arrested_before:str
+    sentence_details:str
+    from_where_stolen_goods_sized:str #from  where were stolen goods sized
+    po_details_sized:str #police officer details who was sized stolen goods
+    are_staying_another_place:str # are you staying in another place
+    po_details:str #police officer details where you are stying in another place
+    did_commite_crime_before:str #did you commite a crime before
+    reason_commited_crime:str # resone for commited a crime
+    when_started_crime:str # when you have started a crime
+    have_gang_group:str #have you a gang or group
+    have_commited_crime_another_gang:str # have ypu commited a crime with any gang
+    where_commited_crime:str # which place you have commited a crime
+    how_much_money_was_stolen:str #how much money was stolen
+    where_did_go_before_crime:str # wher did you go before crime
+    where_did_stop_ofter_crime:str# where did you stop ofter crime
+    who_sold_stolen_assest:str # who sold stolen assests
+
 class enq_form_01_address_schema(BaseModel):
     """
        adddress schema link to enq_form_01
