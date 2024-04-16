@@ -818,9 +818,9 @@ class enq_form_02_model(Base):#criminal history of accused whose accused from en
     id=Column(Integer,primary_key=True,autoincrement=True,index=True)
     enq_form_id=Column(Integer,ForeignKey("enq_form_01.id"))
     occupation_before_criminal_id=Column(Integer,ForeignKey("Occupation.id"))
-    where_arrested_before=Column(Text)
-    was_arrested_before=Column(Text)
-    sentence_details=Column(Text)
+    was_arrested_before=Column(Text,comment="have you been arrested before")
+    was_sentence_before=Column(Text,comment="have you been sentence before")
+    sentence_details=Column(Text,comment="if yes then detail about sentence")
     from_where_stolen_goods_sized=Column(Text,comment="from where were stolen goods sized")
     po_details_sized=Column(Text,comment="police officer details who was sized")
     are_staying_another_place=Column(Text,comment="are you staying in another place")
@@ -835,6 +835,21 @@ class enq_form_02_model(Base):#criminal history of accused whose accused from en
     where_did_go_before_crime=Column(Text,comment="where did you go before commited crime")
     where_did_stop_ofter_crime=Column(Text,comment="where did you stop ofter commited crime")
     who_sold_stolen_assest=Column(Text,comment="who_sold stolen assest")
+    create_date=Column(DateTime,default=get_current_time)
+    update_date=Column(DateTime,default=get_current_time,onupdate=func.now())
+class know_other_criminal(Base):
+    """ 
+        criminal known to the accused
+    """  
+    __tablename__="enq_form2_criminal" 
+    id=Column(Integer,primary_key=True,index=True) 
+    name=Column(String(256))
+    age=Column(Integer)
+    mobile_number=Column(String(12))
+    address=Column(Text)
+    remark=Column(Text)
+    create_date=Column(DateTime,default=get_current_time)
+    update_date=Column(DateTime,update_date=get_current_time,onupdate=func.now())
 
 
 

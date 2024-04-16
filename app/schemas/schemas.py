@@ -1339,9 +1339,9 @@ class Yellow_CardBaseGet(BaseModel):
 class enq_form_02_schema(BaseModel):
     enq_form_id:int
     occupation_before_criminal_id:int
-    where_arrested_before:str
-    was_arrested_before:str
-    sentence_details:str
+    was_arrested_before:str# have you been arrested before
+    was_sentence_before:str# have you been sentence before
+    sentence_details:str#if yest then details about sentence
     from_where_stolen_goods_sized:str #from  where were stolen goods sized
     po_details_sized:str #police officer details who was sized stolen goods
     are_staying_another_place:str # are you staying in another place
@@ -1356,6 +1356,11 @@ class enq_form_02_schema(BaseModel):
     where_did_go_before_crime:str # wher did you go before crime
     where_did_stop_ofter_crime:str# where did you stop ofter crime
     who_sold_stolen_assest:str # who sold stolen assests
+class enq_form_02_get(enq_form_02_schema): 
+    """schema is use to generate forme_02 response"""
+    id:int
+    create_date:datetime
+    update_date:datetime   
 
 class enq_form_01_address_schema(BaseModel):
     """

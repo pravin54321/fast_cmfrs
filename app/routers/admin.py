@@ -551,8 +551,10 @@ async def post_create(current_user:Annotated[UserBase,Depends(get_current_active
                       post:PostBase,db:Session=Depends(getdb)):
     """
          Create a post(police station post) item.
+         
          Parameters:
-         - **post**: schema/data use to create new post
+         - **post**: schema/data use to create new postSSS
+
          Returns:
          - created post in json format(response_code=200)
     """
@@ -579,9 +581,12 @@ async def update_post(current_user:Annotated[UserBase,Depends(get_current_active
                       post_id:int,post:PostBase,db:Session=Depends(getdb)):
     """
           update post model by  using item_id.
+
           Parameters:
+
           - **post_id**: ID used to update perticular item
           - **post**: schema/data used to update item/post
+
           Retuens:
           - updated items in json formate(status_code:200)
     """
@@ -599,16 +604,34 @@ async def update_post(current_user:Annotated[UserBase,Depends(get_current_active
             return exist_post
     except IntegrityError as e:
         raise HTTPException(detail=f"Intigrity_error:{str(e.orig)}",status_code=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)
    
 @router.delete('/del_post/{post_id}',tags=['Master_Post'])
 async def del_post(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                   post_id:int,db:Session=Depends(getdb)):
-    post_exist=db.query(PostModel).filter(PostModel.id==post_id).first()
-    if post_exist:
+    """
+         Delete post(police station post) by Id
+
+         Parameters:
+         -**post_id**: id use to delete specific items
+
+         Returns:
+         - success msg in json format(status_code:200)
+
+    """
+    try:
+        post_exist=db.query(PostModel).filter(PostModel.id==post_id).first()
+        if post_exist is None:
+              return JSONResponse(detail=f'id-{post_id} does not exist',status_code=status.HTTP_404_NOT_FOUND)
         db.delete(post_exist)
         db.commit()
         return Response(content=f' id {post_id} has been deleted successfully',status_code=200)
-    raise HTTPException(detail=f'id-{post_id} does not exist',status_code=status.HTTP_404_NOT_FOUND)
+    except IntegrityError as e:
+        raise HTTPException(detail=f"integrity_error:{str(e.orig)}",status_code=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        raise HTTPException(detail=f"{str(e)}",status_code=status.HTTP_400_BAD_REQUEST)
+      
 @router.get('/taluka_policestation/{taluka_id}',response_model=list[TalukaPolicestation],tags=['Master_Post'])
 async def taluka_policestation(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                                 taluka_id:int,db:Session=Depends(getdb)):
@@ -658,33 +681,67 @@ async def religion_del(current_user:Annotated[UserBase,Depends(get_current_activ
 @router.post('/create_cast',response_model=CasteGet,tags=['Master_Cast'])
 async def create_cast(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                       cast:CastBase,db:Session=Depends(getdb)):
-    cast_exit=db.query(CastModel).filter(CastModel.Cast==cast.Cast).first()
-    if cast_exit:
-        raise HTTPException(detail=f'{cast.Cast} already exist',status_code=400)
-    cast_item=CastModel(**cast.model_dump())
-    db.add(cast_item)
-    db.commit()
-    db.refresh(cast_item)   
-    return cast_item 
+    """
+         Create cast item
+
+         Parameters:
+
+         -**cast**:info use to create new item
+
+         Returns:
+
+         -created items in json format(status_code:200)
+    """
+    try:
+        cast_exit=db.query(CastModel).filter(CastModel.Cast==cast.Cast).first()
+        if cast_exit:
+            return JSONResponse(content=f'{cast.Cast} already exist',status_code=400)
+        cast_item=CastModel(**cast.model_dump())
+        db.add(cast_item)
+        db.commit()
+        db.refresh(cast_item)   
+        return cast_item 
+    except IntegrityError as e:
+        raise HTTPException(detail=f"Integrity_error:{str(e.orig)}",status_code=status.HTTP_409_CONFLICT)
+    except Exception as e:
+        raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)
 @router.get('/get_cast',response_model=list[CasteGet],tags=['Master_Cast'])
 async def get_cast(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                    db:Session=Depends(getdb)):
+    """fetch all items"""
     all_cast=db.query(CastModel).order_by(CastModel.id.desc()).all()
     return all_cast
 @router.put('/update_cast/{cast_id}',response_model=CasteGet,tags=['Master_Cast'])
 async def update_cast(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                       cast_id:int,cast:CastBase,db:Session=Depends(getdb)):
-    duplicate_cast=db.query(CastModel).filter(CastModel.Cast==cast.Cast,CastModel.id!=cast_id).first()
-    if duplicate_cast:
-        raise HTTPException(detail=f'{cast.Cast} already exist',status_code=400)
-    cast_exist=db.query(CastModel).filter(CastModel.id==cast_id).first()
-    if cast_exist:
-        cast_exist.Cast=cast.Cast
-        cast_exist.Religion_id=cast.Religion_id
+    """
+        Update Cast Item by id
+
+        Parameters:
+        -**cast_id**:Id use to update specific item
+        -**cast**:infomation use to update item(schema/object)
+
+        Return:
+        - updated item in json format(status_code:200)
+    """
+    try:
+
+        cast_exist=db.query(CastModel).filter(CastModel.id==cast_id).first()
+        if cast_exist:
+            return JSONResponse(detail=f'id {cast_id} does not exist',status_code=400)
+        duplicate_cast=db.query(CastModel).filter(CastModel.Cast==cast.Cast,CastModel.id!=cast_id).first()
+        if duplicate_cast:
+            raise HTTPException(detail=f'{cast.Cast} already exist',status_code=400)
+        for field,value in cast.model_dump(exclude_unset=True).items():
+            setattr(cast_exist,field,value)
         db.commit()
         db.refresh(cast_exist)
         return cast_exist
-    raise HTTPException(detail=f'id {cast_id} does not exist',status_code=400)
+    except IntegrityError as e:
+        raise HTTPException(detail=f"Integrity_error:{str(e.orig)}",status_code=status.HTTP_409_CONFLICT)
+    except Exception as e:
+        raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)
+   
 @router.delete('/cast_del/{cast_id}',tags=['Master_Cast'])
 async def del_cast(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                    cast_id:int,db:Session=Depends(getdb)):
@@ -1058,6 +1115,16 @@ async def get_station_login(current_user:Annotated[UserBase,Depends(get_current_
 async def update_policelogin(current_user:Annotated[UserBase,Depends(get_current_user)],
                              login_id:int,
                              police_logine:Pstation_loginBase,db:Session=Depends(getdb)):
+    """
+          Update Police Station Logine
+
+          Parameters:
+          -**login_id**: It is use to update specific item in model
+          -**police_login**:it is schema use to update item
+
+          Return:
+          Updated item in json format 
+    """
     try:
         user_exist=db.query(UserModel).filter(UserModel.id==login_id).first() 
         if user_exist is None:
@@ -2533,6 +2600,90 @@ async def  dlt_known_accused(current_user:Annotated[UserBase,Depends(get_current
         raise HTTPException(detail=f"Integrity_error:{(e.orig)}",status_code=status.HTTP_409_CONFLICT)
     except Exception as e:
         raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)
+# enquiry  form_02 
+@router.get("/get-enq-form-02",response_model=list[enq_form_02_get],tags=['enq_form_02'])
+async def get_enq_form(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                       db:Session=Depends(getdb)):
+    """fetch list of enq_form_02"""
+    list_enq_form_items=db.query(enq_form_02_model).order_by(enq_form_02_model.id.desc()).all()
+    return list_enq_form_items
+                          
+@router.post("/create-enq-form_02",response_model=enq_form_02_get,tags=["enq_form_02"])
+async def create_enq_form_02(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                             enq_form_schema:enq_form_02_schema,db:Session=Depends(getdb)):
+    """
+           Create enq_form_02.
+
+           Parameters:
+
+           - **enq_form_schema**:Information use to create a new item
+
+           Returns:
+
+           - created item in json formate(status_code:200)
+    """
+    try:
+        exist_enq_form02=db.query(enq_form_02_model).filter(enq_form_02_model.enq_form_id==enq_form_schema.enq_form_id).first()
+        if exist_enq_form02:
+            msg="enq form already exist can not create more than one form using this id  "
+            return JSONResponse(content=msg,status_code=status.HTTP_400_BAD_REQUEST)
+        enq_form_instance=enq_form_02_model(**enq_form_schema.model_dump())
+        db.add(enq_form_instance)
+        db.commit()
+        db.refresh(enq_form_instance)
+        return enq_form_instance
+    except IntegrityError as e:
+        raise HTTPException(detail=f"{str(e.orig)}",status_code=status.HTTP_409_CONFLICT)
+    except Exception as e:
+        raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)
+@router.put('/update-enq-form-02/{item_id}',response_model=enq_form_02_get,tags=["enq_form_02"])  
+async def update_enq_form_02(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                             item_schema:enq_form_02_schema,item_id:int,db:Session=Depends(getdb)):
+    """
+          Update enq_form_02
+
+          Parameters:
+
+          -**item_id**:Id use to update item
+
+          -**item_schema**:information use to update item
+
+          Return:
+          updated item in json format(status_code:200)
+    """
+    try:  
+            exist_enq_form=db.query(enq_form_02_model).filter(enq_form_02_model.id==item_id).first()
+            if exist_enq_form is None:
+                return JSONResponse(content=f"id-{item_id} item does not exist",status_code=status.HTTP_400_BAD_REQUEST)
+            for field,value in item_schema.model_dump(exclude_unset=True).items():
+                setattr(exist_enq_form,field,value)
+            db.commit()
+            db.refresh(exist_enq_form)
+            return exist_enq_form
+    except IntegrityError as e:
+        raise HTTPException(detail=f"Integrity_error:{str(e.orig)}",status_code=status.HTTP_409_CONFLICT)
+    except Exception as e:
+        raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)  
+
+@router.delete('/dlt-enq-form-02/{item_id}',tags=["enq_form_02"]) 
+async def dlt_enq_form(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                       item_id:int,db:Session=Depends(getdb)):
+    try:
+        exist_item=db.query(enq_form_02_model).filter(enq_form_02_model.id==item_id).first()
+        if exist_item is None:
+            return JSONResponse(content=f"id-{item_id} item does not exist",status_code=status.HTTP_400_BAD_REQUEST)
+        db.delete(exist_item)
+        db.commit() 
+        return JSONResponse(content="item has been deleted successfully",status_code=status.HTTP_200_OK)
+    except IntegrityError as e:
+        raise HTTPException(detail=f"Integrity_error-{str(e.orig)}",status_code=status.HTTP_409_CONFLICT)
+    except Exception as e:
+        raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)  
+
+
+        
+        
+        
      
 
 
