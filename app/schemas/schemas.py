@@ -924,270 +924,111 @@ class enq_accused_known_get(enq_accused_known_schema):
     id:int
     create_date:datetime
     update_date:datetime  
+class enq_form2_known_criminal_schema(BaseModel):
+    name:str
+    age:int
+    mobile_number:str
+    address:str
+    remark:str   
+class enq_form2_known_criminal_schema_02(enq_form2_known_criminal_schema):# this schema use for update model
+    enq_form2_id:int
+           
+class enq_form2_known_criminal_get(enq_form2_known_criminal_schema):
+    id:int
+    create_date:datetime
+    update_date:datetime 
+class enq_form_02_schema(BaseModel):
+    enq_form_id:int
+    occupation_before_criminal_id:int
+    was_arrested_before:str# have you been arrested before
+    was_sentence_before:str# have you been sentence before
+    sentence_details:str#if yest then details about sentence
+    from_where_stolen_goods_sized:str #from  where were stolen goods sized
+    po_details_sized:str #police officer details who was sized stolen goods
+    are_staying_another_place:str # are you staying in another place
+    po_details:str #police officer details where you are stying in another place
+    did_commite_crime_before:str #did you commite a crime before
+    reason_commited_crime:str # resone for commited a crime
+    when_started_crime:str # when you have started a crime
+    have_gang_group:str #have you a gang or group
+    have_commited_crime_another_gang:str # have ypu commited a crime with any gang
+    where_commited_crime:str # which place you have commited a crime
+    how_much_money_was_stolen:str #how much money was stolen
+    where_did_go_before_crime:str # wher did you go before crime
+    where_did_stop_ofter_crime:str# where did you stop ofter crime
+    who_sold_stolen_assest:str # who sold stolen assests
+class enq_form_02_get(enq_form_02_schema): 
+    """schema is use to generate forme_02 response"""
+    id:int
+    known_criminal:list[enq_form2_known_criminal_get]
+    create_date:datetime
+    update_date:datetime   
 
-
-class Enquiry_Form_Base_01(BaseModel):
+class enq_form_01_address_schema(BaseModel):
+    """
+       adddress schema link to enq_form_01
+    """
+    Type:str
+    address:str
+class enq_form_01_address_get(enq_form_01_address_schema):
+    id:int
+    create_date:datetime
+    update_date:datetime    
+class enq_form_01_schema(BaseModel):
+    """
+         enq_form_01_schema basic info off accused
+    """
     state_id:int
     distric_id:int
     Police_Station_id:int
-    Accused_Name:str
-    Nick_Name:str
-    Father_or_Wife_Name:str
-    Age:int
-    Mob_Number:str
-    Height:str
-    Body_Complexion:str
-    Body_Type:str
-    Eyes_Colur:str
-    Hair_Colur:str
-    Identification_Mark:str
-    Subcast_id:int
-    Occupation_id:int
-    Address:str
-    Residence_Address:str
-    Birth_Place:str
-    Is_Father_Alive:str
-    Father_Name:Optional[str]=None
-    Father_Address:Optional[str]=None
-    Father_Occupation_id:Optional[int]=None
-    Is_Father_Property:Optional[str]=None
-    Fater_Property_detail:Optional[str]=None
-    Is_Mother_Alive:str
-    Mother_Details:Optional[str]=None   
-    user_id:Optional[int]=None  
-class Enquiry_Form_Get_01(BaseModel):
-    id:int
-    state_id:int
-    distric_id:int
-    Police_Station_id:int
-    Accused_Name:str
-    Nick_Name:str
-    Father_or_Wife_Name:str
-    Age:int
-    Mob_Number:str
-    Height:str
-    Body_Complexion:str
-    Body_Type:str
-    Eyes_Colur:str
-    Hair_Colur:str
-    Identification_Mark:str
-    Subcast_id:int
-    Occupation_id:int
-    Address:str
-    Residence_Address:str
-    Birth_Place:str
-    Is_Father_Alive:str
-    Father_Name:Optional[str]=None
-    Father_Address:Optional[str]=None
-    Father_Occupation_id:Optional[int]=None
-    Is_Father_Property:Optional[str]=None
-    Fater_Property_detail:Optional[str]=None
-    Is_Mother_Alive:str
-    Mother_Details:Optional[str]=None 
-    accuse_langues:Optional[list[langues_from_enq_form_get]]=None
-class Enquiry_Form_Base_02(BaseModel):
-    Brother_or_Sister:Optional[str]=None
-    Relative_or_Friends:Optional[str]=None
-    Is_Own_Property:Optional[str]=None
-    Own_Property_Details:Optional[str]=None
-    Is_Education:Optional[str]=None
-    Education_Details:Optional[str]=None
-    Is_Married:Optional[str]=None
-    Wife_or_Husband_Details:Optional[str]=None
-    How_long_Current_Address:Optional[str]=None
-    Who_Knows_You:Optional[str]=None
-    Know_Other_Than_Relative:Optional[str]=None
-    Proffession_Before_Coming:Optional[str]=None
-    Arrested_Before:Optional[str]=None 
-    Is_Sentence_before:Optional[str]=None
-    Sentence_Details:Optional[str]=None
-    is_CommitedCrime_Arrested_anyone:Optional[str]=None
-    Details_Anyone:Optional[str]=None
-    Stolen_Goodes_Sized_From:Optional[str]=None
-    PO_Details_Accused:Optional[str]=None
-    Stay_Other_Place:Optional[str]=None
-    PO_Emp:Optional[str]=None
-    Is_commited_Crime_Before:Optional[str]=None
-    Reason_Commited_Crime:Optional[str]=None
-    Started_Crime:Optional[str]=None
-    Gang_or_Group:Optional[str]=None
-    Crime_to_Other_Gang:Optional[str]=None
-    Where_Crime_Commited:Optional[str]=None  
-class Enquiry_Form_Get_02(BaseModel):
-    id:Optional[int]=None
-    state_id:Optional[int]=None
-    distric_id:Optional[int]=None
-    Police_Station_id:Optional[int]=None
-    Accused_Name:Optional[str]=None
-    Nick_Name:Optional[str]=None
-    Father_or_Wife_Name:Optional[str]=None
-    Age:Optional[int]=None
-    Mob_Number:Optional[str]=None
-    Height:Optional[str]=None
-    Body_Complexion:Optional[str]=None
-    Body_Type:Optional[str]=None
-    Eyes_Colur:Optional[str]=None
-    Hair_Colur:Optional[str]=None
-    Langues_id:Optional[int]=None
-    Identification_Mark:Optional[str]=None
-    Subcast_id:Optional[int]=None
-    Occupation_id:Optional[int]=None
-    Address:Optional[str]=None
-    Residence_Address:Optional[str]=None
-    Birth_Place:Optional[str]=None
-    Is_Father_Alive:Optional[str]=None
-    Father_Name:Optional[str]=None
-    Father_Address:Optional[str]=None
-    Father_Occupation_id:Optional[int]=None
-    Is_Father_Property:Optional[str]=None
-    Fater_Property_detail:Optional[str]=None
-    Is_Mother_Alive:Optional[str]=None
-    Mother_Details:Optional[str]=None 
-    Brother_or_Sister:Optional[str]=None
-    Relative_or_Friends:Optional[str]=None
-    Is_Own_Property:Optional[str]=None
-    Own_Property_Details:Optional[str]=None
-    Is_Education:Optional[str]=None
-    Education_Details:Optional[str]=None
-    Is_Married:Optional[str]=None
-    Wife_or_Husband_Details:Optional[str]=None
-    How_long_Current_Address:Optional[str]=None
-    Who_Knows_You:Optional[str]=None
-    Know_Other_Than_Relative:Optional[str]=None
-    Proffession_Before_Coming:Optional[str]=None
-    Arrested_Before:Optional[str]=None 
-    Is_Sentence_before:Optional[str]=None
-    Sentence_Details:Optional[str]=None
-    is_CommitedCrime_Arrested_anyone:Optional[str]=None
-    Details_Anyone:Optional[str]=None
-    Stolen_Goodes_Sized_From:Optional[str]=None
-    PO_Details_Accused:Optional[str]=None
-    Stay_Other_Place:Optional[str]=None
-    PO_Emp:Optional[str]=None
-    Is_commited_Crime_Before:Optional[str]=None
-    Reason_Commited_Crime:Optional[str]=None
-    Started_Crime:Optional[str]=None
-    Gang_or_Group:Optional[str]=None
-    Crime_to_Other_Gang:Optional[str]=None
-    Where_Crime_Commited:Optional[str]=None   
-class Enquiry_Form_Base_03(BaseModel):
-    DoYouKnow_OtherCriminal:Optional[str]=None
-    HowMuch_MonyStolen:Optional[str]=None
-    Where_Go_Before_Crime:Optional[str]=None
-    Where_Stop_Ofter_Crime:Optional[str]=None
-    Whose_sold_Stolen_Assets:Optional[str]=None
-    Robbery_Other_Distric:Optional[str]=None
-    Patner_in_Villege:Optional[str]=None
-    How_Learn_Commiting_Crime:Optional[str]=None
-    Which_Village_Gang_Activate:Optional[str]=None
-    Gang_Main_Adda:Optional[str]=None
-    Which_Town_Visited_Often:Optional[str]=None
-    Know_Robbery_Next:Optional[str]=None
-    Gang_any_Addiction:Optional[str]=None
-    Why_left_PrevGang:Optional[str]=None
-    How_Steal_NewVillage:Optional[str]=None
-    Clicked_Photes_Where:Optional[str]=None
-    When_Police_ShowUp:Optional[str]=None
-    Which_langues_use_Crime:Optional[int]=None
-    Steal_Everyday:Optional[str]=None
-    is_Drink_Alchol:Optional[str]=None
-    Entertainment_Media:Optional[str]=None
-    Where_Sleep_Night:Optional[str]=None
-    Where_Take_Shelter:Optional[str]=None
-    Image_Path:Optional[str]=None 
-    @model_validator(mode='before')
-    @classmethod
-    def validate_to_json(cls, value):
-        if isinstance(value, str):
-            return cls(**json.loads(value))
-        return value  
-class Enquiry_Form_Get_03(BaseModel):
-    id:int
-    # state_id:int
-    # distric_id:int
-    police_station:Optional[outside_policestation]=None
-    Accused_Name:Optional[str]=None
-    Nick_Name:Optional[str]=None
-    Father_or_Wife_Name:Optional[str]=None
-    Age:Optional[int]=None
-    Mob_Number:Optional[str]=None
-    Height:Optional[str]=None
-    Body_Complexion:Optional[str]=None
-    Body_Type:Optional[str]=None
-    Eyes_Colur:Optional[str]=None
-    Hair_Colur:Optional[str]=None
-    accuse_langues:Optional[LanguesGet]=None
-    Identification_Mark:Optional[str]=None
-    subcast:Optional[SubcastGet]=None
-    accused_occupation:Optional[OccupationGet]=None
-    Address:Optional[str]=None
-    Residence_Address:Optional[str]=None
-    Birth_Place:Optional[str]=None
-    Is_Father_Alive:Optional[str]=None
-    Father_Name:Optional[str]=None
-    Father_Address:Optional[str]=None
-    father_occupation:Optional[OccupationGet]=None
-    Is_Father_Property:Optional[str]=None
-    Fater_Property_detail:Optional[str]=None
-    Is_Mother_Alive:Optional[str]=None
-    Mother_Details:Optional[str]=None 
-    Brother_or_Sister:Optional[str]=None 
-    Brother_Sister_Details:Optional[str]=None 
-    Relative_or_Friends:Optional[str]=None 
-    Relative_Friends_Details:Optional[str]=None 
-    Is_Own_Property:Optional[str]=None 
-    Own_Property_Details:Optional[str]=None 
-    Is_Education:Optional[str]=None 
-    Education_Details:Optional[str]=None 
-    Is_Married:Optional[str]=None 
-    Wife_or_Husband_Details:Optional[str]=None 
-    How_long_Current_Address:Optional[str]=None 
-    Who_Knows_You:Optional[str]=None 
-    Know_Other_Than_Relative:Optional[str]=None 
-    Proffession_Before_Coming:Optional[str]=None 
-    Arrested_Before:Optional[str]=None 
-    Is_Sentence_before:Optional[str]=None 
-    Sentence_Details:Optional[str]=None 
-    is_CommitedCrime_Arrested_anyone:Optional[str]=None 
-    Details_Anyone:Optional[str]=None 
-    Stolen_Goodes_Sized_From:Optional[str]=None 
-    PO_Details_Accused:Optional[str]=None 
-    Stay_Other_Place:Optional[str]=None 
-    PO_Emp:Optional[str]=None 
-    Is_commited_Crime_Before:Optional[str]=None 
-    Reason_Commited_Crime:Optional[str]=None 
-    Started_Crime:Optional[str]=None 
-    Gang_or_Group:Optional[str]=None 
-    Crime_to_Other_Gang:Optional[str]=None 
-    Where_Crime_Commited:Optional[str]=None 
-    DoYouKnow_OtherCriminal:Optional[str]=None 
-    HowMuch_MonyStolen:Optional[str]=None 
-    Where_Go_Before_Crime:Optional[str]=None 
-    Where_Stop_Ofter_Crime:Optional[str]=None 
-    Whose_sold_Stolen_Assets:Optional[str]=None 
-    Robbery_Other_Distric:Optional[str]=None 
-    Patner_in_Villege:Optional[str]=None 
-    How_Learn_Commiting_Crime:Optional[str]=None 
-    Which_Village_Gang_Activate:Optional[str]=None 
-    Gang_Main_Adda:Optional[str]=None 
-    Which_Town_Visited_Often:Optional[str]=None 
-    Know_Robbery_Next:Optional[str]=None 
-    Gang_any_Addiction:Optional[str]=None 
-    Why_left_PrevGang:Optional[str]=None 
-    How_Steal_NewVillage:Optional[str]=None 
-    Clicked_Photes_Where:Optional[str]=None 
-    When_Police_ShowUp:Optional[str]=None 
-    crime_langues:Optional[LanguesGet]=None
-    Steal_Everyday:Optional[str]=None 
-    is_Drink_Alchol:Optional[str]=None 
-    Entertainment_Media:Optional[str]=None 
-    Where_Sleep_Night:Optional[str]=None 
-    Where_Take_Shelter:Optional[str]=None 
-    Image_Path:Optional[str]=None 
-    accused_relatives:Optional[list[enq_accused_relatives_get]]=None
-    accuse_langues:Optional[list[langues_from_enq_form_get]]=None
-    # create_date:datetime
-    # update_date:datetime    
+    accused_name:str  
+    aliase:str
+    age:int
+    mob_number:str
+    height:str
+    body_complexion:str
+    body_type:str
+    eyes_color:str
+    hair_color:str
+    identification_mark:str
+    subcast_id:int
+    occupation_id:int
+    How_long_Current_Address:str
+    birth_place:str
+    education:str
+    own_property_details:str
+    is_drink_alcohol:str
+    entertainment_media:str
+    user_id:int
+class enq_form_01_get(BaseModel):
+    enq_policestation:PoliceStationGet
+    accused_name:str  
+    aliase:str
+    age:int
+    mob_number:str
+    height:str
+    body_complexion:str
+    body_type:str
+    eyes_color:str
+    hair_color:str
+    identification_mark:str
+    subcast_id:int
+    occupation_id:int
+    How_long_Current_Address:str
+    birth_place:str
+    education:str
+    own_property_details:str
+    is_drink_alcohol:str
+    entertainment_media:str
+    create_date:datetime
+    update_date:datetime
+    enq_accused_langues:list[langues_from_enq_form_get]
+    accused_address:list[enq_form_01_address_get]        
+
+
+
+
+
 #---------------yellow card----------------  
 class accused_partner_schema(BaseModel):#criminal partner  they are involved in crimme
     """ from yellow_card"""
@@ -1335,93 +1176,8 @@ class Yellow_CardBaseGet(BaseModel):
     criminal_history:Optional[list[criminal_history_get]]=None
   
     
-#-------------------information_mode_model---------------
-class enq_form_02_schema(BaseModel):
-    enq_form_id:int
-    occupation_before_criminal_id:int
-    was_arrested_before:str# have you been arrested before
-    was_sentence_before:str# have you been sentence before
-    sentence_details:str#if yest then details about sentence
-    from_where_stolen_goods_sized:str #from  where were stolen goods sized
-    po_details_sized:str #police officer details who was sized stolen goods
-    are_staying_another_place:str # are you staying in another place
-    po_details:str #police officer details where you are stying in another place
-    did_commite_crime_before:str #did you commite a crime before
-    reason_commited_crime:str # resone for commited a crime
-    when_started_crime:str # when you have started a crime
-    have_gang_group:str #have you a gang or group
-    have_commited_crime_another_gang:str # have ypu commited a crime with any gang
-    where_commited_crime:str # which place you have commited a crime
-    how_much_money_was_stolen:str #how much money was stolen
-    where_did_go_before_crime:str # wher did you go before crime
-    where_did_stop_ofter_crime:str# where did you stop ofter crime
-    who_sold_stolen_assest:str # who sold stolen assests
-class enq_form_02_get(enq_form_02_schema): 
-    """schema is use to generate forme_02 response"""
-    id:int
-    create_date:datetime
-    update_date:datetime   
 
-class enq_form_01_address_schema(BaseModel):
-    """
-       adddress schema link to enq_form_01
-    """
-    Type:str
-    address:str
-class enq_form_01_address_get(enq_form_01_address_schema):
-    id:int
-    create_date:datetime
-    update_date:datetime    
-class enq_form_01_schema(BaseModel):
-    """
-         enq_form_01_schema basic info off accused
-    """
-    state_id:int
-    distric_id:int
-    Police_Station_id:int
-    accused_name:str  
-    aliase:str
-    age:int
-    mob_number:str
-    height:str
-    body_complexion:str
-    body_type:str
-    eyes_color:str
-    hair_color:str
-    identification_mark:str
-    subcast_id:int
-    occupation_id:int
-    How_long_Current_Address:str
-    birth_place:str
-    education:str
-    own_property_details:str
-    is_drink_alcohol:str
-    entertainment_media:str
-    user_id:int
-class enq_form_01_get(BaseModel):
-    enq_policestation:PoliceStationGet
-    accused_name:str  
-    aliase:str
-    age:int
-    mob_number:str
-    height:str
-    body_complexion:str
-    body_type:str
-    eyes_color:str
-    hair_color:str
-    identification_mark:str
-    subcast_id:int
-    occupation_id:int
-    How_long_Current_Address:str
-    birth_place:str
-    education:str
-    own_property_details:str
-    is_drink_alcohol:str
-    entertainment_media:str
-    create_date:datetime
-    update_date:datetime
-    enq_accused_langues:list[langues_from_enq_form_get]
-    accused_address:list[enq_form_01_address_get]
+
   
 
 

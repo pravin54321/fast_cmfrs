@@ -2266,42 +2266,8 @@ async def del_enqform(curremt_user:Annotated[UserBase,Depends(get_current_active
         raise HTTPException(detail='can not delete.it is use in anather table',status_code=status.HTTP_409_CONFLICT)    
     except Exception as e:
         raise HTTPException(detail=str(e))    
-@router.patch('/create_enquiry_form_03/{enquiry_form_id}',response_model=Enquiry_Form_Get_03,tags=['Enquiry_Api'])
-async def create_enquiry_form_03(current_user:Annotated[UserBase,Depends(get_current_active_user)],
-                                 enquiry_form_id:int,enquiry_form_schema_03:Enquiry_Form_Base_03,
-                                 image:UploadFile=File(None),db:Session=Depends(getdb)):
-    enquiry_form_exist=db.query(EnquiryFormModel).filter(EnquiryFormModel.id==enquiry_form_id).first()
-    if enquiry_form_exist:
-        try:
-            file_path=await imagestore(image,'namuna_form')
-            setattr(enquiry_form_schema_03,'Image_Path',f"Static/Images/namuna_form/{file_path}")
-            for field,value in enquiry_form_schema_03.model_dump(exclude_unset=True).items():
-                setattr(enquiry_form_exist,field,value)
-            db.commit()
-            db.refresh(enquiry_form_exist)
-            return enquiry_form_exist
-        except IntegrityError as e:
-            raise HTTPException(detail="integrity error:please check foreign key",status_code=status.HTTP_409_CONFLICT)
-        except Exception as e:
-            raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)
-    raise HTTPException(detail=f'id-{enquiry_form_id} item does not exist',status_code=status.HTTP_400_BAD_REQUEST)    
+  
           
-@router.patch('/update_enquiry_form_01/{enqform_id}',response_model=Enquiry_Form_Get_03,tags=['Enquiry_Api'])
-async def update_enqform(current_user:Annotated[UserBase,Depends(get_current_active_user)],
-                         enqform_id:int,enq_form:Enquiry_Form_Base_01,db:Session=Depends(getdb)):
-    enqform_exist=db.query(EnquiryFormModel).filter(EnquiryFormModel.id==enqform_id).first()
-    if enqform_exist:
-        try:
-            for field,value in enq_form.model_dump(exclude_unset=True).items():
-                setattr(enqform_exist,field,value) 
-            db.commit()
-            db.refresh(enqform_exist)
-            return enqform_exist
-        except IntegrityError as e:
-            raise HTTPException(detail="intigrity error:please check foreign key",status_code=status.http_409) 
-        except Exception as e:
-            raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)
-    raise HTTPException(detail=f'id-{enqform_id} does not exist',status_code=status.HTTP_400_BAD_REQUEST)
 
 @router.put('/update_image/{enqform_id}',tags=['Enquiry_Api'])
 async def update_img(current_user:Annotated[UserBase,Depends(get_current_active_user)],
@@ -2368,7 +2334,7 @@ async def update_accused_known_langues(current_user:Annotated[UserBase,Depends(g
         - **item_id**:it is used to update perticular id data/item
         - **item_schema**: it's infirmation to update item
 
-        Recived:
+        Return:
         - updated item in json format(status_code=200)
     """
     try:
@@ -2610,13 +2576,16 @@ async def get_enq_form(current_user:Annotated[UserBase,Depends(get_current_activ
                           
 @router.post("/create-enq-form_02",response_model=enq_form_02_get,tags=["enq_form_02"])
 async def create_enq_form_02(current_user:Annotated[UserBase,Depends(get_current_active_user)],
-                             enq_form_schema:enq_form_02_schema,db:Session=Depends(getdb)):
+                             enq_form_schema:enq_form_02_schema,
+                             known_criminal:list[enq_form2_known_criminal_schema],
+                             db:Session=Depends(getdb)):
     """
            Create enq_form_02.
 
            Parameters:
 
            - **enq_form_schema**:Information use to create a new item
+           -**known_criminal**:accused known criminal information
 
            Returns:
 
@@ -2630,7 +2599,19 @@ async def create_enq_form_02(current_user:Annotated[UserBase,Depends(get_current
         enq_form_instance=enq_form_02_model(**enq_form_schema.model_dump())
         db.add(enq_form_instance)
         db.commit()
-        db.refresh(enq_form_instance)
+        if enq_form_instance.id and known_criminal:
+            known_criminal_data=[
+                {
+                "enq_form2_id":enq_form_instance.id,
+                "name":item.name,
+                "age":item.age,
+                "mobile_number":item.mobile_number,
+                "address":item.address,
+                "remark":item.remark
+            } for item in known_criminal]
+            known_criminal_instance=[know_other_criminal_model(**data) for data in known_criminal_data]
+            db.add_all(known_criminal_instance)
+            db.commit()
         return enq_form_instance
     except IntegrityError as e:
         raise HTTPException(detail=f"{str(e.orig)}",status_code=status.HTTP_409_CONFLICT)
@@ -2679,6 +2660,95 @@ async def dlt_enq_form(current_user:Annotated[UserBase,Depends(get_current_activ
         raise HTTPException(detail=f"Integrity_error-{str(e.orig)}",status_code=status.HTTP_409_CONFLICT)
     except Exception as e:
         raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)  
+#--------enq_form2_know_criminal--------------------- 
+@router.get('/get-enq-form2-known-criminal',response_model=list[enq_form2_known_criminal_get],tags=["enq_form2_known_criminal"])  
+async def get_enq_form2_known_criminal(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                                       db:Session=Depends(getdb)):
+    """"
+          fetch list of items
+    """
+    item_list=db.query(know_other_criminal_model).order_by(know_other_criminal_model.id.desc()).all()
+    return item_list 
+@router.post("/create-enq-form2-known-criminal",response_model=list[enq_form2_known_criminal_get],tags=["enq_form2_known_criminal"]) 
+async def create_enq_form2_known_criminal(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                                          item_schema:list[enq_form2_known_criminal_schema_02],
+                                          db:Session=Depends(getdb)):
+    try:
+       known_criminal_instance=[know_other_criminal_model(**data.model_dump()) for data in item_schema
+                                if not db.query(know_other_criminal_model).filter\
+                                    (know_other_criminal_model.name==data.name,
+                                     know_other_criminal_model.mobile_number==data.mobile_number).first()]
+       if known_criminal_instance:
+           db.add_all(known_criminal_instance)
+           db.commit()
+           [db.refresh(item) for item in known_criminal_instance]
+           return known_criminal_instance
+       else:
+           return JSONResponse(content="warning:can  not add items .all items already exist",status_code=status.HTTP_400_BAD_REQUEST)
+    except IntegrityError as e:
+        raise HTTPException(detail=f"Integrety_error-{str(e.orig)}",status_code=status.HTTP_409_CONFLICT)
+    except Exception as e:
+        raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)   
+@router.put('/update_enq_form2_known_criminal/{item_id}',response_model=enq_form2_known_criminal_get,tags=["enq_form2_known_criminal"])
+async def update_enq_form2_known_criminal(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                                          item_schema:enq_form2_known_criminal_schema_02,
+                                          item_id:int,
+                                          db:Session=Depends(getdb)):
+    """
+         Update enq_form2_known_criminal
+
+         Parameters:
+
+         -**item_id**:Id use to  update item
+         -**item_schema**:information  use to update item
+
+          Return:
+          updated item 
+
+    """
+    try:
+        exist_item=db.query(know_other_criminal_model).filter(know_other_criminal_model.id==item_id).first()
+        if exist_item is None:
+            return JSONResponse(content="id-{item_id} item does not exist",status_code=status.HTTP_400_BAD_REQUEST)
+        duplicate_item=db.query(know_other_criminal_model).filter(know_other_criminal_model.name==item_schema.name,
+                                                                know_other_criminal_model.enq_form2_id==item_schema.enq_form2_id,
+                                                                know_other_criminal_model.mobile_number==item_schema.mobile_number,
+                                                                know_other_criminal_model.id !=item_id).first()
+        if duplicate_item:
+            return JSONResponse(content=f"{item_schema.name} already exist",status_code=status.HTTP_400_BAD_REQUEST)
+        for field,value in item_schema.model_dump(exclude_unset=True).items():
+            setattr(exist_item,field,value)
+        db.commit()
+        return exist_item    
+    except IntegrityError as e:
+        raise HTTPException(detail=f"Integrity_error:{str(e.orig)}",status_code=status.HTTP_409_CONFLICT)
+    except Exception as e:
+        raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)  
+@router.delete("/dlt-enq-form2-known-criminal/{item_id}",tags=["enq_form2_known_criminal"])
+async def dlt_enq_form2_known_criminal(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                                       item_id=int,db:Session=Depends(getdb)):
+    """
+            delete known criminal from enquiry form by using id
+
+            Parameters:
+            -**item_id**:Id used to delete item
+
+            Rturns:
+            success msg in json formate(status_code)
+
+    """
+    try:
+        exist_item=db.query(know_other_criminal_model).filter(know_other_criminal_model.id==item_id).first()
+        if exist_item is None:
+            return JSONResponse(content=f"id-{item_id} item does not exist",status_code=status.HTTP_400_BAD_REQUEST) 
+        db.delete(exist_item)
+        db.commit()
+        return JSONResponse(content="item has been deleted successfully",status_code=status.HTTP_400_BAD_REQUEST)
+    except  IntegrityError as e:
+        raise HTTPException(detail=f"Integrity_error{str(e.orig)}",status_code=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)     
+                                         
 
 
         

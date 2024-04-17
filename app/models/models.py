@@ -837,19 +837,21 @@ class enq_form_02_model(Base):#criminal history of accused whose accused from en
     who_sold_stolen_assest=Column(Text,comment="who_sold stolen assest")
     create_date=Column(DateTime,default=get_current_time)
     update_date=Column(DateTime,default=get_current_time,onupdate=func.now())
-class know_other_criminal(Base):
+    known_criminal=relationship("know_other_criminal_model",backref="know_criminal",cascade="all,delete")
+class know_other_criminal_model(Base):
     """ 
         criminal known to the accused
     """  
-    __tablename__="enq_form2_criminal" 
-    id=Column(Integer,primary_key=True,index=True) 
+    __tablename__="enq_form2_known_criminal" 
+    id=Column(Integer,primary_key=True,index=True)
+    enq_form2_id=Column(Integer,ForeignKey("enq_form_02.id")) 
     name=Column(String(256))
     age=Column(Integer)
     mobile_number=Column(String(12))
     address=Column(Text)
     remark=Column(Text)
     create_date=Column(DateTime,default=get_current_time)
-    update_date=Column(DateTime,update_date=get_current_time,onupdate=func.now())
+    update_date=Column(DateTime,default=get_current_time,onupdate=func.now())
 
 
 
