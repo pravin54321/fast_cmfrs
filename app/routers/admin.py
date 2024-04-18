@@ -2748,6 +2748,83 @@ async def dlt_enq_form2_known_criminal(current_user:Annotated[UserBase,Depends(g
         raise HTTPException(detail=f"Integrity_error{str(e.orig)}",status_code=status.HTTP_400_BAD_REQUEST)
     except Exception as e:
         raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)     
+    
+#--------enquiery form 03 start-------------------
+@router.post("/create-enq-form-03",response_model=enq_form_03_get,tags=["enq_form_03"])
+async def create_enq_form_03(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                             item_schema:enq_form_03_shema,db:Session=Depends(getdb)):
+    """
+           Create enquiry form 03
+
+           Parameters:
+
+           -**item_schema**:information  use to create enqiery_form_03
+           
+           Recived:
+           -created enquiry form in jsonn format (status_code:200)
+    """
+    try:
+        duplicate_enq_form=db.query(enq_form3_model).filter(enq_form3_model.enq_form_id==item_schema).first()
+        if duplicate_enq_form:
+            return JSONResponse(content="enq_form already exist.you can't create",status_code=status.HTTP_400_BAD_REQUEST)
+        enq_form_instance=enq_form3_model(**item_schema.model_dump())
+        db.add(enq_form_instance)
+        db.commit()
+        return duplicate_enq_form
+    except IntegrityError as e:
+        raise HTTPException(detail=f"Integrity_error:{e.orig}",status_code=status.HTTP_409_CONFLICT)
+    except Exception as e:
+        raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST) 
+@router.put("updated-enq-form-03/{item_id}",response_model=enq_form_03_shema,tags=["enq_form_03"]) 
+async def update_enq_form_03(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                             item_id:int,item_schema:enq_form_03_shema,db:Session=Depends(getdb)):
+    """
+          Update enq form 03 by Id
+
+          Parameters:
+
+          -**item_id**: Id is used to update specific item
+          -**item_schema**: information is use to  update enq_form item
+
+          Return:
+
+          -updated item in json format(ststus_code)
+    """
+    try:
+        exist_item=db.query(enq_form3_model).filter(enq_form3_model.id==item_id).first()
+        if exist_item is None:
+            return JSONResponse(content=f"id-{item_id} item does not exist",status_code=status.HTTP_400_BAD_REQUEST)
+        duplicate_item=db.query(enq_form3_model).filter(enq_form3_model.enq_form_id==item_schema.enq_form_id,
+                                                        enq_form3_model.id!=item_id).first()
+        if duplicate_item:
+            return JSONResponse(content=f"enq_form already exist so can't create another enquiry form",
+                                status_code=status.HTTP_400_BAD_REQUEST)
+        for field,value in item_schema.model_dump(exclude_unset=True).items():
+            setattr(exist_item,field,value)
+        db.commit()
+        db.refresh(exist_item)
+        return exist_item
+    except IntegrityError as e:
+        raise HTTPException(detail=f"Integrity_error:{str(e.orig)}",status_code=status.HTTP_409_CONFLICT)
+    except Exception as e:
+        raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)   
+@router.delete("/dlt_enq_form_03/item_id",response_model=enq_form_03_shema,tags=["enq_form_03"])
+async def dlt_enq_form_03(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                          item_id:int,db:Session=Depends(getdb)):
+    try:
+        exist_item=db.query(enq_form3_model).filter(enq_form3_model.id==item_id).first()  
+        if exist_item is None:
+            return JSONResponse(content=f"id-{item_id} item does not exist",status_code=status.HTTP_400_BAD_REQUEST) 
+        db.delete(exist_item)
+        db.commit()
+        return Response(content="Item has been deleted successfully",status_code=status.HTTP_200_OK)
+    except IntegrityError as e:
+        raise HTTPException(detail=f"Integrity_error:{str(e.orig)}",status_code=status.HTTP_409_CONFLICT)
+    except Exception as e:
+        raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)  
+
+
+
                                          
 
 

@@ -937,6 +937,30 @@ class enq_form2_known_criminal_get(enq_form2_known_criminal_schema):
     id:int
     create_date:datetime
     update_date:datetime 
+class enq_form_03_shema(BaseModel):
+    enq_form_id:int
+    did_you_rob_other_district:str
+    do_you_have_partner_village:str  
+    how_did_learn_commit_crime:str
+    which_village_gang_activate:str
+    where_is_gang_adda:str
+    which_town_visited_often:str
+    do_know_about_next_robbery:str
+    is_there_any_addiction_in_gang:str
+    why_are_you_left_prev_gang:str
+    how_does_steal_in_new_village:str
+    have_you_taken_photo_anywhere:str
+    when_did_police_see_you:str
+    which_langues_use_to_crime:str
+    do_you_steal_every_day:str
+    where_sleep_night:str
+    where_take_shelter:str
+class enq_form_03_get(enq_form_03_shema):
+    id:int
+    create_date:datetime
+    update_date:datetime    
+   
+    
 class enq_form_02_schema(BaseModel):
     enq_form_id:int
     occupation_before_criminal_id:int

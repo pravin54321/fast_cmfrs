@@ -852,6 +852,29 @@ class know_other_criminal_model(Base):
     remark=Column(Text)
     create_date=Column(DateTime,default=get_current_time)
     update_date=Column(DateTime,default=get_current_time,onupdate=func.now())
+class enq_form3_model(Base):
+    __tablename__="enq_form_03"
+    id=Column(Integer,primary_key=True,index=True,nullable=True,autoincrement=True)
+    enq_form_id=Column(Integer,ForeignKey("enq_form_01.id"))
+    did_you_rob_other_district=Column(String(256),comment="did you rob other district")
+    do_you_have_partner_village=Column(Text,comment="do you have partner in village")    
+    how_did_learn_commit_crime=Column(Text,comment="how did you learn to commite crime")
+    which_village_gang_activate=Column(Text,comment="which village gang is activate")
+    where_is_gang_adda=Column(Text,comment="where is gang adda")
+    which_town_visited_often=Column(Text,comment="which town visited often")
+    do_know_about_next_robbery=Column(Text,comment="do_you_know_about_next_robbery")
+    is_there_any_addiction_in_gang=Column(Text,comment="is there any addiction in gang")
+    why_are_you_left_prev_gang=Column(Text,comment="why are you left previous gang")
+    how_does_steal_in_new_village=Column(Text,comment="how does steal in new village")
+    have_you_taken_photo_anywhere=Column(Text,comment="have you taken photo anywhere")
+    when_did_police_see_you=Column(Text,comment="when did police see you")
+    which_langues_use_to_crime=Column(Integer,ForeignKey("langues.id"),comment="which langues are use when commiting a crime")
+    do_you_steal_every_day=Column(String(200),comment="do you steal every day")
+    where_sleep_night=Column(String(200),comment="where do you sleep at night")
+    where_take_shelter=Column(Text,comment="where do you take shelter")
+    create_date=Column(DateTime,default=get_current_time)
+    update_date=Column(DateTime,default=get_current_time,onupdate=func.now())
+
 
 
 
