@@ -2179,6 +2179,7 @@ async def create_enquiry_form(current_user:Annotated[UserBase,Depends(get_curren
                 db.commit()   
         return enquiry_form_db
     except IntegrityError as e:
+         print(str(e))
          raise HTTPException(detail=f"{str(e.orig)}",status_code=status.HTTP_409_CONFLICT)
     except Exception as e:
         raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)

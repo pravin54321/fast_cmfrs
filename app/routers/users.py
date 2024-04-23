@@ -74,10 +74,6 @@ def logine_for_acess_token(form_data : Annotated[OAuth2PasswordRequestForm, Depe
                 "access_token": access_token,"token_type": "bearer"
                 }   
          
-    
-    
-
-  
 #-----------------user_activate_deactivate----------------------------
 @router.post('/dactivate_user/{user_id}',tags=['Authentication'])
 async def dactivate(current_user:Annotated[UserBase,Depends(get_current_active_user)],
