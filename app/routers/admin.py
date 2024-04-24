@@ -2546,7 +2546,7 @@ async def update_known_accused(current_user:Annotated[UserBase,Depends(get_curre
         raise HTTPException(detail=f"{str(e.orig)}",status_code=status.HTTP_409_CONFLICT)
     except Exception as e:
         raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)
-@router.delete('dlt-known-accused/{item_id}',response_model=enq_accused_known_get,tags=["known_to_accused_from_enq_form"]) 
+@router.delete('/dlt-known-accused/{item_id}',response_model=enq_accused_known_get,tags=["known_to_accused_from_enq_form"]) 
 async def  dlt_known_accused(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                              item_id:int,db:Session=Depends(getdb)):
     """ 

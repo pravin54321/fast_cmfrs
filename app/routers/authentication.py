@@ -16,7 +16,7 @@ def get_password_hash(password):
 
 def get_user(UserEmail:str):
     db = SessionLocal()
-    print("user_email--------->",UserEmail)
+    # print("user_email--------->",UserEmail)
     user_data = db.query(UserModel).filter(UserModel.UserEmail==UserEmail).first()
     print("user_present",user_data)
     if user_data is not None:
@@ -33,6 +33,8 @@ def get_user(UserEmail:str):
             "Posting_Distric":user_data.district.Distric if user_data.Posting_Distric is not None else None,
             "pstation_id":user_data.Pstation_id,
             "police_station":user_data.police_station.PoliceStation if user_data.Pstation_id  is not None else None,
+            "ps_state_id":user_data.police_station.State_id if user_data.Pstation_id is not None else None,#ps means police station
+            "ps_district_id":user_data.police_station.Distric_id if user_data.Pstation_id is not None else None,
             "Role":user_data.Role
           }
         return hash_password(**user_dict)

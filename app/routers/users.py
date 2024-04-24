@@ -50,13 +50,19 @@ def logine_for_acess_token(form_data : Annotated[OAuth2PasswordRequestForm, Depe
     data={"sub": user.UserEmail}, expires_delta=access_token_expires
     )
     if user.Role == 0:
+         state_item=db.query(StateModel).filter(StateModel.id==user.ps_state_id).first()
+         distric_item=db.query(DistricModel).filter(DistricModel.id==user.ps_district_id).first()
          return{"user":user.UserName,
                 "useremail":user.UserEmail,
                 "mobile_number":user.Mobile_Number,
                 "designation":{"id":user.Designation_id,"designation":user.User_Designation},
                 "police_station":{"id":user.pstation_id,"police_station":user.police_station,
+                                 "state":{"id":state_item.id,
+                                          "state":state_item.State},
+                                 "district":{"id":distric_item.id,
+                                             "district":distric_item.Distric}},         
                 "access_token": access_token,"token_type": "bearer"}
-                }
+                
     elif user.Role == 1:
          return{"user":user.UserName,
                 "useremail":user.UserEmail,

@@ -91,7 +91,9 @@ class hash_password(BaseModel):
     district_id:Union[int,None]=None
     Posting_Distric:Union[str,None]=None
     Role:Optional[int]=None
-    disabled: Union[bool, None] = None   
+    disabled: Union[bool, None] = None  
+    ps_state_id:Optional[int]=None
+    ps_district_id:Optional[int]=None 
    
 class UserBaseGet(BaseModel):
     id:int
