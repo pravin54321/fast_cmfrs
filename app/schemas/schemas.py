@@ -1027,6 +1027,7 @@ class enq_form_01_schema(BaseModel):
     entertainment_media:str
     user_id:int
 class enq_form_01_get(BaseModel):
+    id:int
     enq_policestation:PoliceStationGet
     accused_name:str  
     aliase:str
