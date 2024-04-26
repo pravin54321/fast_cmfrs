@@ -804,7 +804,7 @@ class enq_known_accused_model(Base):
     """
     __tablename__="enq_know_accused"
     id=Column(Integer,primary_key=True,autoincrement=True,index=True,nullable=False)
-    enq_form_id=Column(Integer,ForeignKey("enquiry_form.id"))
+    enq_form_id=Column(Integer,ForeignKey("enq_form_01.id"))
     name=Column(String(200))
     age=Column(Integer)
     mobile_number=Column(String(200))
