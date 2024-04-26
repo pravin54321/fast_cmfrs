@@ -2766,13 +2766,13 @@ async def create_enq_form_03(current_user:Annotated[UserBase,Depends(get_current
            -created enquiry form in jsonn format (status_code:200)
     """
     try:
-        duplicate_enq_form=db.query(enq_form3_model).filter(enq_form3_model.enq_form_id==item_schema).first()
+        duplicate_enq_form=db.query(enq_form3_model).filter(enq_form3_model.enq_form_id==item_schema.enq_form_id).first()
         if duplicate_enq_form:
             return JSONResponse(content="enq_form already exist.you can't create",status_code=status.HTTP_400_BAD_REQUEST)
         enq_form_instance=enq_form3_model(**item_schema.model_dump())
         db.add(enq_form_instance)
         db.commit()
-        return duplicate_enq_form
+        return enq_form_instance
     except IntegrityError as e:
         raise HTTPException(detail=f"Integrity_error:{e.orig}",status_code=status.HTTP_409_CONFLICT)
     except Exception as e:
