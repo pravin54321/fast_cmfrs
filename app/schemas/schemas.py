@@ -953,7 +953,7 @@ class enq_form_03_shema(BaseModel):
     how_does_steal_in_new_village:str
     have_you_taken_photo_anywhere:str
     when_did_police_see_you:str
-    which_langues_use_to_crime:str
+    which_langues_use_to_crime:int
     do_you_steal_every_day:str
     where_sleep_night:str
     where_take_shelter:str
