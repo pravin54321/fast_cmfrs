@@ -715,7 +715,7 @@ class EnquiryFormModel(Base):
     police_station=relationship("PoliceStationModel",backref='policestation')
     subcast=relationship("SubcastModel",backref='subcast')
     # accuse_langues=relationship("accused_langues_model",backref='accuse_langues',cascade="all,delete")
-    accused_relatives=relationship("enq_form_relative_details_model",backref="accused_relatives",cascade="all,delete")
+    # accused_relatives=relationship("enq_form_relative_details_model",backref="accused_relatives",cascade="all,delete")
     crime_langues=relationship(LanguesModel,foreign_keys=[Which_langues_use_Crime],backref='crime_langues')
     accused_occupation=relationship(OccupationModel,foreign_keys=[Occupation_id],backref='accused_occupation')
     father_occupation=relationship(OccupationModel,foreign_keys=[Father_Occupation_id],backref='father_occupation')
