@@ -785,7 +785,7 @@ class enq_form_relative_details_model(Base):
     """ 
     __tablename__="enq_accused_relative"
     id=Column(Integer,autoincrement=True,index=True,primary_key=True)
-    enq_form_id=Column(Integer,ForeignKey("enquiry_form.id"),nullable=False)
+    enq_form_id=Column(Integer,ForeignKey("enq_form_01.id"),nullable=False)
     name=Column(String(200))
     age=Column(Integer)
     mobile_number=Column(String(12))
