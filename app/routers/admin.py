@@ -2419,7 +2419,8 @@ async def create_enq_accused_relatives(current_user:Annotated[UserBase,Depends(g
             return JSONResponse(content="warning:All items already exist,so do not add in the model", 
                                 status_code=status.HTTP_400_BAD_REQUEST)
     except IntegrityError as e:
-        raise HTTPException(detail=f"integrity_error:{str(e.orig)}",status_code=status.HTTP_409_CONFLICT)
+        raise HTTPException(detail=f"integrity_error:{str(e)}",status_code=status.HTTP_409_CONFLICT)
+    
     except Exception as e:
         raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)
 @router.put("/update_enq_accused_relatives/{item_id}",response_model=enq_accused_relatives_get,tags=['relatives_from_enq_form'])  
