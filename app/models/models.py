@@ -752,6 +752,8 @@ class enq_form_basic_model(Base):
     enq_policestation=relationship(PoliceStationModel,backref="enq_policestation")
     enq_accused_langues=relationship("accused_langues_model",backref="enq_accused_langues",cascade="all,delete")
     accused_address=relationship("enq_form_01_address_model",backref="accused_address",cascade="all,delete")
+    enq_form_02=relationship("enq_form_02_model",backref="enq_form_02")
+    enq_form_03=relationship("enq_form3_model",backref='enq_form_03')
 class enq_form_01_address_model(Base):
     """
         address model from enq_form_01

@@ -937,6 +937,7 @@ class enq_form2_known_criminal_schema_02(enq_form2_known_criminal_schema):# this
            
 class enq_form2_known_criminal_get(enq_form2_known_criminal_schema):
     id:int
+    enq_form2_id:int
     create_date:datetime
     update_date:datetime 
 class enq_form_03_shema(BaseModel):
@@ -1050,7 +1051,9 @@ class enq_form_01_get(BaseModel):
     create_date:datetime
     update_date:datetime
     enq_accused_langues:list[langues_from_enq_form_get]
-    accused_address:list[enq_form_01_address_get]        
+    accused_address:list[enq_form_01_address_get] 
+    enq_form_02:enq_form_02_get
+    # enq_form_03:enq_form_03_get     
 
 
 

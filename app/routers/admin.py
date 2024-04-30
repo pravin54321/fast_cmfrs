@@ -2837,16 +2837,17 @@ async def dlt_enq_form_03(current_user:Annotated[UserBase,Depends(get_current_ac
     except Exception as e:
         raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)  
 # create MOB card(modus opendi bureau)
-@router.post("creat-mob-card",tags=["mob_card"])
+@router.post("/creat-mob-card",response_model=enq_form_01_get,tags=["mob_card"])
 async def create_mob_card(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                          item:str,
                           db:Session=Depends(getdb)):
     """
         create mob card
         create pdf files of enquiry_form,fir and yellow_card 
     """  
     #search criminal from enquiry form
-    # enquiry_form=db.query(enq_form_basic_model).enq
-    pass
+    enquiry_form=db.query(enq_form_basic_model).filter(enq_form_basic_model.accused_name=='pravin mendhe').first()
+    return enquiry_form
      
 
 
