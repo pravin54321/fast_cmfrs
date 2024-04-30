@@ -1887,7 +1887,7 @@ async def update_fir(current_user:Annotated[UserBase,Depends(get_current_active_
                 db.commit()
                 return fir_exist 
         except IntegrityError as e:
-            raise HTTPException(detail=f"Integrity_error:{e}",status_code=status.HTTP_409_CONFLICT)    
+            raise HTTPException(detail=f"Integrity_error:{str(e)}",status_code=status.HTTP_409_CONFLICT)    
         except  Exception as e:
               raise HTTPException(detail=f"{str(e)}",status_code=status.HTTP_400_BAD_REQUEST)    
         raise HTTPException(detail=f'id-{fir_id} does not exist',status_code=status.HTTP_400_BAD_REQUEST) 
@@ -2845,6 +2845,7 @@ async def create_mob_card(current_user:Annotated[UserBase,Depends(get_current_ac
         create pdf files of enquiry_form,fir and yellow_card 
     """  
     #search criminal from enquiry form
+    # enquiry_form=db.query(enq_form_basic_model).enq
     pass
      
 
