@@ -1886,6 +1886,8 @@ async def update_fir(current_user:Annotated[UserBase,Depends(get_current_active_
                     setattr(fir_exist,field,value)
                 db.commit()
                 return fir_exist 
+        except IntegrityError as e:
+            raise HTTPException(detail=f"Integrity_error:{e}",status_code=status.HTTP_409_CONFLICT)    
         except  Exception as e:
               raise HTTPException(detail=f"{str(e)}",status_code=status.HTTP_400_BAD_REQUEST)    
         raise HTTPException(detail=f'id-{fir_id} does not exist',status_code=status.HTTP_400_BAD_REQUEST) 
@@ -2752,6 +2754,16 @@ async def dlt_enq_form2_known_criminal(current_user:Annotated[UserBase,Depends(g
         raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)     
     
 #--------enquiery form 03 start-------------------
+@router.get('/get-enq-form-03',response_model=list[enq_form_03_get],tags=["enq_form_03"])
+async def get_enq_form_03(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                          db:Session=Depends(getdb)):
+    """ 
+        Fetch all items from enquiery_form_03 model
+        returns:
+        list of all items in json formate(status_code=200)
+    """                     
+    list_item=db.query(enq_form3_model).order_by(enq_form3_model.id.desc()).all()
+    return list_item
 @router.post("/create-enq-form-03",response_model=enq_form_03_get,tags=["enq_form_03"])
 async def create_enq_form_03(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                              item_schema:enq_form_03_shema,db:Session=Depends(getdb)):
@@ -2824,6 +2836,17 @@ async def dlt_enq_form_03(current_user:Annotated[UserBase,Depends(get_current_ac
         raise HTTPException(detail=f"Integrity_error:{str(e.orig)}",status_code=status.HTTP_409_CONFLICT)
     except Exception as e:
         raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)  
+# create MOB card(modus opendi bureau)
+@router.post("creat-mob-card",tags=["mob_card"])
+async def create_mob_card(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                          db:Session=Depends(getdb)):
+    """
+        create mob card
+        create pdf files of enquiry_form,fir and yellow_card 
+    """  
+    #search criminal from enquiry form
+    pass
+     
 
 
 
