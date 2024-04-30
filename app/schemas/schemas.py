@@ -1052,8 +1052,14 @@ class enq_form_01_get(BaseModel):
     update_date:datetime
     enq_accused_langues:list[langues_from_enq_form_get]
     accused_address:list[enq_form_01_address_get] 
-    enq_form_02:enq_form_02_get
-    # enq_form_03:enq_form_03_get     
+#use in   mob card   
+class enq_form_mob_get(enq_form_01_get):
+    """
+        this schema use in  mob card  for fetch enquiry_form information
+    """
+    enq_form_02:list[enq_form_02_get]
+    enq_form_03:list[enq_form_03_get] 
+
 
 
 
