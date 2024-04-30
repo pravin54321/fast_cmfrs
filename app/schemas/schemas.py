@@ -496,6 +496,9 @@ class ComEvidenceGet(ComEvidenceBase):
    id:int      
 
 class ComplaintBase(BaseModel):
+   """
+     complaint form schema  this is use to create new complaint form item
+   """
    state_id:int
    distric_id:int
    Station_id:int
@@ -533,6 +536,9 @@ class ComplaintBase(BaseModel):
         return value      
 
 class ComplaintGet(BaseModel):
+   """
+    it is complaint form's response schema
+   """
    id:int
 #   state_id:int    those values take from  policestation
 #   distric_id:int

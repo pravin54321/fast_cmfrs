@@ -1149,30 +1149,62 @@ async def update_policelogin(current_user:Annotated[UserBase,Depends(get_current
 @router.delete("/del_stationlog/{station_id}",tags=['Policestation_Logine'])
 async def del_stationlog(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                          station_id:int,db:Session=Depends(getdb)):
-    station_exist=db.query(UserModel).filter(UserModel.id==station_id).first()
-    if station_exist:
+    """
+    Delete specific station log by using Id
+
+    Parameters:
+
+    -**station_id**:Id is used to delete specific item
+
+    Returns:
+    successfull msg in json formate(status_code:200)
+
+    """
+    try:
+        station_exist=db.query(UserModel).filter(UserModel.id==station_id).first()
+        if station_exist is None:
+               return JSONResponse(detail=f'id-{station_id} does not exist',status_code=status.HTTP_404_NOT_FOUND)
+       
         db.delete(station_exist)
         db.commit()
         return Response(content=f'id-{station_id} station logine  has been deleted successfully',status_code=status.HTTP_200_OK)
-    raise HTTPException(detail=f'id-{station_id} does not exist',status_code=status.HTTP_404_NOT_FOUND)
+    except IntegrityError as e:
+        raise HTTPException(detail=f"Integrity_error:{str(e)}",status_code=status.HTTP_409_CONFLICT)
+    except Exception as e:
+        raise HTTPException(detail=f"{str(e)}",status_code=status.HTTP_400_BAD_REQUEST)
+
 #--------complaint_api---------------------------
-@router.post('/create_complaint',response_model=ComplaintGet,tags=["Complaint_Api"])
+@router.post('/create_complaint',response_model=ComplaintGet,tags=["complaint_form"])
 async def create_complaint(current_user:Annotated[UserBase,Depends(get_current_active_user)],
-                        complaint:ComplaintBase=Body(...),img_file:UploadFile=File(None),
+                        complaint:ComplaintBase,img_file:UploadFile=File(None),
                         db:Session=Depends(getdb)):
+    """
+        Create complaint form
+
+        Parameters:
+
+        - **complaint**:it is  use to create complaint new item(schema)
+
+        - **img_file**:it is use to upload file
+
+        Returns:
+
+        cretaed complaint items in json formate(status_code=200)
+    """
     try:
             if img_file:
-                file_path=await imagestore(img_file,'complaint/complainant_img')
+                file_path=await imagestore(img_file,'complaint/complainant_img') #image store in specific folder imagestore(file_name,folder_name)
                 setattr(complaint,'Complainant_Imgpath',f"Static/Images/complaint/complainant_img/{file_path}")
-            user_id=[current_user.id if current_user.id else None]
-            complaint.user_id=user_id[0]
+            setattr(complaint,"user_id",current_user.id)
             complaint_item=ComplaintModel(**complaint.model_dump())
             db.add(complaint_item)
             db.commit()
             return complaint_item
+    except IntegrityError as e:
+        raise HTTPException(detail=f"Integrity_error:{str(e)}",status_code=status.HTTP_409_CONFLICT)
     except Exception as e:
         raise HTTPException(detail=f"error:{str(e)}",status_code=status.HTTP_400_BAD_REQUEST)
-@router.get('/get_complaint',response_model=list[ComplaintGet],tags=['Complaint_Api'])
+@router.get('/get_complaint',response_model=list[ComplaintGet],tags=['complaint_form'])
 async def get_complaint(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                         db:Session=Depends(getdb)):
     if current_user.Role == 1 or current_user.Role==2:#0 for sp and 2 for admin
@@ -1180,7 +1212,7 @@ async def get_complaint(current_user:Annotated[UserBase,Depends(get_current_acti
     elif current_user.Role==0:       
            list_complaint=db.query(ComplaintModel).filter(ComplaintModel.user_id==current_user.id).order_by(ComplaintModel.id.desc()).all()
     return list_complaint
-@router.get('/get_single_complaint/{complaint_id}',response_model=ComplaintGet,tags=['Complaint_Api'])
+@router.get('/get_single_complaint/{complaint_id}',response_model=ComplaintGet,tags=['complaint_form'])
 async def get_single_complaint(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                                complaint_id:int,db:Session=Depends(getdb)):
     if current_user.Role==1 or current_user.Role==2:
@@ -1190,7 +1222,7 @@ async def get_single_complaint(current_user:Annotated[UserBase,Depends(get_curre
         complaint_item=db.query(ComplaintModel).filter(ComplaintModel.id==complaint_id,ComplaintModel.user_id==current_user.id).first()
         return complaint_item
 
-@router.put('/update_complaint/{complaint_id}',response_model=ComplaintGet,tags=['Complaint_Api'])
+@router.put('/update_complaint/{complaint_id}',response_model=ComplaintGet,tags=['complaint_form'])
 async def update_complaint(current_user:Annotated[UserBase,Depends(getdb)],
                            complaint_id:int,
                            complaint:ComplaintBase,db:Session=Depends(getdb)):
@@ -1206,7 +1238,7 @@ async def update_complaint(current_user:Annotated[UserBase,Depends(getdb)],
     except Exception as e:
         raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)    
     raise HTTPException(detail=f'id-{complaint_id} does not exist',status_code=status.HTTP_404_NOT_FOUND) 
-@router.patch('/update_complaint_fir_status/{complaint_id}',tags=['Complaint_Api'])
+@router.patch('/update_complaint_fir_status/{complaint_id}',tags=['complaint_form'])
 async def update_complaint_fir_status(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                                       complaint_id:int,
                                       status_for_fir:str,db:Session=Depends(getdb)):
@@ -1222,7 +1254,7 @@ async def update_complaint_fir_status(current_user:Annotated[UserBase,Depends(ge
     except Exception as e:
         raise HTTPException(detail=str(e),status_code=status.HTTP_409_CONFLICT)
         
-@router.delete('/del/{complaint_id}',tags=['Complaint_Api'])
+@router.delete('/del/{complaint_id}',tags=['complaint_form'])
 async def del_complaint(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                         complaint_id:int,db:Session=Depends(getdb)):
     try:
@@ -2837,17 +2869,44 @@ async def dlt_enq_form_03(current_user:Annotated[UserBase,Depends(get_current_ac
     except Exception as e:
         raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)  
 # create MOB card(modus opendi bureau)
-@router.post("/creat-mob-card",response_model=enq_form_mob_get,tags=["mob_card"])
+@router.post("/creat-enquiry-mob-card",response_model=enq_form_mob_get,tags=["mob_card"])
 async def create_mob_card(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                           item:str,
                           db:Session=Depends(getdb)):
     """
         create mob card
-        create pdf files of enquiry_form,fir and yellow_card 
+        create pdf files of enquiry_form
+
+        Parameter:
+        -**item**: accused name 
+
+        Return:
+        -inquiery form item in json format(staus_code:200)
     """  
     #search criminal from enquiry form
     enquiry_form=db.query(enq_form_basic_model).filter(enq_form_basic_model.accused_name==item).first()
     return enquiry_form
+@router.get('/create-ycard-mob-card',response_model=Yellow_CardBaseGet,tags=["mob_card"])
+async def create_ycard_mob_card(current_user:Annotated[UserBase,Depends(get_current_active_user)],
+                                item:str,db:Session=Depends(getdb)):
+    """
+        create mob card from yellow_card accused
+
+        Parameters:
+        -**item**:it is accused name
+
+        Returns:
+        yellow card data in json formate
+        
+    """
+    try:
+        yellow_card_item=db.query(YellowCardModel).filter(YellowCardModel.Accused_Name==item).first()
+        return yellow_card_item
+    except IntegrityError as e:
+        raise HTTPException(detail=f"Integrity:{str(e)}",status_code=status.HTTP_409_CONFLICT)
+    except Exception as e:
+        raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST)
+    
      
 
 
