@@ -2621,7 +2621,7 @@ async def create_enq_form_02(current_user:Annotated[UserBase,Depends(get_current
            Parameters:
 
            - **enq_form_schema**:Information use to create a new item
-           -**known_criminal**:accused known criminal information
+           - **known_criminal**:accused known criminal information
 
            Returns:
 
@@ -2821,7 +2821,7 @@ async def create_enq_form_03(current_user:Annotated[UserBase,Depends(get_current
         raise HTTPException(detail=f"Integrity_error:{e.orig}",status_code=status.HTTP_409_CONFLICT)
     except Exception as e:
         raise HTTPException(detail=str(e),status_code=status.HTTP_400_BAD_REQUEST) 
-@router.put("updated-enq-form-03/{item_id}",response_model=enq_form_03_shema,tags=["enq_form_03"]) 
+@router.put("/updated-enq-form-03/{item_id}",response_model=enq_form_03_shema,tags=["enq_form_03"]) 
 async def update_enq_form_03(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                              item_id:int,item_schema:enq_form_03_shema,db:Session=Depends(getdb)):
     """
@@ -2830,6 +2830,7 @@ async def update_enq_form_03(current_user:Annotated[UserBase,Depends(get_current
           Parameters:
 
           -**item_id**: Id is used to update specific item
+          
           -**item_schema**: information is use to  update enq_form item
 
           Return:
