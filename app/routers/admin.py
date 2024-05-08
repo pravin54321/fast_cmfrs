@@ -1843,6 +1843,25 @@ async def delete_ncr_act(current_user:Annotated[UserBase,Depends(get_current_act
 async def get_fir(current_user:Annotated[UserBase,Depends(get_current_active_user)],db:Session=Depends(getdb)):
     list_fir=db.query(FIRModel).filter(FIRModel.user_id==current_user.id).order_by(FIRModel.id.desc()).all()
     return list_fir
+@router.get("/get-sigle-fir/{item_id}",response_model=FirBaseGet,tags=["FIR_API"])
+async def get_single_fir(current_user:Annotated[UserBase,Depends(get_current_user)],
+                         item_id:int,
+                         db:Session=Depends(getdb)):
+    """
+        Fetch single fir itom
+
+        Parameters:
+
+        - **item_id**:Id use for fetch sigle item
+
+        Returns:
+        - items in json formate(status_code=200)
+    """
+    if db.query(FIRModel).filter(FIRModel.id==item_id).first() is None:
+        return Response(content=f"Id-{item_id} item does not exist",status_code=status.HTTP_400_BAD_REQUEST)
+    get_fir=db.query(FIRModel).filter(FIRModel.id==item_id).first()
+    return get_fir
+
 @router.post('/fir_from_complaint/{complaint_id}',response_model=FirBaseGet,tags=['FIR_API'])
 async def fir_from_complaint(current_user:Annotated[UserBase,Depends(get_current_active_user)],
                              complaint_id:int,db:Session=Depends(getdb)):
